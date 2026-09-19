@@ -13,6 +13,8 @@ pnpm build
 pnpm start
 ```
 
+Embedded-preview note: browsers may suppress the `SameSite=Lax` session cookie in a cross-site iframe. Open the live preview in a standalone tab for account/owner workflows. The verified authentication journey used a top-level browsing context; third-party iframe-cookie behavior is not claimed to work universally.
+
 The server binds `0.0.0.0:3000`. Use a process manager/systemd/container restart policy in production. The preview platform can proxy that port. No browser code calls localhost directly; requests are relative.
 
 For development:
