@@ -1,0 +1,391 @@
+{
+  "checks": [
+    "19 page routes + missing-content fallback",
+    "Theme persistence and accent customization",
+    "Live Arabic search, category + duration filters, sorting controls and load more",
+    "Guest bookmarks survive navigation and reload",
+    "Native-dialog preview, working video playback, MP4 download, share/copy and keyboard Escape",
+    "Anonymous admin denial and cross-origin mutation denial",
+    "Real signup, scrypt-backed login session, member authorization denial and server bookmarks",
+    "Owner creates, edits and deletes via validated three-step editor",
+    "Authenticated media upload, signature rejection and video Range seeking",
+    "Owner-only users list and audit log"
+  ],
+  "routes": [
+    {
+      "route": "/",
+      "status": 200
+    },
+    {
+      "route": "/library",
+      "status": 200
+    },
+    {
+      "route": "/saved",
+      "status": 200
+    },
+    {
+      "route": "/about",
+      "status": 200
+    },
+    {
+      "route": "/login",
+      "status": 200
+    },
+    {
+      "route": "/admin",
+      "status": 200
+    },
+    {
+      "route": "/offline",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0001",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0002",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0003",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0004",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0005",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0006",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0007",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0008",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0009",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0010",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0011",
+      "status": 200
+    },
+    {
+      "route": "/r/YR-0012",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "responsive": [
+    {
+      "route": "/",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/library",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/about",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/saved",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/login",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/admin",
+      "width": 320,
+      "viewport": 320,
+      "document": 320
+    },
+    {
+      "route": "/",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/library",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/about",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/saved",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/login",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/admin",
+      "width": 375,
+      "viewport": 375,
+      "document": 375
+    },
+    {
+      "route": "/",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/library",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/about",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/saved",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/login",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/admin",
+      "width": 768,
+      "viewport": 768,
+      "document": 768
+    },
+    {
+      "route": "/",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/library",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/about",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/saved",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/login",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/admin",
+      "width": 1024,
+      "viewport": 1024,
+      "document": 1024
+    },
+    {
+      "route": "/",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/library",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/about",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/saved",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/login",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/admin",
+      "width": 1440,
+      "viewport": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/library",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/about",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/saved",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/login",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/admin",
+      "width": 1920,
+      "viewport": 1920,
+      "document": 1920
+    },
+    {
+      "route": "/",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    },
+    {
+      "route": "/library",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    },
+    {
+      "route": "/about",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    },
+    {
+      "route": "/saved",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    },
+    {
+      "route": "/login",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    },
+    {
+      "route": "/admin",
+      "width": 3840,
+      "viewport": 3840,
+      "document": 3840
+    }
+  ],
+  "missingStatus": 404,
+  "completed": true
+}

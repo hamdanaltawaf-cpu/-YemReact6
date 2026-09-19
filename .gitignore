@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.cache/
+.tools/
+*.tsbuildinfo
+.env*
+!.env.example
+data/
+verification/tools/node_modules/
+*.zip

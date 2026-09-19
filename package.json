@@ -1,0 +1,35 @@
+{
+  "name": "yemreact-v3-exp",
+  "version": "4.0.0-preview",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "admin:create": "node scripts/create-admin.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "format": "prettier --write src scripts tests next.config.ts",
+    "format:check": "prettier --check src scripts tests next.config.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "framer-motion": "^11.15.0",
+    "lucide-react": "^0.460.0",
+    "next": "15.5.23",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "prettier": "^3.9.8",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264"
+}

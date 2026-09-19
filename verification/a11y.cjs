@@ -1,0 +1,6 @@
+const {chromium}=require('./tools/node_modules/playwright');
+const AxeBuilder=require('./tools/node_modules/@axe-core/playwright').default;
+const fs=require('fs');
+(async()=>{const browser=await chromium.launch({args:['--no-sandbox','--disable-dev-shm-usage']});const context=await browser.newContext({viewport:{width:1280,height:900}});const page=await context.newPage();const report=[];
+for(const route of ['/','/library','/r/YR-0001','/about','/saved','/login','/admin']){await page.goto('http://127.0.0.1:3000'+route,{waitUntil:'networkidle',timeout:60000});await page.locator('h1:visible').first().waitFor();await page.waitForTimeout(400);const a=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa']).analyze();report.push({route,violations:a.violations.map(v=>({id:v.id,impact:v.impact,description:v.description,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary})).slice(0,20)})),incomplete:a.incomplete.length});fs.writeFileSync('verification/v4/accessibility.json',JSON.stringify(report,null,2));}
+fs.writeFileSync('verification/v4/accessibility.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await browser.close();})();

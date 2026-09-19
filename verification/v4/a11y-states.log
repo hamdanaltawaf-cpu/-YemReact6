@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Dark homepage",
+    "violations": [],
+    "incomplete": 2
+  },
+  {
+    "name": "Dark preview with saved reaction",
+    "violations": [],
+    "incomplete": 2
+  },
+  {
+    "name": "Dark settings",
+    "violations": [],
+    "incomplete": 0
+  },
+  {
+    "name": "Light settings",
+    "violations": [],
+    "incomplete": 0
+  },
+  {
+    "name": "Light preview with saved reaction",
+    "violations": [],
+    "incomplete": 2
+  }
+]

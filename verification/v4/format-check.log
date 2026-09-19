@@ -1,0 +1,6 @@
+
+> yemreact-v3-exp@4.0.0-preview format:check /home/user/yemreact-v3-exp
+> prettier --check src scripts tests next.config.ts
+
+Checking formatting...
+All matched files use Prettier code style!

@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-19",
+  "routesPassed": 19,
+  "responsiveCases": 49,
+  "runtimeErrors": 0,
+  "notFoundStatus": 404,
+  "unitTests": 7,
+  "a11yRouteViolations": 0,
+  "a11yStateViolations": 0,
+  "a11yManualReviewItems": 11,
+  "pwaPassed": true,
+  "lighthouse": {
+    "mobile": {
+      "scores": {
+        "performance": 92,
+        "accessibility": 100,
+        "best-practices": 96,
+        "seo": 100
+      },
+      "lcpMs": 3332.032,
+      "cls": 0,
+      "tbtMs": 46.5,
+      "fcpMs": 922.524
+    },
+    "desktop": {
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "lcpMs": 678.775,
+      "cls": 0.007148172124075124,
+      "tbtMs": 0,
+      "fcpMs": 261.46500000000003
+    }
+  }
+}

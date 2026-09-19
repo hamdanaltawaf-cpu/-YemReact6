@@ -1,0 +1,49 @@
+
+> yemreact-v3-exp@4.0.0-preview test /home/user/yemreact-v3-exp
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: normalizes Arabic diacritics and hamza
+ok 1 - normalizes Arabic diacritics and hamza
+  ---
+  duration_ms: 1.425333
+  ...
+# Subtest: all nine categories have seed content
+ok 2 - all nine categories have seed content
+  ---
+  duration_ms: 0.205064
+  ...
+# Subtest: search uses all normalized query words
+ok 3 - search uses all normalized query words
+  ---
+  duration_ms: 0.487003
+  ...
+# Subtest: category filtering is exact
+ok 4 - category filtering is exact
+  ---
+  duration_ms: 7.230858
+  ...
+# Subtest: duration and sorting are composed
+ok 5 - duration and sorting are composed
+  ---
+  duration_ms: 0.294866
+  ...
+# Subtest: unique codes and honest demo flags
+ok 6 - unique codes and honest demo flags
+  ---
+  duration_ms: 0.204105
+  ...
+# Subtest: empty and unknown queries do not throw
+ok 7 - empty and unknown queries do not throw
+  ---
+  duration_ms: 0.292191
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 659.882718

@@ -1,0 +1,37 @@
+[
+  {
+    "route": "/",
+    "violations": [],
+    "incomplete": 2
+  },
+  {
+    "route": "/library",
+    "violations": [],
+    "incomplete": 1
+  },
+  {
+    "route": "/r/YR-0001",
+    "violations": [],
+    "incomplete": 2
+  },
+  {
+    "route": "/about",
+    "violations": [],
+    "incomplete": 0
+  },
+  {
+    "route": "/saved",
+    "violations": [],
+    "incomplete": 0
+  },
+  {
+    "route": "/login",
+    "violations": [],
+    "incomplete": 0
+  },
+  {
+    "route": "/admin",
+    "violations": [],
+    "incomplete": 0
+  }
+]

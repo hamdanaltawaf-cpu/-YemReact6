@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "lighthouse": "^12.8.2",
+    "playwright": "^1.63.0"
+  }
+}

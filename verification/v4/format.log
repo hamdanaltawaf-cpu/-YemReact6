@@ -1,0 +1,48 @@
+
+> yemreact-v3-exp@4.0.0-preview format /home/user/yemreact-v3-exp
+> prettier --write src scripts tests next.config.ts
+
+src/app/about/page.tsx 108ms
+src/app/admin/page.tsx 6ms
+src/app/api/admin/route.ts 13ms
+src/app/api/auth/route.ts 34ms
+src/app/api/events/route.ts 17ms
+src/app/api/media/[name]/route.ts 22ms
+src/app/api/reactions/route.ts 31ms
+src/app/api/saved/route.ts 14ms
+src/app/api/upload/route.ts 18ms
+src/app/error.tsx 13ms
+src/app/globals.css 423ms
+src/app/layout.tsx 14ms
+src/app/library/page.tsx 3ms
+src/app/loading.tsx 3ms
+src/app/login/page.tsx 2ms
+src/app/manifest.ts 4ms
+src/app/not-found.tsx 3ms
+src/app/offline/page.tsx 3ms
+src/app/page.tsx 5ms
+src/app/r/[code]/page.tsx 10ms
+src/app/robots.ts 3ms
+src/app/saved/page.tsx 2ms
+src/app/sitemap.ts 6ms
+src/components/AppProvider.tsx 64ms
+src/components/Footer.tsx 10ms
+src/components/Header.tsx 30ms
+src/components/Preview.tsx 55ms
+src/components/Pwa.tsx 2ms
+src/components/Qusasa.tsx 16ms
+src/components/ReactionCard.tsx 8ms
+src/components/Settings.tsx 17ms
+src/components/ui/Modal.tsx 14ms
+src/features/Admin.tsx 123ms
+src/features/Auth.tsx 25ms
+src/features/Detail.tsx 18ms
+src/features/Home.tsx 42ms
+src/features/Library.tsx 34ms
+src/lib/categories.ts 4ms
+src/lib/reactions.ts 26ms
+src/server/auth.ts 19ms
+src/server/db.ts 13ms
+scripts/create-admin.mjs 40ms
+tests/search.test.mjs 9ms
+next.config.ts 4ms

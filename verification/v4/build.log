@@ -1,0 +1,47 @@
+
+> yemreact-v3-exp@4.0.0-preview build /home/user/yemreact-v3-exp
+> next build
+
+   ▲ Next.js 15.5.23
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 35.9s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/10) ...
+   Generating static pages (2/10) 
+   Generating static pages (4/10) 
+   Generating static pages (7/10) 
+ ✓ Generating static pages (10/10)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    6.36 kB         118 kB
+├ ƒ /_not-found                            152 B         103 kB
+├ ƒ /about                                 167 B         106 kB
+├ ƒ /admin                               9.54 kB         122 kB
+├ ƒ /api/admin                             152 B         103 kB
+├ ƒ /api/auth                              152 B         103 kB
+├ ƒ /api/events                            152 B         103 kB
+├ ƒ /api/media/[name]                      152 B         103 kB
+├ ƒ /api/reactions                         152 B         103 kB
+├ ƒ /api/saved                             152 B         103 kB
+├ ƒ /api/upload                            152 B         103 kB
+├ ƒ /library                               127 B         119 kB
+├ ƒ /login                               4.76 kB         111 kB
+├ ○ /manifest.webmanifest                  152 B         103 kB
+├ ƒ /offline                               167 B         106 kB
+├ ƒ /r/[code]                            4.86 kB         117 kB
+├ ○ /robots.txt                            152 B         103 kB
+├ ƒ /saved                                 127 B         119 kB
+└ ƒ /sitemap.xml                           152 B         103 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/78d81b0e-e84deb6b612c9287.js  54.2 kB
+  ├ chunks/998-f2fe7526ba86b354.js       46.5 kB
+  └ other shared chunks (total)          2.01 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
