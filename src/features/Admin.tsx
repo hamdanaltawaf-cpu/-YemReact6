@@ -69,6 +69,8 @@ export default function Admin() {
   useEffect(() => {
     load();
   }, [load]);
+  // Clear the studio immediately after logout, including a cached client-side route.
+  if (!app.authReady || !admin) return null;
   const filtered = app.reactions.filter((r) =>
     [r.caption, r.code, r.situation].join(' ').includes(q),
   );

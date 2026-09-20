@@ -2,9 +2,11 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Qusasa } from './Qusasa';
+import { useApp } from './AppProvider';
 import { ArrowUpLeft, MoveUp } from 'lucide-react';
 export function Footer() {
   const pathname = usePathname();
+  const { user } = useApp();
   if (['/library', '/library/', '/login', '/login/'].includes(pathname)) return null;
 
   return (
@@ -31,7 +33,7 @@ export function Footer() {
             <Link href="/about">حكايتنا</Link>
             <Link href="/about#faq">أسئلة تتكرر</Link>
             <Link href="/about#privacy">الخصوصية والحقوق</Link>
-            <Link href="/admin">الاستوديو</Link>
+            {user?.role === 'admin' && <Link href="/admin">الاستوديو</Link>}
           </nav>
           <span className="mono">صُنع بروح يمنية ↗</span>
         </div>

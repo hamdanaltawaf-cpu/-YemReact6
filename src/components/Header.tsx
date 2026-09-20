@@ -66,9 +66,11 @@ export function Header() {
                 {label}
               </Link>
             ))}
-            <Link href="/admin" aria-current={path === '/admin' ? 'page' : undefined}>
-              الاستوديو <span className="tiny-tag">جديد</span>
-            </Link>
+            {app.user?.role === 'admin' && (
+              <Link href="/admin" aria-current={path === '/admin' ? 'page' : undefined}>
+                الاستوديو <span className="tiny-tag">جديد</span>
+              </Link>
+            )}
           </nav>
           <div className="header-actions">
             <button
@@ -114,7 +116,7 @@ export function Header() {
                 {label}
               </Link>
             ))}
-            <Link href="/admin">الاستوديو</Link>
+            {app.user?.role === 'admin' && <Link href="/admin">الاستوديو</Link>}
             <Link href="/login">الحساب</Link>
           </nav>
         )}
