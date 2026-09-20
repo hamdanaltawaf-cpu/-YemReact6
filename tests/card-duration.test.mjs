@@ -6,6 +6,14 @@ import ts from 'typescript';
 import React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
+const mediaContext = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(fs.readFileSync('src/lib/media.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText,
+  mediaContext,
+);
+const media = mediaContext.exports;
 const code = ts.transpileModule(fs.readFileSync('src/components/ReactionCard.tsx', 'utf8'), {
   compilerOptions: {
     module: ts.ModuleKind.CommonJS,
@@ -18,11 +26,18 @@ const context = {
   exports: {},
   require: (name) => {
     if (name === 'react/jsx-runtime') return jsxRuntime;
+    if (name === 'react') return React;
+    if (name === '@/lib/media') return media;
     if (name === 'next/image') return () => null;
     if (name === 'next/link')
       return ({ children, href }) => React.createElement('a', { href }, children);
     if (name === 'lucide-react')
-      return { Bookmark: () => null, Play: () => null, ArrowUpLeft: () => null };
+      return {
+        Bookmark: () => null,
+        Play: () => null,
+        ArrowUpLeft: () => null,
+        Expand: () => null,
+      };
     if (name === './AppProvider')
       return { useApp: () => ({ saved: [], setPreview() {}, toggleSave() {} }) };
     throw Error(name);

@@ -32,7 +32,7 @@ export function Header() {
   }, []);
   const links = [
     ['/library', 'المكتبة'],
-    ['/saved', 'مجموعتك'],
+    ['/saved', 'المحفوظات'],
     ['/about', 'حكايتنا'],
   ];
   return (

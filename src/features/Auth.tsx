@@ -45,9 +45,9 @@ export default function Auth({
       <section className="container page-section empty-state">
         <ShieldCheck size={50} />
         <h1>حيّاك، {app.user.name}.</h1>
-        <p>حسابك متصل. مجموعتك جاهزة لك.</p>
+        <p>حسابك متصل. المحفوظات جاهزة لك.</p>
         <Link className="btn btn-dark" href={app.user.role === 'admin' ? '/admin' : '/saved'}>
-          افتح {app.user.role === 'admin' ? 'الاستوديو' : 'مجموعتك'} <ArrowLeft size={18} />
+          افتح {app.user.role === 'admin' ? 'الاستوديو' : 'المحفوظات'} <ArrowLeft size={18} />
         </Link>
         <button className="text-button" onClick={app.logout}>
           تسجيل الخروج
@@ -60,13 +60,13 @@ export default function Auth({
         <Qusasa size={58} tone="paper" />
         <span className="eyebrow">كل ردودك. معك.</span>
         <h1 id="social-title">
-          مجموعتك، <br />
+          المحفوظات، <br />
           وين ما تكون.
         </h1>
         <p>
           ردّك المناسب، محفوظ لوقته.
           <br />
-          خذ مجموعتك معك من جهاز لجهاز.
+          المحفوظات معك، من جهاز إلى آخر.
         </p>
         <ul className="social-benefits">
           <li>

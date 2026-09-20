@@ -131,7 +131,7 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
         });
         if (!r.ok) throw Error();
       } else localStorage.setItem('yr:guest-saved', JSON.stringify(next));
-      toast(exists ? 'أُزيل من مجموعتك' : 'حفظناه لك. ارجع له وقت ما تحتاج.');
+      toast(exists ? 'أُزيل من المحفوظات' : 'حفظناه لك. ارجع له وقت ما تحتاج.');
     } catch {
       setSaved(saved);
       toast('تعذّر الحفظ. تحقق من الاتصال.');

@@ -1,5 +1,7 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
+import Image from 'next/image';
+import { isImageMedia, mediaFileExtension } from '@/lib/media';
 import { Bookmark, Download, Share2, VolumeX } from 'lucide-react';
 import { useApp, track } from './AppProvider';
 import type { Reaction } from '@/lib/reactions';
@@ -23,11 +25,11 @@ export function ReactionActions({ reaction }: { reaction: Reaction }) {
           .trim()
           .slice(0, 80) || 'yemreact') +
         (reaction.isDemo ? '-demo' : '') +
-        (reaction.media.endsWith('.webm') ? '.webm' : '.mp4');
+        mediaFileExtension(reaction.media, blob.type);
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       track('download', reaction.code);
-      app.toast('المقطع صار عندك. خذه وحطّه!');
+      app.toast('تم تنزيل الملف.');
     } catch {
       app.toast('تعذّر التنزيل. جرّب مرة ثانية.');
     } finally {
@@ -75,6 +77,7 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
   const video = useRef<HTMLVideoElement>(null),
     [failed, setFailed] = useState(false);
   const counted = useRef(false);
+  const isImage = isImageMedia(reaction.media);
   useEffect(() => {
     counted.current = false;
     setFailed(false);
@@ -84,32 +87,44 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
   }, [active]);
   return (
     <div className="clip-player">
-      <video
-        key={reaction.code}
-        ref={video}
-        controls
-        aria-label={`معاينة ${reaction.caption}`}
-        playsInline
-        loop
-        preload="none"
-        poster={reaction.poster}
-        onError={() => setFailed(true)}
-        onPlay={() => {
-          if (!counted.current) {
-            track('play', reaction.code);
-            counted.current = true;
-          }
-        }}
-      >
-        <source src={reaction.media} />
-        {reaction.caption}
-      </video>
+      {isImage ? (
+        <Image
+          key={reaction.code}
+          src={reaction.media}
+          alt={reaction.caption}
+          fill
+          sizes="(max-width: 600px) 90vw, 600px"
+          className="clip-still"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <video
+          key={reaction.code}
+          ref={video}
+          controls
+          aria-label={`معاينة ${reaction.caption}`}
+          playsInline
+          loop
+          preload="none"
+          poster={reaction.poster}
+          onError={() => setFailed(true)}
+          onPlay={() => {
+            if (!counted.current) {
+              track('play', reaction.code);
+              counted.current = true;
+            }
+          }}
+        >
+          <source src={reaction.media} />
+          {reaction.caption}
+        </video>
+      )}
       {failed && (
         <p className="media-error" role="alert">
-          تعذّر تحميل المقطع. تحقق من الاتصال.
+          تعذّر تحميل الملف. تحقق من الاتصال.
         </p>
       )}
-      {reaction.isDemo && (
+      {reaction.isDemo && !isImage && (
         <span className="demo-label">
           <VolumeX size={12} />
           نموذج متحرك بلا صوت • صورة مولّدة

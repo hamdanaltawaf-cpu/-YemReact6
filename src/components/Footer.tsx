@@ -7,7 +7,8 @@ import { ArrowUpLeft, MoveUp } from 'lucide-react';
 export function Footer() {
   const pathname = usePathname();
   const { user } = useApp();
-  if (['/library', '/library/', '/login', '/login/'].includes(pathname)) return null;
+  if (['/library', '/library/', '/login', '/login/', '/saved', '/saved/'].includes(pathname))
+    return null;
 
   return (
     <footer className="site-footer">

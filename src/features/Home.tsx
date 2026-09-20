@@ -273,7 +273,7 @@ export default function Home() {
           <p>احفظ اللقطة، وارجع لها لما يجي موقفها. حتى بدون حساب.</p>
         </div>
         <Link className="text-button" href="/saved">
-          افتح مجموعتك <ArrowLeft size={18} />
+          افتح المحفوظات <ArrowLeft size={18} />
         </Link>
       </section>
     </>

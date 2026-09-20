@@ -94,12 +94,9 @@ const base = 'http://localhost:3000';
     await page.goto(base + '/saved', { waitUntil: 'networkidle' });
     await page.locator('.reaction-card').first().waitFor();
     assert.equal(await page.locator('.card-duration').innerText(), '60s');
-    assert.equal(await page.locator('select[aria-label="أقصى مدة"]').inputValue(), '60');
-    await page.locator('select[aria-label="أقصى مدة"]').selectOption('3');
-    assert.equal(await page.locator('.reaction-card').count(), 0);
-    await page.locator('select[aria-label="أقصى مدة"]').selectOption('60');
+    assert.equal(await page.locator('select[aria-label="أقصى مدة"]').count(), 0);
     assert.equal(await page.locator('.reaction-card').count(), 1);
-    report.checks.push('Owner UI blocks too-short/long files before upload; full-minute upload/publish/card badge/library discovery/saved all-durations and short filter work');
+    report.checks.push('Owner UI blocks invalid videos; full-minute publish, duration badge, library discovery and the unfiltered saved page work');
     assert.deepEqual(report.errors, []); report.completed = true;
   } catch (error) { report.failure = error.stack; process.exitCode = 1; }
   finally {

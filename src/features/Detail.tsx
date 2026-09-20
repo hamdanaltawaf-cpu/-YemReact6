@@ -5,6 +5,7 @@ import type { Reaction } from '@/lib/reactions';
 import { useApp } from '@/components/AppProvider';
 import { ClipPlayer, ReactionActions } from '@/components/Clip';
 import { ReactionCard } from '@/components/ReactionCard';
+import { mediaFileExtension } from '@/lib/media';
 export default function Detail({ reaction }: { reaction: Reaction }) {
   const app = useApp();
   const related = app.reactions
@@ -35,7 +36,7 @@ export default function Detail({ reaction }: { reaction: Reaction }) {
               <CheckCircle2 size={16} />
               {reaction.isDemo ? 'نموذج تجريبي' : 'مضاف للمكتبة'}
             </span>
-            <span>MP4 / WebM</span>
+            <span>{mediaFileExtension(reaction.media).slice(1).toUpperCase()}</span>
           </div>
           <ReactionActions reaction={reaction} />
           {reaction.isDemo && (

@@ -1,0 +1,65 @@
+{
+  "scope": "Disposable local production-build data, including image fixtures; no production account/media is modified.",
+  "widths": [
+    {
+      "width": 320,
+      "overflow": false,
+      "columns": 2,
+      "overlap": false
+    },
+    {
+      "width": 375,
+      "overflow": false,
+      "columns": 2,
+      "overlap": false
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "columns": 3,
+      "overlap": false
+    },
+    {
+      "width": 1024,
+      "overflow": false,
+      "columns": 4,
+      "overlap": false
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "columns": 4,
+      "overlap": false
+    },
+    {
+      "width": 1920,
+      "overflow": false,
+      "columns": 5,
+      "overlap": false
+    }
+  ],
+  "checks": [
+    "No filters/search/footer/export/counters; obsolete query parameters cannot hide saved images or videos; automatic scrolling includes all 19 items.",
+    "Images preview as images and download as .webp/.png, including a wide image; videos use a native video player; duration badges are video-only.",
+    "Unsave removes the card and persists across reload for guests.",
+    "Empty state offers one library action; saved footer is absent including trailing slash; home footer is unchanged.",
+    "Signed-in member saved items load from the database; removal persists without changing admin access."
+  ],
+  "errors": [],
+  "completed": true,
+  "imageDownloadFilename": "على مهلك.webp",
+  "downloadRequest": {
+    "name": "على مهلك.webp",
+    "kind": "blob"
+  },
+  "axe": [
+    {
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "theme": "dark",
+      "violations": []
+    }
+  ]
+}
