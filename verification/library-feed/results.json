@@ -1,0 +1,74 @@
+{
+  "checks": [
+    "Library starts with cards only; all upper content and manual pagination removed",
+    "8 initial cards; scrolling appends all remaining cards once and removes sentinel at end",
+    "Preview, keyboard Escape, save actions and saved-page controls preserved",
+    "Home search/category deep links and recoverable empty results still work",
+    "Larger catalog loads across multiple batches with no duplicates and a finite end",
+    "Automatic scroll fallback works without IntersectionObserver/ResizeObserver"
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "document": 320,
+      "columns": 2,
+      "overlap": false
+    },
+    {
+      "width": 375,
+      "document": 375,
+      "columns": 2,
+      "overlap": false
+    },
+    {
+      "width": 768,
+      "document": 768,
+      "columns": 3,
+      "overlap": false
+    },
+    {
+      "width": 1024,
+      "document": 1024,
+      "columns": 4,
+      "overlap": false
+    },
+    {
+      "width": 1440,
+      "document": 1440,
+      "columns": 4,
+      "overlap": false
+    },
+    {
+      "width": 1920,
+      "document": 1920,
+      "columns": 5,
+      "overlap": false
+    },
+    {
+      "width": 3840,
+      "document": 3840,
+      "columns": 6,
+      "overlap": false
+    }
+  ],
+  "batches": [
+    16,
+    24,
+    32,
+    37
+  ],
+  "errors": [],
+  "axe": [
+    {
+      "theme": "light",
+      "violations": [],
+      "incomplete": 0
+    },
+    {
+      "theme": "dark",
+      "violations": [],
+      "incomplete": 0
+    }
+  ],
+  "completed": true
+}

@@ -1,0 +1,158 @@
+{
+  "checks": [
+    "No traditional form, password/email fields, old copy or footer; exactly three providers",
+    "All three active provider links reach their OAuth routes; no readiness badges or setup copy; failures remain truthful",
+    "Provider buttons work with keyboard; dark error state accessibility checked",
+    "Callback errors are allowlisted and cancellation offers retry",
+    "Guest browsing, library infinite scroll, and client-navigation footer behavior preserved",
+    "Unconfigured OAuth fails closed; retired password endpoint returns 410; no fake session"
+  ],
+  "responsive": [
+    {
+      "viewport": 320,
+      "width": 320,
+      "buttons": [
+        {
+          "width": 252,
+          "height": 58
+        },
+        {
+          "width": 252,
+          "height": 58
+        },
+        {
+          "width": 252,
+          "height": 58
+        }
+      ]
+    },
+    {
+      "viewport": 375,
+      "width": 375,
+      "buttons": [
+        {
+          "width": 289,
+          "height": 58
+        },
+        {
+          "width": 289,
+          "height": 58
+        },
+        {
+          "width": 289,
+          "height": 58
+        }
+      ]
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "buttons": [
+        {
+          "width": 304,
+          "height": 58
+        },
+        {
+          "width": 304,
+          "height": 58
+        },
+        {
+          "width": 304,
+          "height": 58
+        }
+      ]
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "buttons": [
+        {
+          "width": 281,
+          "height": 58
+        },
+        {
+          "width": 281,
+          "height": 58
+        },
+        {
+          "width": 281,
+          "height": 58
+        }
+      ]
+    },
+    {
+      "viewport": 1024,
+      "width": 1024,
+      "buttons": [
+        {
+          "width": 399,
+          "height": 58
+        },
+        {
+          "width": 399,
+          "height": 58
+        },
+        {
+          "width": 399,
+          "height": 58
+        }
+      ]
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "buttons": [
+        {
+          "width": 444,
+          "height": 58
+        },
+        {
+          "width": 444,
+          "height": 58
+        },
+        {
+          "width": 444,
+          "height": 58
+        }
+      ]
+    },
+    {
+      "viewport": 1920,
+      "width": 1920,
+      "buttons": [
+        {
+          "width": 543,
+          "height": 58
+        },
+        {
+          "width": 543,
+          "height": 58
+        },
+        {
+          "width": 543,
+          "height": 58
+        }
+      ]
+    }
+  ],
+  "axe": [
+    {
+      "theme": "light",
+      "violations": [],
+      "incomplete": 0
+    },
+    {
+      "theme": "dark",
+      "violations": [],
+      "incomplete": 0
+    },
+    {
+      "theme": "dark-error",
+      "violations": [],
+      "incomplete": 0
+    }
+  ],
+  "runtimeErrors": [],
+  "liveProviderLoginTested": false,
+  "completed": true
+}

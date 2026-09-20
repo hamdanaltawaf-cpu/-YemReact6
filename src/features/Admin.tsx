@@ -25,7 +25,12 @@ import { useApp } from '@/components/AppProvider';
 import { Modal } from '@/components/ui/Modal';
 import { Qusasa } from '@/components/Qusasa';
 import type { Reaction } from '@/lib/reactions';
-import { CATEGORIES, CAT_BY_ID } from '@/lib/categories';
+import {
+  MIN_VIDEO_DURATION,
+  MAX_VIDEO_DURATION,
+  isValidVideoDuration,
+  VIDEO_DURATION_ERROR,
+} from '@/lib/video';
 type Metrics = {
   users: { id: string; name: string; email: string; role: string; created_at: string }[];
   events: { kind: string; count: number }[];
@@ -64,8 +69,6 @@ export default function Admin() {
   useEffect(() => {
     load();
   }, [load]);
-  const count = (kind: string) =>
-    metrics ? metrics.events.find((e) => e.kind === kind)?.count || 0 : '—';
   const filtered = app.reactions.filter((r) =>
     [r.caption, r.code, r.situation].join(' ').includes(q),
   );
@@ -187,100 +190,26 @@ export default function Admin() {
         )}
         {tab === 'overview' && (
           <>
-            <div className="stats-grid">
-              {[
-                { label: 'الرياكشنات', value: app.reactions.length, note: 'في مكتبتك الآن' },
-                { label: 'الفئات', value: CATEGORIES.length, note: 'لكل موقف، لون' },
-                {
-                  label: 'مرات التشغيل',
-                  value: count('play'),
-                  note: admin ? 'أحداث تشغيل فعلية' : 'متاحة للمالك فقط',
-                },
-                {
-                  label: 'مرات التنزيل',
-                  value: count('download'),
-                  note: admin ? 'طلبات تنزيل ناجحة' : 'متاحة للمالك فقط',
-                },
-              ].map((s) => (
-                <div className="stat-card" key={s.label}>
-                  <span>{s.label}</span>
-                  <b>{s.value}</b>
-                  <small>{s.note}</small>
-                </div>
-              ))}
-            </div>
-            <div className="dashboard-grid">
-              <div className="dashboard-panel">
-                <h2>توزيع المواقف</h2>
-                {CATEGORIES.map((c) => {
-                  const n = app.reactions.filter((r) => r.category === c.id).length;
-                  return (
-                    <div className="category-bar" key={c.id}>
-                      <span>{c.name}</span>
-                      <div>
-                        <i
-                          style={{
-                            background: c.color,
-                            width: `${(n / Math.max(app.reactions.length, 1)) * 100}%`,
-                          }}
-                        />
-                      </div>
-                      <b>{n}</b>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="dashboard-panel">
-                <h2>نشاط آخر 7 أيام</h2>
-                {admin && metrics ? (
-                  <>
-                    {metrics.daily.length ? (
-                      <div
-                        className="chart"
-                        role="img"
-                        aria-label={metrics.daily.map((d) => `${d.day}: ${d.count} حدث`).join('، ')}
-                      >
-                        {metrics.daily.map((d) => (
-                          <div
-                            key={d.day}
-                            style={{
-                              height: `${Math.max(3, (d.count / Math.max(...metrics.daily.map((x) => x.count), 1)) * 100)}%`,
-                            }}
-                          >
-                            <b>{d.count}</b>
-                            <span>{d.day.slice(5)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="empty-small">
-                        <Film size={28} />
-                        <p className="text-small">لا أحداث مسجلة بعد.</p>
-                      </div>
-                    )}
-                    <p className="muted text-small">
-                      تشغيل، تنزيل ومشاركة فقط. لا تتبع خارجي ولا هويات زوار.
-                    </p>
-                    <button className="text-button" onClick={exportReport}>
-                      <Download size={15} />
-                      تصدير التقرير
-                    </button>
-                  </>
-                ) : (
-                  <div className="empty-small">
-                    <LockKeyhole size={28} />
-                    <p className="text-small">
-                      الأرقام الخاصة لا تظهر إلا للمالك. لا توجد إحصاءات وهمية.
-                    </p>
-                  </div>
+            <div className="dashboard-panel">
+              <h2>محتوى مكتبتك</h2>
+              <p className="muted">عاين الرياكشنات، وأضف لقطاتك أو عدّلها من مكان واحد.</p>
+              <div className="reaction-actions">
+                <button className="btn btn-outline" onClick={() => setTab('content')}>
+                  تصفّح الرياكشنات
+                </button>
+                {admin && metrics && (
+                  <button className="text-button" onClick={exportReport}>
+                    <Download size={15} />
+                    تصدير التقرير
+                  </button>
                 )}
               </div>
             </div>
             <div className="notice-box">
               <b>عن محتوى النسخة التجريبية</b>
               <p>
-                {app.reactions.filter((r) => r.isDemo).length} نموذج متحرك من صور مولّدة. استبدلها
-                بلقطات تملك حقوقها باستخدام «رياكشن جديد». لا تزل وسم النموذج من الوسائط التجريبية.
+                نماذج متحركة من صور مولّدة. استبدلها بلقطات تملك حقوقها باستخدام «رياكشن جديد». لا
+                تزل وسم النموذج من الوسائط التجريبية.
               </p>
             </div>
           </>
@@ -295,9 +224,8 @@ export default function Admin() {
                 id="admin-search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="ابحث بالاقتباس أو الكود..."
+                placeholder="ابحث بالاقتباس أو الموقف..."
               />
-              <span className="muted text-small">{filtered.length} نتيجة</span>
             </div>
             <div
               className="admin-table-wrap"
@@ -309,8 +237,6 @@ export default function Admin() {
                 <thead>
                   <tr>
                     <th>الرياكشن</th>
-                    <th>الفئة</th>
-                    <th>المدة</th>
                     <th>المحتوى</th>
                     <th>إجراءات</th>
                   </tr>
@@ -323,12 +249,9 @@ export default function Admin() {
                           <Image src={r.poster} alt="" width={36} height={42} />
                           <div>
                             <b>{r.caption}</b>
-                            <small className="mono">{r.code}</small>
                           </div>
                         </div>
                       </td>
-                      <td>{CAT_BY_ID[r.category].name}</td>
-                      <td>{r.duration}s</td>
                       <td>
                         <span className="status-pill">{r.isDemo ? 'نموذج' : 'مقطع مرفوع'}</span>
                       </td>
@@ -382,9 +305,7 @@ export default function Admin() {
                   <Image src={r.poster} alt={r.caption} width={300} height={240} />
                   <div>
                     <b>{r.caption}</b>
-                    <p className="muted">
-                      {r.isDemo ? 'نموذج مولّد' : 'وسائط مرفوعة'} · {r.duration}s
-                    </p>
+                    <p className="muted">{r.isDemo ? 'نموذج مولّد' : 'وسائط مرفوعة'}</p>
                     <button className="text-button" onClick={() => app.setPreview(r.code)}>
                       <Play size={14} />
                       معاينة
@@ -416,7 +337,9 @@ export default function Admin() {
                   {metrics.users.map((u) => (
                     <tr key={u.id}>
                       <td>{u.name}</td>
-                      <td dir="ltr">{u.email}</td>
+                      <td dir={u.email.endsWith('@social.invalid') ? 'rtl' : 'ltr'}>
+                        {u.email.endsWith('@social.invalid') ? 'حساب مرتبط اجتماعيًا' : u.email}
+                      </td>
                       <td>
                         <span className="status-pill">{u.role === 'admin' ? 'مدير' : 'عضو'}</span>
                       </td>
@@ -426,7 +349,7 @@ export default function Admin() {
                 </tbody>
               </table>
               <p className="notice-box">
-                عرض آخر 100 حساب. ترقية المديرين عبر أداة الخادم فقط؛ لا يمكن تعديل الصلاحيات من
+                الحسابات المسجلة. ترقية المديرين عبر أداة الخادم فقط؛ لا يمكن تعديل الصلاحيات من
                 المتصفح.
               </p>
             </div>
@@ -436,7 +359,7 @@ export default function Admin() {
         {tab === 'audit' &&
           (admin && metrics ? (
             <div className="dashboard-panel">
-              <h2>آخر 40 عملية إدارية</h2>
+              <h2>سجل العمليات الإدارية</h2>
               <ul className="audit-list">
                 {metrics.audit.map((a, i) => (
                   <li key={`${a.created_at}-${i}`}>
@@ -450,7 +373,9 @@ export default function Admin() {
                           } as Record<string, string>
                         )[a.action] || a.action}
                       </b>{' '}
-                      — {a.detail}
+                      —{' '}
+                      {app.reactions.find((r) => r.code === a.detail)?.caption ||
+                        'تم تسجيل العملية'}
                     </span>
                     <time>{new Date(a.created_at).toLocaleString('ar-YE')}</time>
                   </li>
@@ -520,7 +445,7 @@ function Editor({
           caption: '',
           situation: '',
           category: 'laugh',
-          duration: 2,
+          duration: MIN_VIDEO_DURATION,
           keywords: [],
           publishedAt: new Date().toISOString().slice(0, 10),
           poster: '/media/portrait-1.webp',
@@ -553,17 +478,30 @@ function Editor({
         const url = URL.createObjectURL(file);
         try {
           duration = await new Promise<number>((resolve, reject) => {
-            const v = document.createElement('video');
-            v.preload = 'metadata';
-            v.onloadedmetadata = () => resolve(v.duration);
-            v.onerror = () => reject(Error('تعذّرت قراءة الفيديو'));
-            v.src = url;
+            const video = document.createElement('video');
+            const finish = (error?: Error) => {
+              clearTimeout(timer);
+              const measured = video.duration;
+              video.onloadedmetadata = null;
+              video.onerror = null;
+              video.removeAttribute('src');
+              video.load();
+              if (error) reject(error);
+              else resolve(measured);
+            };
+            const timer = setTimeout(
+              () => finish(Error('تعذّر قراءة مدة الفيديو. حاول اختيار الملف مجددًا.')),
+              15000,
+            );
+            video.preload = 'metadata';
+            video.onloadedmetadata = () => finish();
+            video.onerror = () => finish(Error('تعذّرت قراءة الفيديو'));
+            video.src = url;
           });
         } finally {
           URL.revokeObjectURL(url);
         }
-        if (!Number.isFinite(duration) || duration < 2 || duration > 8.1)
-          throw Error('اختر فيديو بين ثانيتين و8 ثوانٍ.');
+        if (!isValidVideoDuration(duration)) throw Error(VIDEO_DURATION_ERROR);
       }
       const data = new FormData();
       data.set('file', file);
@@ -571,14 +509,15 @@ function Editor({
       const body = await res.json();
       if (!res.ok) throw Error(body.error);
       if (body.type !== kind) throw Error('نوع الملف لا يطابق الحقل.');
-      if (kind === 'video')
+      if (kind === 'video') {
+        if (!isValidVideoDuration(body.duration)) throw Error(VIDEO_DURATION_ERROR);
         setR((old) => ({
           ...old,
           media: body.url,
-          duration: Math.min(8, Math.round(duration * 10) / 10),
+          duration: body.duration,
           isDemo: false,
         }));
-      else patch('poster', body.url);
+      } else patch('poster', body.url);
       app.toast('تم رفع الملف بنجاح');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'تعذّر الرفع');
@@ -591,6 +530,10 @@ function Editor({
     setError('');
     if (step < 3) {
       setStep(step + 1);
+      return;
+    }
+    if (!isValidVideoDuration(r.duration)) {
+      setError(VIDEO_DURATION_ERROR);
       return;
     }
     if (!r.isDemo && !rights) {
@@ -636,7 +579,7 @@ function Editor({
               padding: 8,
             }}
           >
-            {i + 1}. {s}
+            {s}
           </span>
         ))}
       </div>
@@ -666,19 +609,6 @@ function Editor({
               />
             </label>
             <label>
-              الفئة
-              <select
-                value={r.category}
-                onChange={(e) => patch('category', e.target.value as Reaction['category'])}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
               كلمات البحث
               <input
                 value={keywordText}
@@ -703,8 +633,10 @@ function Editor({
                   onChange={(e) => upload(e.target.files?.[0], 'video')}
                 />
               </label>
-              <p>MP4 أو WebM · 2–8 ثوانٍ · حتى 15MB</p>
-              <p>{r.media}</p>
+              <p>
+                MP4 أو WebM · من {MIN_VIDEO_DURATION} إلى {MAX_VIDEO_DURATION} ثانية · حتى 15MB
+              </p>
+              <p>{r.isDemo ? 'فيديو تجريبي محدد' : 'تم اختيار الفيديو'}</p>
             </div>
             <div className="upload-field">
               <label className="form-label">
@@ -751,10 +683,7 @@ function Editor({
               <div>
                 <h3>{r.caption}</h3>
                 <p className="muted text-small">{r.situation}</p>
-                <span className="status-pill">
-                  {CAT_BY_ID[r.category].name} · {r.duration}s ·{' '}
-                  {r.isDemo ? 'نموذج مولّد' : 'ملف مرفوع'}
-                </span>
+                <span className="status-pill">{r.isDemo ? 'نموذج مولّد' : 'ملف مرفوع'}</span>
               </div>
             </div>
             <p className="muted text-small">

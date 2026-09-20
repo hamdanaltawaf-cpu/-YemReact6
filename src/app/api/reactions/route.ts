@@ -2,6 +2,13 @@ import { z } from 'zod';
 import { db, listReactions, audit } from '@/server/db';
 import { requireAdmin, sameOrigin, apiError, ApiError } from '@/server/auth';
 import { CATEGORIES } from '@/lib/categories';
+import {
+  MIN_VIDEO_DURATION,
+  MAX_VIDEO_DURATION,
+  isValidVideoDuration,
+  VIDEO_DURATION_ERROR,
+} from '@/lib/video';
+import { probeVideoDuration, reactionVideoPath } from '@/server/video';
 export const runtime = 'nodejs';
 export async function GET() {
   return Response.json(
@@ -14,7 +21,7 @@ const schema = z.object({
   caption: z.string().trim().min(1).max(100),
   situation: z.string().trim().min(3).max(250),
   category: z.string().refine((s) => CATEGORIES.some((c) => c.id === s)),
-  duration: z.number().min(2).max(8),
+  duration: z.number().finite().min(MIN_VIDEO_DURATION).max(MAX_VIDEO_DURATION),
   keywords: z.array(z.string().trim().min(1).max(40)).max(12),
   publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   poster: z
@@ -31,9 +38,13 @@ export async function POST(req: Request) {
   try {
     sameOrigin(req);
     const u = await requireAdmin();
-    const r = schema.parse(await req.json());
+    const input = await req.json();
+    if (!isValidVideoDuration(input?.duration)) throw new ApiError(400, VIDEO_DURATION_ERROR);
+    const r = schema.parse(input);
     if (r.media.startsWith('/media/demo-') && !r.isDemo)
       throw new ApiError(400, 'يجب إبقاء علامة النموذج التجريبي على الوسائط التجريبية.');
+    // Do not trust the client-supplied duration or allow direct API publication to bypass upload checks.
+    r.duration = await probeVideoDuration(reactionVideoPath(r.media));
     db.prepare(
       'INSERT INTO reactions VALUES (?,?) ON CONFLICT(code) DO UPDATE SET data=excluded.data',
     ).run(r.code, JSON.stringify(r));

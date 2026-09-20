@@ -1,7 +1,8 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, mkdtemp, rm, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { requireAdmin, sameOrigin, rateLimit, ApiError, apiError } from '@/server/auth';
+import { probeVideoDuration } from '@/server/video';
 export const runtime = 'nodejs';
 export async function POST(req: Request) {
   try {
@@ -25,13 +26,28 @@ export async function POST(req: Request) {
     )
       ext = 'webp';
     if (!ext) throw new ApiError(400, 'الصيغ المقبولة: MP4، WebM، JPG، PNG، WebP.');
-    const dir = path.resolve(process.env.DATA_DIR || 'data', 'uploads');
+    const root = path.resolve(process.env.DATA_DIR || 'data');
+    const dir = path.join(root, 'uploads');
     await mkdir(dir, { recursive: true });
     const name = randomUUID() + '.' + ext;
-    await writeFile(path.join(dir, name), buffer, { flag: 'wx' });
+    const isVideo = ext === 'mp4' || ext === 'webm';
+    let duration: number | undefined;
+    if (isVideo) {
+      // Keep unvalidated files outside the public /api/media namespace, then remove on any failure.
+      const temporary = await mkdtemp(path.join(root, '.video-check-'));
+      try {
+        const candidate = path.join(temporary, 'upload.' + ext);
+        await writeFile(candidate, buffer, { flag: 'wx' });
+        duration = await probeVideoDuration(candidate);
+        await rename(candidate, path.join(dir, name));
+      } finally {
+        await rm(temporary, { recursive: true, force: true });
+      }
+    } else await writeFile(path.join(dir, name), buffer, { flag: 'wx' });
     return Response.json({
       url: '/api/media/' + name,
-      type: ext === 'mp4' || ext === 'webm' ? 'video' : 'image',
+      type: isVideo ? 'video' : 'image',
+      ...(isVideo ? { duration } : {}),
     });
   } catch (e) {
     return apiError(e);

@@ -6,7 +6,7 @@
 - Add captions/transcripts for every real audio clip; retain keyboard-native controls.
 - Secure production origin/TLS, persistent volume, backups, upload quotas/body limits and operational monitoring.
 - Add email verification, recovery, owner 2FA, account deletion and clear retention policy.
-- Add server-side media decoding, duration verification, malware scanning and thumbnail generation in a quarantined worker.
+- Duration metadata verification is enforced on upload/publish. Add full server-side media decoding, malware scanning and thumbnail generation in a quarantined worker.
 - Independent security review, assistive-technology testing, and field performance instrumentation with privacy consent where required.
 
 ## P1 — useful product growth
@@ -20,7 +20,7 @@
 
 ## P2 — only if justified
 
-- Optional OAuth through a real configured provider, never a fake login button.
+- Social OAuth routes are implemented; configure and live-test Google/Apple/Microsoft before enabling them. See SOCIAL-AUTH.md.
 - Object storage/CDN and Postgres when multi-instance deployment is required.
 - Bilingual UI after Arabic content/workflows are complete.
 - Privacy-preserving search quality reporting; no advertising analytics by default.

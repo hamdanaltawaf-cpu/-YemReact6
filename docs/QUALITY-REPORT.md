@@ -1,3 +1,5 @@
+> Social-only auth update: historical V4 results below precede this change. New focused UI/browser/axe evidence is in `verification/social/results.json`; OAuth unit tests use signed test tokens and mocked provider exchange, not live accounts. See `SOCIAL-AUTH.md`.
+
 # Quality & performance report
 
 Tested: **2026-09-19**. Target: local production build of Next.js 15.5.23, Chromium 153, Linux sandbox with about 2GB RAM. Results below describe the tested build and scenarios, not every browser, device or future content upload.

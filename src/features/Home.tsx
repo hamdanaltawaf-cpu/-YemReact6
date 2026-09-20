@@ -1,7 +1,6 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
 import {
   ArrowLeft,
   ArrowDownLeft,
@@ -18,18 +17,15 @@ import {
 import { useApp } from '@/components/AppProvider';
 import { ReactionCard } from '@/components/ReactionCard';
 import { Qusasa } from '@/components/Qusasa';
-import { CATEGORIES } from '@/lib/categories';
 export default function Home() {
-  const app = useApp(),
-    [cat, setCat] = useState('');
-  const items = app.reactions.filter((r) => !cat || r.category === cat).slice(0, 8);
+  const app = useApp();
+  const items = app.reactions.slice(0, 8);
   return (
     <>
       <section className="hero container">
         <div className="hero-copy">
           <div className="eyebrow hero-eyebrow">
             <span className="live-dot" /> من الموقف... إلى الردّ المناسب{' '}
-            <span className="mono">V.04</span>
           </div>
           <h1 className="hero-title">
             الموقف يمني.
@@ -114,7 +110,7 @@ export default function Home() {
           <button
             className="hero-polaroid polaroid-front"
             onClick={() => app.setPreview('YR-0006')}
-            aria-label="YR—0006 03s ضحك من القلب ياخي وربي! — معاينة"
+            aria-label="ياخي وربي! — معاينة"
           >
             <Image
               src="/media/portrait-2.webp"
@@ -124,16 +120,10 @@ export default function Home() {
               fetchPriority="high"
               sizes="320px"
             />
-            <span className="polaroid-code mono">
-              YR—0006 <i /> 03s
-            </span>
             <span className="polaroid-play">
               <Play size={27} fill="currentColor" />
             </span>
             <div className="polaroid-caption">
-              <span>
-                <i /> ضحك من القلب
-              </span>
               <b>ياخي وربي!</b>
             </div>
             <span className="polaroid-corner">
@@ -189,38 +179,22 @@ export default function Home() {
             <p>لقطات صغيرة. تقول كل شيء.</p>
           </div>
           <Link className="text-button" href="/library">
-            كل المكتبة <span className="count-badge">{app.reactions.length}</span>
+            كل المكتبة
             <ArrowLeft size={18} />
           </Link>
-        </div>
-        <div className="category-tabs" aria-label="تصفية المكتبة">
-          <button aria-pressed={!cat} className={!cat ? 'active' : ''} onClick={() => setCat('')}>
-            <span>✳</span>كل المواقف
-          </button>
-          {CATEGORIES.map((c) => (
-            <button
-              aria-pressed={cat === c.id}
-              className={cat === c.id ? 'active' : ''}
-              onClick={() => setCat(c.id)}
-              key={c.id}
-            >
-              <i style={{ background: c.color }} />
-              {c.name}
-            </button>
-          ))}
         </div>
         <div className="gallery-caption">
           <span>
             <span className="live-dot" /> مختارة لك
           </span>
-          <span>نماذج تجريبية متحركة • {items.length} لقطات</span>
+          <span>نماذج تجريبية متحركة</span>
         </div>
         <div className="reaction-grid">
           {items.map((r, i) => (
             <ReactionCard reaction={r} index={i} key={r.code} />
           ))}
         </div>
-        {!items.length && <p className="empty-small">ما عندنا لقطات في هذه الفئة بعد.</p>}
+        {!items.length && <p className="empty-small">ما عندنا لقطات في المكتبة بعد.</p>}
         <div className="center-action">
           <Link href="/library" className="btn btn-outline">
             لسّه في ردود كثيرة <ArrowLeft size={17} />
@@ -242,7 +216,7 @@ export default function Home() {
             {
               n: '01',
               title: 'لقِ الموقف',
-              desc: 'اكتب اللي حاصل، أو دوّر بالفئة. الرد المناسب أقرب مما تتوقع.',
+              desc: 'اكتب اللي حاصل، أو تصفّح المكتبة. الرد المناسب أقرب مما تتوقع.',
               icon: Search,
             },
             {
@@ -261,7 +235,6 @@ export default function Home() {
             <div className="step-card" key={s.n}>
               <div>
                 <s.icon size={25} />
-                <span className="mono">{s.n}</span>
               </div>
               <h3>{s.title}</h3>
               <p>{s.desc}</p>

@@ -18,7 +18,10 @@ export function ReactionActions({ reaction }: { reaction: Reaction }) {
         a = document.createElement('a');
       a.href = url;
       a.download =
-        reaction.code +
+        (reaction.caption
+          .replace(/[\\/:*?"<>|\x00-\x1F]/g, '')
+          .trim()
+          .slice(0, 80) || 'yemreact') +
         (reaction.isDemo ? '-demo' : '') +
         (reaction.media.endsWith('.webm') ? '.webm' : '.mp4');
       a.click();

@@ -1,7 +1,12 @@
+'use client';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Qusasa } from './Qusasa';
 import { ArrowUpLeft, MoveUp } from 'lucide-react';
 export function Footer() {
+  const pathname = usePathname();
+  if (['/library', '/library/', '/login', '/login/'].includes(pathname)) return null;
+
   return (
     <footer className="site-footer">
       <div className="container">

@@ -2,13 +2,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Bookmark, Play, ArrowUpLeft } from 'lucide-react';
-import { CAT_BY_ID } from '@/lib/categories';
 import type { Reaction } from '@/lib/reactions';
 import { useApp } from './AppProvider';
 export function ReactionCard({ reaction, index = 0 }: { reaction: Reaction; index?: number }) {
   const app = useApp(),
-    saved = app.saved.includes(reaction.code),
-    cat = CAT_BY_ID[reaction.category];
+    saved = app.saved.includes(reaction.code);
+  const isVideo = /\.(mp4|webm)$/i.test(reaction.media.split(/[?#]/, 1)[0]);
   return (
     <article className="reaction-card">
       <div className="card-visual">
@@ -31,16 +30,15 @@ export function ReactionCard({ reaction, index = 0 }: { reaction: Reaction; inde
             className="card-image"
           />
           <span className="card-shade" />
-          <span className="card-code mono">{reaction.code}</span>
-          <span className="card-duration mono">{reaction.duration}s</span>
+          {isVideo && Number.isFinite(reaction.duration) && reaction.duration > 0 && (
+            <span className="card-duration mono" dir="ltr">
+              {reaction.duration}s
+            </span>
+          )}
           <span className="card-play">
             <Play size={22} fill="currentColor" />
           </span>
           <span className="card-caption">
-            <span className="card-tag">
-              <i style={{ background: cat.color }} />
-              {cat.name}
-            </span>
             <b>{reaction.caption}</b>
           </span>
         </button>

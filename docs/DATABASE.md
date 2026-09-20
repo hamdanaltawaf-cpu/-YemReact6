@@ -44,3 +44,7 @@ Use SQLite's backup API or stop the process before copying. Do not copy only the
 - Media: retained until an operator confirms it is unreferenced.
 - Events/audit: no automatic retention job yet; configure one before a public deployment.
 - Future schema changes should introduce numbered migrations; this initial bootstrap uses `CREATE TABLE IF NOT EXISTS`, not a mature migration system.
+
+## Social-only authentication update
+
+`oauth_accounts(provider,issuer,subject,user_id,created_at)` has a composite identity primary key and a cascading user FK. `oauth_flows(state_hash,provider,browser_hash,nonce,verifier,expires)` stores ten-minute single-use transactions. Raw state/browser binding values, OAuth access tokens and refresh tokens are not persisted. The legacy `users.password_hash` column remains to preserve data compatibility; new accounts store the unusable `social-only` sentinel, and no password endpoint exists. See SOCIAL-AUTH.md for safe legacy migration and unverified/missing email handling.

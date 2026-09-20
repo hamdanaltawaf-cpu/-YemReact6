@@ -1,0 +1,20 @@
+{
+  "target": "Railway with Docker and a persistent volume",
+  "files": [
+    "Dockerfile",
+    ".dockerignore",
+    "railway.json",
+    "scripts/container-entrypoint.sh"
+  ],
+  "syntaxChecks": "passed",
+  "dockerImageBuilt": false,
+  "deployed": false,
+  "requiredUserActions": [
+    "Create/connect a Railway service from the project repository",
+    "Mount persistent volume at /app/data",
+    "Generate public HTTPS domain",
+    "Configure private OAuth environment variables using the supplied client file",
+    "Register the new domain callback in Google Cloud"
+  ],
+  "secretValuesIncluded": false
+}

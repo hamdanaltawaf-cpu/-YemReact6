@@ -1,0 +1,15 @@
+.git
+node_modules
+.next
+.cache
+.tools
+.env
+.env.*
+**/.env
+**/.env.*
+**/client_secret*.json
+data
+uploads
+verification
+*.zip
+*.tsbuildinfo

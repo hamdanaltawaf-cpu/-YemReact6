@@ -1,0 +1,149 @@
+{
+  "pages": [
+    "/",
+    "/library",
+    "/saved",
+    "/about",
+    "/login",
+    "/admin",
+    "/offline",
+    "/r/YR-0001",
+    "/r/YR-0002",
+    "/r/YR-0003",
+    "/r/YR-0004",
+    "/r/YR-0005",
+    "/r/YR-0006",
+    "/r/YR-0007",
+    "/r/YR-0008",
+    "/r/YR-0009",
+    "/r/YR-0010",
+    "/r/YR-0011",
+    "/r/YR-0012"
+  ],
+  "checks": [
+    "19 public routes have no rendered counters, category components or reaction identifiers",
+    "Saving, preview previous/next, video playback, download and share retain internal routing; download filename is descriptive",
+    "Owner overview/content/media/users/audit and editor are clean; create/edit/delete still work with internal category/schema preserved"
+  ],
+  "responsive": [
+    {
+      "route": "/",
+      "width": 320,
+      "document": 320
+    },
+    {
+      "route": "/library",
+      "width": 320,
+      "document": 320
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 320,
+      "document": 320
+    },
+    {
+      "route": "/saved",
+      "width": 320,
+      "document": 320
+    },
+    {
+      "route": "/admin",
+      "width": 320,
+      "document": 320
+    },
+    {
+      "route": "/",
+      "width": 375,
+      "document": 375
+    },
+    {
+      "route": "/library",
+      "width": 375,
+      "document": 375
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 375,
+      "document": 375
+    },
+    {
+      "route": "/saved",
+      "width": 375,
+      "document": 375
+    },
+    {
+      "route": "/admin",
+      "width": 375,
+      "document": 375
+    },
+    {
+      "route": "/",
+      "width": 768,
+      "document": 768
+    },
+    {
+      "route": "/library",
+      "width": 768,
+      "document": 768
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 768,
+      "document": 768
+    },
+    {
+      "route": "/saved",
+      "width": 768,
+      "document": 768
+    },
+    {
+      "route": "/admin",
+      "width": 768,
+      "document": 768
+    },
+    {
+      "route": "/",
+      "width": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/library",
+      "width": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/r/YR-0001",
+      "width": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/saved",
+      "width": 1440,
+      "document": 1440
+    },
+    {
+      "route": "/admin",
+      "width": 1440,
+      "document": 1440
+    }
+  ],
+  "axe": [
+    {
+      "route": "/",
+      "violations": [],
+      "incomplete": 2
+    },
+    {
+      "route": "/library",
+      "violations": [],
+      "incomplete": 0
+    },
+    {
+      "route": "/r/YR-0001",
+      "violations": [],
+      "incomplete": 2
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

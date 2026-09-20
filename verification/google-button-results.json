@@ -1,0 +1,27 @@
+{
+  "scope": "Browser link behavior only. OAuth start is intercepted with a marker; real provider sign-in is NOT simulated or tested.",
+  "beforeFix": {
+    "target": "_top",
+    "sandboxNavigationBlocked": true,
+    "oauthRequests": 0
+  },
+  "checks": [
+    "Standalone keyboard activation navigates in the same tab",
+    "Strict popup-blocked embed exposes copy/manual-open fallback rather than a silent click"
+  ],
+  "viewports": [
+    {
+      "width": 1440,
+      "newTabOpened": true,
+      "canonicalOAuthStartReached": true
+    },
+    {
+      "width": 375,
+      "newTabOpened": true,
+      "canonicalOAuthStartReached": true
+    }
+  ],
+  "actualArenaStandaloneStatus": 403,
+  "liveGoogleSignInCompleted": false,
+  "completed": true
+}

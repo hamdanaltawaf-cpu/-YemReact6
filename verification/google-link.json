@@ -1,0 +1,22 @@
+{
+  "googleCredentialsConfiguredOnServer": true,
+  "publicSite": "https://sbx-uoduw2xix3swzqyu.arena.site",
+  "callback": "https://sbx-uoduw2xix3swzqyu.arena.site/api/auth/oauth/google/callback",
+  "publicLoginHttp": 200,
+  "oauthStartHttp": 303,
+  "authorizationDestination": "accounts.google.com",
+  "pkce": "S256",
+  "googleResponse": "redirect_uri_mismatch",
+  "liveSignInCompleted": false,
+  "nextAction": "Use a publicly navigable deployment origin and register its callback. Arena preview blocks standalone browser navigations, including OAuth callback.",
+  "unitTestsPassed": 30,
+  "typecheck": "passed",
+  "proxySecurityChecks": {
+    "sameOriginAnonymous": 401,
+    "crossSiteBrowserMutation": 403,
+    "untrustedBackendOrigin": 403
+  },
+  "credentialsExcludedFromPackage": true,
+  "browserStandaloneGatewayStatus": 403,
+  "latestEvidence": "verification/google-button-results.json"
+}

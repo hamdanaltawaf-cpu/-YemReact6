@@ -42,8 +42,8 @@ Mount one directory for `yemreact.sqlite`, its WAL/SHM files and `uploads/`. Bac
 - Strip incoming `X-Forwarded-*` headers, then set trusted host/client-IP headers.
 - Enforce a 16MiB request-body limit and sensible request/upload timeouts at the proxy.
 - Keep one app instance until shared database/storage/rate limiting is configured.
-- Keep owner credentials unique; no seeded administrator password is shipped.
-- Add distributed rate limits, suspicious-auth monitoring, password reset/email verification and preferably owner 2FA.
+- Configure social providers and promote an existing social account by ADMIN_USER_ID; see SOCIAL-AUTH.md.
+- Add distributed rate limits, suspicious-auth monitoring, provider login failure alerts; enforce owner MFA at the identity provider.
 - Add a media quarantine/transcoding/scanning pipeline before allowing non-owner uploads.
 - Set a reviewed Content Security Policy for your deployment. It is not enforced here because Next runtime/inline theme bootstrap require a deliberate nonce policy.
 - Apply a reviewed `frame-ancestors` policy outside the embedded preview environment.
@@ -71,3 +71,11 @@ node verification/responsive.cjs
 Run on a disposable test database with the server at `http://127.0.0.1:3000`. The workflow test provisions temporary QA users, exercises admin CRUD/uploads and cleans its fixtures. Never point fixture-mutating tests at a live user database.
 
 Testing notes and measured limitations are in `QUALITY-REPORT.md`. Lighthouse lab measurements are not field Web Vitals guarantees.
+
+## Social authentication
+
+Follow [SOCIAL-AUTH.md](SOCIAL-AUTH.md) for server-only credentials, exact callbacks, Apple secret rotation and account migration. Password login is no longer available.
+
+## Video duration validation
+
+Install a maintained FFmpeg/FFprobe package in the runtime host/container (Debian/Ubuntu: `apt-get install ffmpeg`), not only the build stage. `ffprobe` must be on PATH, or set server-only `FFPROBE_PATH` to its absolute path. Keep it patched. This is an external executable, not a bundled npm binary. Video uploads/publication fail closed if probing fails or is unavailable; image uploads are unchanged. The inclusive range is **2–60 seconds**, with no tolerance above/below the bounds or pre-validation rounding. Upload size remains 15MiB. Temp files live under DATA_DIR outside public uploads and are deleted on failures. FFprobe reads metadata/stream structure; this is not a full decode/transcode or malware scan. Back up the existing database and media before rollout.

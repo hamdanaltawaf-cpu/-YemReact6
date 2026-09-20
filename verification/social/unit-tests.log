@@ -1,0 +1,114 @@
+
+> yemreact-v3-exp@4.0.0-preview test /home/user/yemreact-v3-exp
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: OAuth configuration fails closed without secrets or a safe public origin
+ok 1 - OAuth configuration fails closed without secrets or a safe public origin
+  ---
+  duration_ms: 1.431932
+  ...
+# Subtest: OIDC accepts a valid signed identity; excludes unverified email
+ok 2 - OIDC accepts a valid signed identity; excludes unverified email
+  ---
+  duration_ms: 11.238807
+  ...
+# Subtest: OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
+ok 3 - OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
+  ---
+  duration_ms: 230.951835
+  ...
+# Subtest: Microsoft tenant-specific issuer is checked, including tenant restrictions
+ok 4 - Microsoft tenant-specific issuer is checked, including tenant restrictions
+  ---
+  duration_ms: 4.115212
+  ...
+# Subtest: Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
+ok 5 - Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
+  ---
+  duration_ms: 69.223984
+  ...
+# Subtest: Missing browser binding and expired state fail before token exchange
+ok 6 - Missing browser binding and expired state fail before token exchange
+  ---
+  duration_ms: 67.02006
+  ...
+# Subtest: Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
+ok 7 - Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
+  ---
+  duration_ms: 73.643015
+  ...
+# Subtest: Cancellation is recoverable and creates no account
+ok 8 - Cancellation is recoverable and creates no account
+  ---
+  duration_ms: 51.15875
+  ...
+# Subtest: Invalid identity token cannot create an account/session
+ok 9 - Invalid identity token cannot create an account/session
+  ---
+  duration_ms: 56.455396
+  ...
+# Subtest: An email collision never auto-links or takes over a legacy administrator
+ok 10 - An email collision never auto-links or takes over a legacy administrator
+  ---
+  duration_ms: 32.64235
+  ...
+# Subtest: Microsoft callback establishes a local member using the validated tenant identity
+ok 11 - Microsoft callback establishes a local member using the validated tenant identity
+  ---
+  duration_ms: 33.253107
+  ...
+# Subtest: An already-linked owner keeps the same account, role and admin destination
+ok 12 - An already-linked owner keeps the same account, role and admin destination
+  ---
+  duration_ms: 30.503875
+  ...
+# Subtest: Provider mismatch cannot consume a flow or create a session
+ok 13 - Provider mismatch cannot consume a flow or create a session
+  ---
+  duration_ms: 24.551639
+  ...
+# Subtest: normalizes Arabic diacritics and hamza
+ok 14 - normalizes Arabic diacritics and hamza
+  ---
+  duration_ms: 1.382384
+  ...
+# Subtest: all nine categories have seed content
+ok 15 - all nine categories have seed content
+  ---
+  duration_ms: 0.17263
+  ...
+# Subtest: search uses all normalized query words
+ok 16 - search uses all normalized query words
+  ---
+  duration_ms: 0.563579
+  ...
+# Subtest: category filtering is exact
+ok 17 - category filtering is exact
+  ---
+  duration_ms: 7.273978
+  ...
+# Subtest: duration and sorting are composed
+ok 18 - duration and sorting are composed
+  ---
+  duration_ms: 0.322294
+  ...
+# Subtest: unique codes and honest demo flags
+ok 19 - unique codes and honest demo flags
+  ---
+  duration_ms: 0.178127
+  ...
+# Subtest: empty and unknown queries do not throw
+ok 20 - empty and unknown queries do not throw
+  ---
+  duration_ms: 0.269424
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2546.121446

@@ -1,0 +1,11 @@
+{
+  "change": "Remove visible reaction identifiers, aggregate counters and category/tag UI across public and owner interfaces",
+  "production_build": "passed",
+  "typecheck": "passed",
+  "unit_tests": 20,
+  "browser_checks": "verification/clean-ui/results.json",
+  "infinite_scroll_regression": "verification/library-feed/results.json",
+  "preserved": "Internal IDs, URLs, taxonomy data/schema, search/deep links, saves, preview, playback, download, share, owner create/edit/delete, analytics collection/export.",
+  "ui_scope": "Home, header, cards, detail, preview, saved, library, admin overview/content/media/users/audit/editor and about copy.",
+  "notes": "Content provenance labels, native player controls, account roles, dates and operational input limits remain; these are not reaction categories or library counters."
+}

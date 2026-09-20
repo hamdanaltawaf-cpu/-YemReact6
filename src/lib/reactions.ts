@@ -1,4 +1,5 @@
 import type { CategoryId } from './categories';
+import { MAX_VIDEO_DURATION } from './video';
 /** A library item. Demo clips are explicitly identified in every viewing surface. */
 export type Reaction = {
   code: string;
@@ -58,7 +59,7 @@ export function filterReactions(
   q: string,
   cat = '',
   sort = 'newest',
-  maxDuration = 8,
+  maxDuration = MAX_VIDEO_DURATION,
 ) {
   const words = normalizeArabic(q).split(/\s+/).filter(Boolean);
   return items

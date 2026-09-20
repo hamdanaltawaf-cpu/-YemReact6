@@ -1,9 +1,8 @@
 import 'server-only';
-import { randomBytes, createHash, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
-import { promisify } from 'node:util';
+import { randomBytes, createHash } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { db } from './db';
-const scrypt = promisify(scryptCallback);
+import { isSameOriginRequest } from '@/lib/request-origin';
 export type User = { id: string; name: string; email: string; role: 'member' | 'admin' };
 export class ApiError extends Error {
   constructor(
@@ -14,15 +13,6 @@ export class ApiError extends Error {
   }
 }
 export const digest = (s: string) => createHash('sha256').update(s).digest('hex');
-export async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString('hex');
-  return salt + ':' + ((await scrypt(password, salt, 64)) as Buffer).toString('hex');
-}
-export async function checkPassword(password: string, hash: string) {
-  const [salt, key] = hash.split(':');
-  const value = (await scrypt(password, salt, 64)) as Buffer;
-  return timingSafeEqual(Buffer.from(key, 'hex'), value);
-}
 export async function currentUser(): Promise<User | null> {
   const token = (await cookies()).get('yr_session')?.value;
   if (!token) return null;
@@ -51,7 +41,9 @@ export async function createSession(id: string) {
   (await cookies()).set('yr_session', token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure:
+      process.env.NODE_ENV === 'production' ||
+      process.env.OAUTH_SITE_URL?.startsWith('https:') === true,
     path: '/',
     maxAge: 7 * 86400,
   });
@@ -60,7 +52,16 @@ export async function createSession(id: string) {
 export function sameOrigin(req: Request) {
   const origin = req.headers.get('origin');
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
-  if (!origin || new URL(origin).host !== host) throw new ApiError(403, 'مصدر الطلب غير مسموح.');
+  if (
+    !isSameOriginRequest(
+      origin,
+      host,
+      process.env.OAUTH_SITE_URL,
+      process.env.OAUTH_PROXY_HOST,
+      req.headers.get('sec-fetch-site'),
+    )
+  )
+    throw new ApiError(403, 'مصدر الطلب غير مسموح.');
 }
 const buckets = new Map<string, { count: number; until: number }>();
 export function rateLimit(req: Request, group: string, limit = 30) {

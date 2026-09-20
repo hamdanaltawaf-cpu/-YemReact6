@@ -8,3 +8,9 @@ node_modules/
 data/
 verification/tools/node_modules/
 *.zip
+uploads/
+**/client_secret*.json
+*.p8
+*.key
+verification/*-install.log
+verification/browser-restore.log

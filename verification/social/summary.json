@@ -1,0 +1,18 @@
+{
+  "change": "Social-only account entry",
+  "production_build": "passed",
+  "typecheck": "passed (also checked by production build)",
+  "unit_tests": {
+    "passed": 20,
+    "provider_exchange": "mocked; signed test ID tokens"
+  },
+  "browser_checks": "verification/social/results.json",
+  "live_provider_login_tested": false,
+  "activation_requires": [
+    "server-side app credentials",
+    "OAuth provider configuration",
+    "exact redirect URLs"
+  ],
+  "preview": "/login on port 3000",
+  "ui_update": "Removed readiness notices and conditional provider buttons. All three controls are direct OAuth links. Actual failures still surface a generic error; no successful login is simulated."
+}

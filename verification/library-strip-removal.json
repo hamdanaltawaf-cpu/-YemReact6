@@ -1,0 +1,37 @@
+{
+  "typecheck": "passed",
+  "unitTestsPassed": 7,
+  "httpChecks": [
+    {
+      "route": "/",
+      "status": 200,
+      "categoryBars": 0,
+      "cards": 8
+    },
+    {
+      "route": "/library",
+      "status": 200,
+      "categoryBars": 0,
+      "cards": 8
+    },
+    {
+      "route": "/library?cat=laugh",
+      "status": 200,
+      "categoryBars": 0,
+      "cards": 2
+    },
+    {
+      "route": "/library?q=%D8%AE%D8%A8%D8%B1%20%D8%B5%D8%A7%D8%AF%D9%85",
+      "status": 200,
+      "categoryBars": 0,
+      "cards": 1
+    },
+    {
+      "route": "/saved",
+      "status": 200,
+      "categoryBars": 1,
+      "cards": 0
+    }
+  ],
+  "scope": "Library page only; saved collection filters unchanged"
+}

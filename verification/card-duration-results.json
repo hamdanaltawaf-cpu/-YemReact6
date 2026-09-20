@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "width": 1440,
+      "cards": 12,
+      "position": {
+        "top": 15,
+        "right": 15
+      },
+      "previewHasNoAddedBadge": true
+    },
+    {
+      "width": 375,
+      "cards": 12,
+      "position": {
+        "top": 11,
+        "right": 11
+      },
+      "previewHasNoAddedBadge": true
+    }
+  ],
+  "unitTests": 23,
+  "productionBuild": "passed"
+}

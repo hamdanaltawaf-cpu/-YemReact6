@@ -5,7 +5,6 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
 import { useApp } from './AppProvider';
 import { Modal } from './ui/Modal';
-import { CAT_BY_ID } from '@/lib/categories';
 import { ClipPlayer, ReactionActions } from './Clip';
 export function Preview() {
   const app = useApp(),
@@ -34,22 +33,8 @@ export function Preview() {
         >
           <ClipPlayer reaction={r} active={!!app.preview} />
           <div className="preview-copy">
-            <span className="eyebrow">
-              {CAT_BY_ID[r.category].name} <span className="mono">/ {r.code}</span>
-            </span>
             <h3>{r.caption}</h3>
             <p>{r.situation}</p>
-            <div className="tags">
-              {r.keywords.map((k) => (
-                <Link
-                  onClick={() => app.setPreview(null)}
-                  href={`/library?q=${encodeURIComponent(k)}`}
-                  key={k}
-                >
-                  #{k}
-                </Link>
-              ))}
-            </div>
             <ReactionActions reaction={r} />
             {r.isDemo && (
               <p className="demo-disclosure">
@@ -75,9 +60,6 @@ export function Preview() {
               >
                 <ArrowRight size={20} />
               </button>
-              <span className="mono">
-                {index + 1} / {app.reactions.length}
-              </span>
               <button
                 className="icon-btn"
                 aria-label="الرياكشن التالي"

@@ -1,24 +1,35 @@
 import Database from 'better-sqlite3';
-import { scryptSync, randomBytes, randomUUID } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
 import path from 'node:path';
-const email = process.env.ADMIN_EMAIL?.trim().toLowerCase(),
-  password = process.env.ADMIN_PASSWORD;
-if (!email || !/^.+@.+\..+$/.test(email) || !password || password.length < 12)
-  throw Error('Set ADMIN_EMAIL and ADMIN_PASSWORD (12+ characters).');
-const dir = path.resolve(process.env.DATA_DIR || 'data');
-mkdirSync(dir, { recursive: true });
-const db = new Database(path.join(dir, 'yemreact.sqlite'));
-db.exec(
-  "CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,name TEXT NOT NULL,email TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'member',created_at TEXT NOT NULL)",
+// Promote only an existing, socially authenticated account. No password provisioning.
+const id = process.env.ADMIN_USER_ID?.trim();
+if (!id)
+  throw Error('Set ADMIN_USER_ID to an existing social account ID. See docs/SOCIAL-AUTH.md.');
+const db = new Database(
+  path.join(path.resolve(process.env.DATA_DIR || 'data'), 'yemreact.sqlite'),
+  { fileMustExist: true },
 );
-const salt = randomBytes(16).toString('hex'),
-  hash = salt + ':' + scryptSync(password, salt, 64).toString('hex');
-db.prepare(
-  "INSERT INTO users VALUES (?,?,?,?,?,?) ON CONFLICT(email) DO UPDATE SET role='admin',password_hash=excluded.password_hash",
-).run(randomUUID(), 'مالك المكتبة', email, hash, 'admin', new Date().toISOString());
-if (db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'").get()) {
-  db.prepare('DELETE FROM sessions WHERE user_id=(SELECT id FROM users WHERE email=?)').run(email);
+db.pragma('foreign_keys = ON');
+try {
+  db.transaction(() => {
+    const user = db
+      .prepare(
+        'SELECT u.id,u.name FROM users u WHERE u.id=? AND EXISTS (SELECT 1 FROM oauth_accounts a WHERE a.user_id=u.id)',
+      )
+      .get(id);
+    if (!user)
+      throw Error(
+        'No socially linked account with this ID. Sign in using a configured provider first.',
+      );
+    db.prepare("UPDATE users SET role='admin' WHERE id=?").run(id);
+    db.prepare('DELETE FROM sessions WHERE user_id=?').run(id);
+    db.prepare('INSERT INTO audit(user_id,action,detail,created_at) VALUES (?,?,?,?)').run(
+      id,
+      'admin-provision',
+      'Server operator promoted a social account',
+      new Date().toISOString(),
+    );
+    console.log('Administrator provisioned:', user.id, user.name, '— sign in again.');
+  })();
+} finally {
+  db.close();
 }
-console.log('Administrator provisioned:', email);
-db.close();

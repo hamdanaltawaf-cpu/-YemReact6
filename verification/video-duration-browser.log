@@ -1,0 +1,89 @@
+{
+  "rawUploads": [
+    {
+      "format": "mp4",
+      "duration": 1.99,
+      "status": 400
+    },
+    {
+      "format": "mp4",
+      "duration": 2,
+      "status": 200,
+      "measured": 2
+    },
+    {
+      "format": "mp4",
+      "duration": 30,
+      "status": 200,
+      "measured": 30
+    },
+    {
+      "format": "mp4",
+      "duration": 60,
+      "status": 200,
+      "measured": 60
+    },
+    {
+      "format": "mp4",
+      "duration": 60.01,
+      "status": 400
+    },
+    {
+      "format": "webm",
+      "duration": 1.99,
+      "status": 400
+    },
+    {
+      "format": "webm",
+      "duration": 2,
+      "status": 200,
+      "measured": 2
+    },
+    {
+      "format": "webm",
+      "duration": 30,
+      "status": 200,
+      "measured": 30
+    },
+    {
+      "format": "webm",
+      "duration": 60,
+      "status": 200,
+      "measured": 60
+    },
+    {
+      "format": "webm",
+      "duration": 60.01,
+      "status": 400
+    }
+  ],
+  "declaredDuration": [
+    {
+      "duration": 1.999,
+      "status": 400
+    },
+    {
+      "duration": 2,
+      "status": 200
+    },
+    {
+      "duration": 30,
+      "status": 200
+    },
+    {
+      "duration": 60,
+      "status": 200
+    },
+    {
+      "duration": 60.001,
+      "status": 400
+    }
+  ],
+  "checks": [
+    "Actual MP4 and WebM files: 2/30/60 accepted; 1.99/60.01 rejected; private temporary files cleaned",
+    "Publish rejects out-of-range declared values, replaces valid claims with measured duration, and blocks oversized media even when upload is bypassed",
+    "Owner UI blocks too-short/long files before upload; full-minute upload/publish/card badge/library discovery/saved all-durations and short filter work"
+  ],
+  "errors": [],
+  "completed": true
+}

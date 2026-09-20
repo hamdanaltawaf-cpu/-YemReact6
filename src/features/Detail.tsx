@@ -1,14 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import type { Reaction } from '@/lib/reactions';
-import { CAT_BY_ID } from '@/lib/categories';
 import { useApp } from '@/components/AppProvider';
 import { ClipPlayer, ReactionActions } from '@/components/Clip';
 import { ReactionCard } from '@/components/ReactionCard';
 export default function Detail({ reaction }: { reaction: Reaction }) {
-  const app = useApp(),
-    cat = CAT_BY_ID[reaction.category];
+  const app = useApp();
   const related = app.reactions
     .filter((r) => r.code !== reaction.code)
     .sort(
@@ -25,26 +23,14 @@ export default function Detail({ reaction }: { reaction: Reaction }) {
         <span>{reaction.caption}</span>
       </nav>
       <div className="detail-grid">
-        <div
-          className="detail-media"
-          style={{ '--category-glow': cat.color } as React.CSSProperties}
-        >
+        <div className="detail-media">
           <div className="ambient-glow" />
           <ClipPlayer reaction={reaction} />
         </div>
         <div className="detail-copy">
-          <Link href={`/library?cat=${cat.id}`} className="category-label">
-            <i style={{ background: cat.color }} />
-            {cat.name}
-          </Link>
-          <span className="mono muted">{reaction.code}</span>
           <h1>{reaction.caption}</h1>
           <p className="detail-situation">{reaction.situation}</p>
           <div className="detail-facts">
-            <span>
-              <Clock size={16} />
-              {reaction.duration} ثوانٍ
-            </span>
             <span>
               <CheckCircle2 size={16} />
               {reaction.isDemo ? 'نموذج تجريبي' : 'مضاف للمكتبة'}
@@ -52,13 +38,6 @@ export default function Detail({ reaction }: { reaction: Reaction }) {
             <span>MP4 / WebM</span>
           </div>
           <ReactionActions reaction={reaction} />
-          <div className="tags">
-            {reaction.keywords.map((k) => (
-              <Link href={`/library?q=${encodeURIComponent(k)}`} key={k}>
-                #{k}
-              </Link>
-            ))}
-          </div>
           {reaction.isDemo && (
             <div className="notice-box">
               <b>عن هذا النموذج</b>

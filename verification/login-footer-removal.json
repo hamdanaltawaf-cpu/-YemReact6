@@ -1,0 +1,42 @@
+{
+  "typecheck": "passed",
+  "unit_tests": 7,
+  "rendered_html_checks": [
+    {
+      "route": "/login",
+      "status": 200,
+      "footers": 0,
+      "inputs": 2
+    },
+    {
+      "route": "/login?mode=signup",
+      "status": 200,
+      "footers": 0,
+      "inputs": 2
+    },
+    {
+      "route": "/library",
+      "status": 200,
+      "footers": 0,
+      "inputs": 1
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "footers": 1,
+      "inputs": 1
+    },
+    {
+      "route": "/saved",
+      "status": 200,
+      "footers": 1,
+      "inputs": 1
+    },
+    {
+      "route": "/about",
+      "status": 200,
+      "footers": 1,
+      "inputs": 0
+    }
+  ]
+}

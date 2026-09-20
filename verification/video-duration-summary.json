@@ -1,0 +1,16 @@
+{
+  "change": "Inclusive 2\u201360 second video-duration policy",
+  "minimumSeconds": 2,
+  "maximumSeconds": 60,
+  "unitTestsPassed": 26,
+  "productionBuild": "passed",
+  "typecheck": "passed",
+  "browserAndApiEvidence": "verification/video-duration-results.json",
+  "rawMediaTests": "MP4 and WebM: accepted 2,30,60; rejected 1.99,60.01. No pre-validation rounding or clamping.",
+  "publishChecks": "Re-probes actual local media; rejects invalid declared duration and oversized file even if upload endpoint is bypassed.",
+  "editor": "Tested invalid files rejected before upload, then upload/publish of an actual 60-second clip, card badge and saved all-durations filter.",
+  "discovery": "Default duration limit and saved filter/reset changed to 60.",
+  "runtimeDependency": "Maintained system FFprobe (verified locally: 7.1.5); optional FFPROBE_PATH override; fail-closed if unavailable.",
+  "limitsUnchanged": "15MiB, MP4/WebM videos; image handling unchanged.",
+  "limitation": "Metadata/stream probing, not a complete media decode, malware scan or transcoder."
+}

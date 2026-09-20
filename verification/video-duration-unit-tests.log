@@ -1,0 +1,144 @@
+
+> yemreact-v3-exp@4.0.0-preview test /home/user/yemreact-v3-exp
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: Video cards show the duration badge for supported video URLs only
+ok 1 - Video cards show the duration badge for supported video URLs only
+  ---
+  duration_ms: 10.796229
+  ...
+# Subtest: Non-video cards never display a video duration, even if a duration exists in data
+ok 2 - Non-video cards never display a video duration, even if a duration exists in data
+  ---
+  duration_ms: 3.640877
+  ...
+# Subtest: Invalid video durations are not rendered
+ok 3 - Invalid video durations are not rendered
+  ---
+  duration_ms: 3.296309
+  ...
+# Subtest: OAuth configuration fails closed without secrets or a safe public origin
+ok 4 - OAuth configuration fails closed without secrets or a safe public origin
+  ---
+  duration_ms: 1.354073
+  ...
+# Subtest: OIDC accepts a valid signed identity; excludes unverified email
+ok 5 - OIDC accepts a valid signed identity; excludes unverified email
+  ---
+  duration_ms: 12.502413
+  ...
+# Subtest: OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
+ok 6 - OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
+  ---
+  duration_ms: 74.884832
+  ...
+# Subtest: Microsoft tenant-specific issuer is checked, including tenant restrictions
+ok 7 - Microsoft tenant-specific issuer is checked, including tenant restrictions
+  ---
+  duration_ms: 3.24708
+  ...
+# Subtest: Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
+ok 8 - Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
+  ---
+  duration_ms: 100.794602
+  ...
+# Subtest: Missing browser binding and expired state fail before token exchange
+ok 9 - Missing browser binding and expired state fail before token exchange
+  ---
+  duration_ms: 30.855146
+  ...
+# Subtest: Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
+ok 10 - Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
+  ---
+  duration_ms: 47.624304
+  ...
+# Subtest: Cancellation is recoverable and creates no account
+ok 11 - Cancellation is recoverable and creates no account
+  ---
+  duration_ms: 30.134673
+  ...
+# Subtest: Invalid identity token cannot create an account/session
+ok 12 - Invalid identity token cannot create an account/session
+  ---
+  duration_ms: 25.171599
+  ...
+# Subtest: An email collision never auto-links or takes over a legacy administrator
+ok 13 - An email collision never auto-links or takes over a legacy administrator
+  ---
+  duration_ms: 38.044153
+  ...
+# Subtest: Microsoft callback establishes a local member using the validated tenant identity
+ok 14 - Microsoft callback establishes a local member using the validated tenant identity
+  ---
+  duration_ms: 43.03383
+  ...
+# Subtest: An already-linked owner keeps the same account, role and admin destination
+ok 15 - An already-linked owner keeps the same account, role and admin destination
+  ---
+  duration_ms: 27.110622
+  ...
+# Subtest: Provider mismatch cannot consume a flow or create a session
+ok 16 - Provider mismatch cannot consume a flow or create a session
+  ---
+  duration_ms: 26.517078
+  ...
+# Subtest: normalizes Arabic diacritics and hamza
+ok 17 - normalizes Arabic diacritics and hamza
+  ---
+  duration_ms: 7.087489
+  ...
+# Subtest: all nine categories have seed content
+ok 18 - all nine categories have seed content
+  ---
+  duration_ms: 0.211157
+  ...
+# Subtest: search uses all normalized query words
+ok 19 - search uses all normalized query words
+  ---
+  duration_ms: 0.593029
+  ...
+# Subtest: category filtering is exact
+ok 20 - category filtering is exact
+  ---
+  duration_ms: 8.354083
+  ...
+# Subtest: duration and sorting are composed
+ok 21 - duration and sorting are composed
+  ---
+  duration_ms: 0.246905
+  ...
+# Subtest: unique codes and honest demo flags
+ok 22 - unique codes and honest demo flags
+  ---
+  duration_ms: 0.162052
+  ...
+# Subtest: empty and unknown queries do not throw
+ok 23 - empty and unknown queries do not throw
+  ---
+  duration_ms: 0.225945
+  ...
+# Subtest: default discovery includes long videos through 60 seconds; short filters still apply
+ok 24 - default discovery includes long videos through 60 seconds; short filters still apply
+  ---
+  duration_ms: 0.2803
+  ...
+# Subtest: video duration boundaries are inclusive: 2 and 60 seconds
+ok 25 - video duration boundaries are inclusive: 2 and 60 seconds
+  ---
+  duration_ms: 1.303065
+  ...
+# Subtest: video duration rejects values outside bounds without rounding or tolerance
+ok 26 - video duration rejects values outside bounds without rounding or tolerance
+  ---
+  duration_ms: 0.285847
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3753.369738

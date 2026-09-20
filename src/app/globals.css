@@ -925,7 +925,7 @@ kbd {
 .card-duration {
   position: absolute;
   right: 15px;
-  top: 37px;
+  top: 15px;
   background: #12121442;
   border: 1px solid #ffffff2a;
   border-radius: 4px;
@@ -1354,7 +1354,7 @@ kbd {
 .ambient-glow {
   position: absolute;
   inset: 15% 0;
-  background: var(--category-glow);
+  background: var(--accent);
   filter: blur(80px);
   opacity: 0.25;
   z-index: -1;
@@ -1364,7 +1364,7 @@ kbd {
   font-family: var(--f-display);
   font-size: 62px;
   font-weight: 400;
-  margin-top: 19px;
+  margin-top: 0;
 }
 .detail-situation {
   font-size: 19px;
@@ -2870,7 +2870,7 @@ kbd {
   .card-duration {
     font-size: 7px;
     right: 11px;
-    top: 31px;
+    top: 11px;
   }
   .card-caption {
     bottom: 13px;
@@ -3510,4 +3510,296 @@ kbd {
   .card-info a {
     min-height: 44px;
   }
+}
+
+/* Social-only account entry: provider identity + YemReact paper/olive palette. */
+.social-auth {
+  margin-block: 52px;
+  box-shadow: var(--shadow);
+}
+.social-auth > * {
+  min-width: 0;
+}
+.social-auth .auth-story {
+  display: flex;
+  flex-direction: column;
+  padding: 48px;
+}
+.social-auth .auth-story:after {
+  pointer-events: none;
+}
+.social-auth .auth-story > * {
+  position: relative;
+  z-index: 1;
+}
+.social-auth .auth-story .eyebrow {
+  margin: 34px 0 16px;
+}
+.social-auth .auth-story h1 {
+  font-size: clamp(42px, 4.5vw, 59px);
+}
+.social-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 36px 0 40px;
+  display: grid;
+  gap: 17px;
+}
+.social-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.social-benefits svg {
+  color: #d9ba8f;
+  flex-shrink: 0;
+}
+.social-story-signature {
+  margin-top: auto;
+  color: #c5c9bb;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.social-panel {
+  padding: 46px 40px 30px;
+}
+.social-panel h2 {
+  font-size: 40px;
+  margin: 12px 0 8px;
+}
+.social-intro {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.95;
+}
+.social-providers {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+.social-provider {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  min-height: 58px;
+  padding: 13px 18px;
+  border: 1px solid #c4c4c4;
+  border-radius: 9px;
+  background: #fff;
+  color: #252525;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
+}
+.social-provider > svg {
+  flex-shrink: 0;
+}
+.social-provider span {
+  flex: 1;
+}
+.social-provider .social-provider-arrow {
+  opacity: 0.65;
+}
+.social-provider-apple {
+  background: #161616;
+  border-color: #161616;
+  color: #fff;
+}
+.social-provider:hover {
+  border-color: var(--accent);
+  box-shadow: 0 3px 12px #00000012;
+}
+.social-provider:focus-visible {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 4px;
+}
+.social-error {
+  margin-top: 16px;
+  color: var(--ink);
+  border-color: var(--accent-text);
+  background: var(--accent-soft);
+}
+.social-trust {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 26px;
+  color: var(--ink);
+}
+.social-trust svg {
+  margin-top: 3px;
+  flex-shrink: 0;
+  color: var(--accent-text);
+}
+.social-trust p {
+  font-size: 11px;
+  line-height: 1.9;
+}
+.social-trust span {
+  color: var(--muted);
+}
+.social-privacy {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.9;
+  margin-top: 15px;
+}
+.social-privacy a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.social-guest {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 18px;
+  text-align: center;
+}
+.social-guest .text-button {
+  min-height: 44px;
+}
+@media (max-width: 767px) {
+  .social-auth {
+    grid-template-columns: 1fr;
+    margin-block: 24px;
+  }
+  .social-auth .auth-story {
+    padding: 26px;
+  }
+  .social-auth .auth-story > svg {
+    width: 35px;
+    height: 35px;
+  }
+  .social-auth .auth-story .eyebrow {
+    margin: 18px 0 10px;
+  }
+  .social-auth .auth-story h1 {
+    font-size: 40px;
+  }
+  .social-auth .auth-story h1 br {
+    display: none;
+  }
+  .social-auth .auth-story p {
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .social-benefits,
+  .social-story-signature {
+    display: none;
+  }
+  .social-panel {
+    padding: 28px 24px 20px;
+  }
+  .social-panel h2 {
+    font-size: 35px;
+  }
+  .social-panel > .eyebrow {
+    font-size: 10px;
+  }
+  .social-providers {
+    margin-top: 22px;
+  }
+}
+@media (max-width: 374px) {
+  .social-auth .auth-story,
+  .social-panel {
+    padding-inline: 19px;
+  }
+  .social-provider {
+    padding-inline: 12px;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .social-provider-arrow {
+    display: none;
+  }
+}
+
+/* Card-only public library. Masonry is scoped here; home/saved card layouts stay intact. */
+.library-feed {
+  padding-block: 24px 36px;
+  min-height: 70vh;
+}
+.library-masonry {
+  --pin-gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--pin-gap);
+  align-items: start;
+}
+.library-masonry[data-masonry='true'] {
+  grid-auto-rows: 1px;
+  row-gap: 0;
+}
+.library-pin {
+  min-width: 0;
+}
+.library-pin .card-visual {
+  aspect-ratio: 4 / 5;
+  border-radius: 14px;
+}
+.library-pin:nth-child(4n + 2) .card-visual {
+  aspect-ratio: 1 / 1;
+}
+.library-pin:nth-child(4n + 3) .card-visual {
+  aspect-ratio: 3 / 4;
+}
+.library-pin:nth-child(4n) .card-visual {
+  aspect-ratio: 4 / 4.5;
+}
+.library-sentinel {
+  height: 1px;
+  pointer-events: none;
+}
+@media (min-width: 1600px) {
+  .library-masonry {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (min-width: 2400px) {
+  .library-masonry {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1000px) {
+  .library-masonry {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --pin-gap: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .library-feed {
+    padding-block: 16px 24px;
+  }
+  .library-masonry {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --pin-gap: 12px;
+  }
+  .library-pin .card-visual {
+    border-radius: 10px;
+  }
+}
+
+.social-login-help {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--soft);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.social-login-help .text-button {
+  min-height: 44px;
+}
+.social-login-help > a {
+  display: block;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
 }

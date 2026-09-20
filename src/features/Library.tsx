@@ -13,16 +13,20 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/components/AppProvider';
 import { ReactionCard } from '@/components/ReactionCard';
-import { CATEGORIES } from '@/lib/categories';
 import { filterReactions } from '@/lib/reactions';
+import { MAX_VIDEO_DURATION } from '@/lib/video';
+import LibraryFeed from './LibraryFeed';
 export default function Library({ savedOnly = false }: { savedOnly?: boolean }) {
+  return savedOnly ? <SavedLibrary /> : <LibraryFeed />;
+}
+function SavedLibrary() {
   const app = useApp(),
     params = useSearchParams(),
     router = useRouter();
   const [q, setQ] = useState(params.get('q') || ''),
     [cat, setCat] = useState(params.get('cat') || ''),
     [sort, setSort] = useState('newest'),
-    [duration, setDuration] = useState(8),
+    [duration, setDuration] = useState(MAX_VIDEO_DURATION),
     [limit, setLimit] = useState(8);
   useEffect(() => {
     setQ(params.get('q') || '');
@@ -35,11 +39,11 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
     const p = new URLSearchParams();
     if (query) p.set('q', query);
     if (category) p.set('cat', category);
-    router.replace(`${savedOnly ? '/saved' : '/library'}${p.size ? '?' + p : ''}`, {
+    router.replace(`/saved${p.size ? '?' + p : ''}`, {
       scroll: false,
     });
   }
-  const source = app.reactions.filter((r) => !savedOnly || app.saved.includes(r.code));
+  const source = app.reactions.filter((r) => app.saved.includes(r.code));
   const items = useMemo(
     () => filterReactions(source, q, cat, sort, duration),
     [source, q, cat, sort, duration],
@@ -48,7 +52,7 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
     setQ('');
     setCat('');
     setSort('newest');
-    setDuration(8);
+    setDuration(MAX_VIDEO_DURATION);
     update('', '');
   };
   function exportCollection() {
@@ -66,39 +70,25 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
       <div className="page-breadcrumb">
         <Link href="/">الرئيسية</Link>
         <span>/</span>
-        <span>{savedOnly ? 'مجموعتك' : 'المكتبة'}</span>
+        <span>مجموعتك</span>
       </div>
       <div className="section-heading page-heading">
         <div>
-          <span className="eyebrow">
-            {savedOnly ? 'اختياراتك، لوقتها المناسب.' : 'كل المواقف تبدأ من هنا.'}
-          </span>
-          <h1>{savedOnly ? 'ردودك، محفوظة.' : 'دوّر على موقفك.'}</h1>
+          <span className="eyebrow">اختياراتك، لوقتها المناسب.</span>
+          <h1>ردودك، محفوظة.</h1>
           <p>
-            {savedOnly
-              ? app.user
-                ? 'محفوظاتك مرتبطة بحسابك.'
-                : 'محفوظة في هذا المتصفح. سجّل الدخول لحفظ اختياراتك عبر الأجهزة.'
-              : 'اكتب اللي حاصل، خلّ الباقي علينا.'}
+            {app.user
+              ? 'محفوظاتك مرتبطة بحسابك.'
+              : 'محفوظة في هذا المتصفح. سجّل الدخول لحفظ اختياراتك عبر الأجهزة.'}
           </p>
         </div>
         <div className="page-heading-side">
-          {savedOnly ? (
-            <>
-              <Bookmark size={27} />
-              <span className="mono">{source.length} SAVED</span>
-              {source.length > 0 && (
-                <button className="text-button" onClick={exportCollection}>
-                  <Download size={15} />
-                  تصدير القائمة
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <QusasaDecor />
-              <span className="mono">{app.reactions.length} CLIPS / 09 MOODS</span>
-            </>
+          <Bookmark size={27} />
+          {source.length > 0 && (
+            <button className="text-button" onClick={exportCollection}>
+              <Download size={15} />
+              تصدير القائمة
+            </button>
           )}
         </div>
       </div>
@@ -120,7 +110,7 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
             data-search
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="موقف، كلمة، أو حتى كود الرياكشن..."
+            placeholder="ابحث عن موقف أو كلمة..."
             maxLength={100}
           />
           {q && (
@@ -152,37 +142,7 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
           </select>
         </div>
       </div>
-      <div className="category-tabs">
-        <button
-          className={!cat ? 'active' : ''}
-          aria-pressed={!cat}
-          onClick={() => {
-            setCat('');
-            update(q, '');
-          }}
-        >
-          ✳ الكل
-        </button>
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            aria-pressed={cat === c.id}
-            className={cat === c.id ? 'active' : ''}
-            onClick={() => {
-              setCat(c.id);
-              update(q, c.id);
-            }}
-          >
-            <i style={{ background: c.color }} />
-            {c.name}
-          </button>
-        ))}
-      </div>
       <div className="results-row">
-        <p role="status" aria-live="polite">
-          <b>{items.length}</b> {savedOnly ? 'رياكشن في مجموعتك' : 'رياكشن في انتظارك'}
-          {q && <> عن «{q}»</>}
-        </p>
         <label className="duration-filter">
           المدة{' '}
           <select
@@ -190,7 +150,7 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
           >
-            <option value={8}>كل المدد</option>
+            <option value={MAX_VIDEO_DURATION}>كل المدد</option>
             <option value={3}>حتى 3 ثوانٍ</option>
             <option value={5}>حتى 5 ثوانٍ</option>
           </select>
@@ -204,9 +164,6 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
             ))}
           </div>
           <div className="center-action">
-            <p className="muted text-small">
-              عرض {Math.min(limit, items.length)} من {items.length}
-            </p>
             {limit < items.length && (
               <button className="btn btn-outline" onClick={() => setLimit(limit + 8)}>
                 أظهر المزيد <ArrowLeft size={17} />
@@ -216,20 +173,18 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
         </>
       ) : (
         <div className="empty-state">
-          {savedOnly && !source.length ? (
+          {!source.length ? (
             <FolderHeart size={52} strokeWidth={1} />
           ) : (
             <Search size={52} strokeWidth={1} />
           )}
-          <h2>
-            {savedOnly && !source.length ? 'لسّه ما اخترت ردودك؟' : 'الموقف هذا... ما لقيناه بعد.'}
-          </h2>
+          <h2>{!source.length ? 'لسّه ما اخترت ردودك؟' : 'الموقف هذا... ما لقيناه بعد.'}</h2>
           <p>
-            {savedOnly && !source.length
+            {!source.length
               ? 'اضغط علامة الحفظ على أي لقطة، وبتلاقيها هنا.'
-              : 'جرّب كلمة أقصر، أو اختَر فئة ثانية.'}
+              : 'جرّب كلمة أقصر، أو وسّع مدة البحث.'}
           </p>
-          {savedOnly && !source.length ? (
+          {!source.length ? (
             <Link className="btn btn-dark" href="/library">
               خذ لفة في المكتبة <ArrowLeft size={17} />
             </Link>
@@ -249,7 +204,4 @@ export default function Library({ savedOnly = false }: { savedOnly?: boolean }) 
       </div>
     </section>
   );
-}
-function QusasaDecor() {
-  return <span className="little-star large">✳</span>;
 }

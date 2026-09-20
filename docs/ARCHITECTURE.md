@@ -15,7 +15,7 @@ This is a tested **single-node full-stack preview**, not a claim of audited ente
 - React context for app-wide state. Unused Zustand and React Compiler dependencies from the baseline were removed.
 - SQLite (`better-sqlite3`), WAL, parameterized SQL, foreign-key enforcement.
 - Local filesystem media with bounded-size upload acceptance and HTTP byte ranges.
-- Zod validation; Node scrypt for password derivation.
+- Zod validation; jose for provider-signed OIDC tokens; social-only authentication.
 
 ## Component boundaries
 
@@ -46,9 +46,9 @@ The exact folder names are not the architecture: domain logic, persistence, HTTP
 ## Important limitations
 
 - This deployment is not horizontally scalable: local SQLite, local uploads and process-local rate-limit buckets assume one application instance.
-- No email verification, password-reset service, OAuth providers, 2FA, self-service account deletion or external object storage is configured.
+- OAuth routes are implemented for Google/Apple/Microsoft but need provider credentials and live testing. No local passwords, self-service provider linking, site-managed 2FA, account deletion or external object storage. See SOCIAL-AUTH.md.
 - The user management view lists the latest 100 accounts. Owner promotion is CLI-only, not an unrestricted browser endpoint.
-- File signatures and client-side video duration are checked; this is not malware scanning, a sandboxed transcoder, or server-side codec/duration verification.
+- File signatures and client-side video duration are checked; server-side FFprobe metadata duration checks are now enforced on upload and publish. This is not malware scanning, full media decoding or a sandboxed transcoder.
 - Photos and demo MP4s are original AI-generated still portraits animated by a zoom, not authentic footage. Labeling is present in hero, gallery, player, details and policy copy.
 - No WCAG AAA certificate, global performance SLA, independent penetration test or load-test claim is made.
 

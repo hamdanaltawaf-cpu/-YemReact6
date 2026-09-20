@@ -64,9 +64,6 @@ export function Header() {
             {links.map(([href, label]) => (
               <Link aria-current={path === href ? 'page' : undefined} key={href} href={href}>
                 {label}
-                {href === '/saved' && app.saved.length > 0 && (
-                  <small className="count-badge">{app.saved.length}</small>
-                )}
               </Link>
             ))}
             <Link href="/admin" aria-current={path === '/admin' ? 'page' : undefined}>
@@ -83,7 +80,7 @@ export function Header() {
             </button>
             <button
               className="icon-btn notification-trigger"
-              aria-label={`الإشعارات، ${app.notices.length} جديدة`}
+              aria-label="الإشعارات"
               onClick={() => setNotifications(true)}
             >
               <Bell size={18} />

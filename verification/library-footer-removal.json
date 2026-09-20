@@ -1,0 +1,42 @@
+{
+  "typecheck": "passed",
+  "unit_tests": 7,
+  "rendered_html_checks": [
+    {
+      "route": "/library",
+      "status": 200,
+      "footers": 0,
+      "notes": 0,
+      "cards": 8
+    },
+    {
+      "route": "/library?q=%D8%AE%D8%A8%D8%B1",
+      "status": 200,
+      "footers": 0,
+      "notes": 0,
+      "cards": 2
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "footers": 1,
+      "notes": 0,
+      "cards": 8
+    },
+    {
+      "route": "/saved",
+      "status": 200,
+      "footers": 1,
+      "notes": 1,
+      "cards": 0
+    },
+    {
+      "route": "/about",
+      "status": 200,
+      "footers": 1,
+      "notes": 0,
+      "cards": 0
+    }
+  ],
+  "scope": "Library only; footer retained on other pages. No full browser suite rerun."
+}
