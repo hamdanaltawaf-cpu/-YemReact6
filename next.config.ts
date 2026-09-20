@@ -4,6 +4,8 @@ const config: NextConfig = {
   // Keep metadata blocking: a missing reaction must return HTTP 404, not a streamed 200.
   htmlLimitedBots: /.*/,
   serverExternalPackages: ['better-sqlite3'],
+  // Collect route data sequentially: parallel build workers can race SQLite initialization.
+  experimental: { cpus: 1 },
   images: { unoptimized: true },
   async headers() {
     return [

@@ -6,177 +6,177 @@ TAP version 13
 # Subtest: Video cards show the duration badge for supported video URLs only
 ok 1 - Video cards show the duration badge for supported video URLs only
   ---
-  duration_ms: 11.50214
+  duration_ms: 10.811442
   ...
 # Subtest: Non-video cards never display a video duration, even if a duration exists in data
 ok 2 - Non-video cards never display a video duration, even if a duration exists in data
   ---
-  duration_ms: 3.837159
+  duration_ms: 3.506597
   ...
 # Subtest: Invalid video durations are not rendered
 ok 3 - Invalid video durations are not rendered
   ---
-  duration_ms: 2.617191
+  duration_ms: 2.200493
   ...
 # Subtest: OAuth configuration fails closed without secrets or a safe public origin
 ok 4 - OAuth configuration fails closed without secrets or a safe public origin
   ---
-  duration_ms: 1.506447
+  duration_ms: 1.40094
   ...
 # Subtest: OIDC accepts a valid signed identity; excludes unverified email
 ok 5 - OIDC accepts a valid signed identity; excludes unverified email
   ---
-  duration_ms: 15.365282
+  duration_ms: 11.23473
   ...
 # Subtest: OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
 ok 6 - OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
   ---
-  duration_ms: 217.923325
+  duration_ms: 216.528764
   ...
 # Subtest: Microsoft tenant-specific issuer is checked, including tenant restrictions
 ok 7 - Microsoft tenant-specific issuer is checked, including tenant restrictions
   ---
-  duration_ms: 4.421561
+  duration_ms: 3.887011
   ...
 # Subtest: Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
 ok 8 - Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
   ---
-  duration_ms: 71.118889
+  duration_ms: 66.182626
   ...
 # Subtest: Missing browser binding and expired state fail before token exchange
 ok 9 - Missing browser binding and expired state fail before token exchange
   ---
-  duration_ms: 51.595913
+  duration_ms: 42.026958
   ...
 # Subtest: Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
 ok 10 - Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
   ---
-  duration_ms: 53.929181
+  duration_ms: 51.347196
   ...
 # Subtest: Cancellation is recoverable and creates no account
 ok 11 - Cancellation is recoverable and creates no account
   ---
-  duration_ms: 28.929456
+  duration_ms: 23.999897
   ...
 # Subtest: Invalid identity token cannot create an account/session
 ok 12 - Invalid identity token cannot create an account/session
   ---
-  duration_ms: 32.551819
+  duration_ms: 26.604707
   ...
 # Subtest: An email collision never auto-links or takes over a legacy administrator
 ok 13 - An email collision never auto-links or takes over a legacy administrator
   ---
-  duration_ms: 40.547814
+  duration_ms: 39.821576
   ...
 # Subtest: Microsoft callback establishes a local member using the validated tenant identity
 ok 14 - Microsoft callback establishes a local member using the validated tenant identity
   ---
-  duration_ms: 30.438347
+  duration_ms: 27.198815
   ...
 # Subtest: An already-linked owner keeps the same account, role and admin destination
 ok 15 - An already-linked owner keeps the same account, role and admin destination
   ---
-  duration_ms: 36.28449
+  duration_ms: 35.787468
   ...
 # Subtest: Provider mismatch cannot consume a flow or create a session
 ok 16 - Provider mismatch cannot consume a flow or create a session
   ---
-  duration_ms: 24.138164
+  duration_ms: 19.641441
   ...
 # Subtest: OAuth host accepts only the public host or exact configured proxy
 ok 17 - OAuth host accepts only the public host or exact configured proxy
   ---
-  duration_ms: 1.944346
+  duration_ms: 1.273555
   ...
 # Subtest: Same-origin mutations work on direct or explicitly mapped public origins
 ok 18 - Same-origin mutations work on direct or explicitly mapped public origins
   ---
-  duration_ms: 0.399048
+  duration_ms: 0.299969
   ...
 # Subtest: Proxy mapping never authorizes unrelated, missing or malformed origins
 ok 19 - Proxy mapping never authorizes unrelated, missing or malformed origins
   ---
-  duration_ms: 0.342734
+  duration_ms: 0.258414
   ...
 # Subtest: Cross-site browser mutations are rejected even when a proxy rewrites Origin
 ok 20 - Cross-site browser mutations are rejected even when a proxy rewrites Origin
   ---
-  duration_ms: 0.275432
+  duration_ms: 0.186171
   ...
 # Subtest: normalizes Arabic diacritics and hamza
 ok 21 - normalizes Arabic diacritics and hamza
   ---
-  duration_ms: 1.581888
+  duration_ms: 1.427155
   ...
 # Subtest: all nine categories have seed content
 ok 22 - all nine categories have seed content
   ---
-  duration_ms: 0.159
+  duration_ms: 0.163838
   ...
 # Subtest: search uses all normalized query words
 ok 23 - search uses all normalized query words
   ---
-  duration_ms: 0.446633
+  duration_ms: 0.400921
   ...
 # Subtest: category filtering is exact
 ok 24 - category filtering is exact
   ---
-  duration_ms: 7.491812
+  duration_ms: 7.493055
   ...
 # Subtest: duration and sorting are composed
 ok 25 - duration and sorting are composed
   ---
-  duration_ms: 0.32672
+  duration_ms: 0.29239
   ...
 # Subtest: unique codes and honest demo flags
 ok 26 - unique codes and honest demo flags
   ---
-  duration_ms: 0.183451
+  duration_ms: 0.183912
   ...
 # Subtest: empty and unknown queries do not throw
 ok 27 - empty and unknown queries do not throw
   ---
-  duration_ms: 0.253052
+  duration_ms: 0.26055
   ...
 # Subtest: default discovery includes long videos through 60 seconds; short filters still apply
 ok 28 - default discovery includes long videos through 60 seconds; short filters still apply
   ---
-  duration_ms: 0.227313
+  duration_ms: 0.221542
   ...
 # Subtest: Studio redirects unauthenticated visitors before rendering
 ok 29 - Studio redirects unauthenticated visitors before rendering
   ---
-  duration_ms: 75.460131
+  duration_ms: 61.822642
   ...
 # Subtest: Studio denies non-admin roles on the server
 ok 30 - Studio denies non-admin roles on the server
   ---
-  duration_ms: 41.442134
+  duration_ms: 32.291222
   ...
 # Subtest: Studio renders for an authenticated admin
 ok 31 - Studio renders for an authenticated admin
   ---
-  duration_ms: 17.605825
+  duration_ms: 9.780598
   ...
 # Subtest: Guest and member navigation omit every studio link, including mobile and footer
 ok 32 - Guest and member navigation omit every studio link, including mobile and footer
   ---
-  duration_ms: 221.030322
+  duration_ms: 205.766906
   ...
 # Subtest: Admin navigation retains studio links on desktop, mobile and footer
 ok 33 - Admin navigation retains studio links on desktop, mobile and footer
   ---
-  duration_ms: 51.629209
+  duration_ms: 47.766059
   ...
 # Subtest: video duration boundaries are inclusive: 2 and 60 seconds
 ok 34 - video duration boundaries are inclusive: 2 and 60 seconds
   ---
-  duration_ms: 1.344019
+  duration_ms: 1.274206
   ...
 # Subtest: video duration rejects values outside bounds without rounding or tolerance
 ok 35 - video duration rejects values outside bounds without rounding or tolerance
   ---
-  duration_ms: 0.248719
+  duration_ms: 0.224851
   ...
 1..35
 # tests 35
@@ -186,4 +186,4 @@ ok 35 - video duration rejects values outside bounds without rounding or toleran
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 5864.87997
+# duration_ms 5220.8795
