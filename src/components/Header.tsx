@@ -2,16 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import {
-  Bookmark,
-  SlidersHorizontal,
-  Search,
-  Menu,
-  X,
-  Bell,
-  ArrowUpLeft,
-  LogOut,
-} from 'lucide-react';
+import { Bookmark, SlidersHorizontal, Search, Menu, X, Bell, ArrowUpLeft } from 'lucide-react';
 import { Qusasa } from './Qusasa';
 import { useApp } from './AppProvider';
 import { Modal } from './ui/Modal';
@@ -89,10 +80,9 @@ export function Header() {
               {app.notices.length > 0 && <i />}
             </button>
             {app.user ? (
-              <button className="account-chip" onClick={app.logout} title="تسجيل الخروج">
-                <span>{app.user.name.slice(0, 1)}</span>
-                <LogOut size={15} />
-              </button>
+              <Link href="/login" className="account-chip" title="الحساب" aria-label="الحساب">
+                <span aria-hidden="true">{app.user.name.slice(0, 1)}</span>
+              </Link>
             ) : (
               <Link href="/login" className="btn btn-dark btn-small login-link">
                 دخول <ArrowUpLeft size={15} />

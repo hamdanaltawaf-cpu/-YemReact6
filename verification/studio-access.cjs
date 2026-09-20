@@ -30,16 +30,24 @@ const report={scope:'Disposable local production-build database only; no product
    const api=await ctx.request.get(origin+'/api/admin');
    assert.equal(api.status(),role==='guest'?401:role==='member'?403:200);
    await page.goto(origin+'/admin',{waitUntil:'networkidle'});
-   if(role==='admin'){
-    await page.locator('.admin-shell').waitFor();
-    await page.locator('.account-chip').click();
+   if(role==='admin') await page.locator('.admin-shell').waitFor();
+   else assert.equal(await page.locator('.admin-shell').count(),0);
+   if(role!=='guest'){
+    assert.equal(await page.locator('header').getByRole('button',{name:'تسجيل الخروج',exact:true}).count(),0);
+    await page.getByRole('link',{name:'الحساب',exact:true}).filter({has:page.locator('span')}).click();
+    await page.waitForURL(origin+'/login');
+    assert.equal((await (await ctx.request.get(origin+'/api/auth')).json()).user.role,role);
+    const logout=page.locator('main').getByRole('button',{name:'تسجيل الخروج',exact:true});
+    await logout.waitFor();
+    assert.equal(await page.locator('.account-chip').getAttribute('href'),'/login');
+    await logout.click();
     await page.waitForFunction(()=>!document.querySelector('.account-chip'));
-    assert.equal(await page.locator('.admin-shell').count(),0);
     assert.equal(await page.locator('a[href="/admin"]').count(),0);
+    assert.equal((await ctx.request.get(origin+'/admin',{maxRedirects:0})).status(),307);
     // Restore this disposable session for the next viewport only.
     db.prepare('INSERT OR REPLACE INTO sessions(token_hash,user_id,expires) VALUES (?,?,?)').run(createHash('sha256').update(user.token).digest('hex'),user.id,Date.now()+3600000);
-   }else assert.equal(await page.locator('.admin-shell').count(),0);
-   report.cases.push({role,width,studioLinksOnlyForAdmin:true,directRouteStatus:direct.status(),adminApiStatus:api.status(),logoutClearsStudio:role==='admin'?true:undefined});
+   }
+   report.cases.push({role,width,studioLinksOnlyForAdmin:true,directRouteStatus:direct.status(),adminApiStatus:api.status(),avatarOpensAccountWithoutLogout:role!=='guest'?true:undefined,logoutInsideAccountOnly:role!=='guest'?true:undefined});
    await ctx.close();
   }
   const admin=fixtures.find(f=>f.role==='admin');

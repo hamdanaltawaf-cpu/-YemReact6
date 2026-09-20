@@ -95,3 +95,17 @@ test('Admin navigation retains studio links on desktop, mobile and footer', () =
     assert.match(footer, /href="\/admin"/);
   }
 });
+
+test('Header avatar opens the account page without a logout action', () => {
+  for (const role of ['member', 'admin']) {
+    for (const mobile of [false, true]) {
+      const { header } = navigation({ role, name: 'Account' }, mobile);
+      assert.match(
+        header,
+        /<a(?=[^>]*class="account-chip")(?=[^>]*href="\/login")(?=[^>]*aria-label="الحساب")/,
+      );
+      assert.doesNotMatch(header, /تسجيل الخروج/);
+    }
+  }
+  assert.doesNotMatch(fs.readFileSync('src/components/Header.tsx', 'utf8'), /app\.logout|LogOut/);
+});

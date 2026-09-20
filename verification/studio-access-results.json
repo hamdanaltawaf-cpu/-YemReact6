@@ -20,14 +20,18 @@
       "width": 1440,
       "studioLinksOnlyForAdmin": true,
       "directRouteStatus": 404,
-      "adminApiStatus": 403
+      "adminApiStatus": 403,
+      "avatarOpensAccountWithoutLogout": true,
+      "logoutInsideAccountOnly": true
     },
     {
       "role": "member",
       "width": 375,
       "studioLinksOnlyForAdmin": true,
       "directRouteStatus": 404,
-      "adminApiStatus": 403
+      "adminApiStatus": 403,
+      "avatarOpensAccountWithoutLogout": true,
+      "logoutInsideAccountOnly": true
     },
     {
       "role": "admin",
@@ -35,7 +39,8 @@
       "studioLinksOnlyForAdmin": true,
       "directRouteStatus": 200,
       "adminApiStatus": 200,
-      "logoutClearsStudio": true
+      "avatarOpensAccountWithoutLogout": true,
+      "logoutInsideAccountOnly": true
     },
     {
       "role": "admin",
@@ -43,7 +48,8 @@
       "studioLinksOnlyForAdmin": true,
       "directRouteStatus": 200,
       "adminApiStatus": 200,
-      "logoutClearsStudio": true
+      "avatarOpensAccountWithoutLogout": true,
+      "logoutInsideAccountOnly": true
     }
   ],
   "completed": true,
