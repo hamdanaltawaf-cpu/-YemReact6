@@ -1,0 +1,180 @@
+{
+  "base": "http://localhost:3100",
+  "live": false,
+  "checks": [
+    "Permanent HTTP redirect and fragment-aware legacy links resolve to the correct new page.",
+    "Navigation prioritizes library/saved; footer is compact and stays absent on library/saved/login; contextual help and sign-in privacy remain reachable.",
+    "Sitemap and cache routes updated; admin gate unchanged; no-JavaScript legacy visitors have a working privacy link.",
+    "New service worker activates, removes the old about cache and follows legacy privacy URLs."
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "route": "/",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 320,
+      "route": "/library",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 320,
+      "route": "/saved",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 320,
+      "route": "/login",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 320,
+      "route": "/help",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 320,
+      "route": "/privacy",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 375,
+      "route": "/",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 375,
+      "route": "/library",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 375,
+      "route": "/saved",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 375,
+      "route": "/login",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 375,
+      "route": "/help",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 375,
+      "route": "/privacy",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 768,
+      "route": "/library",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 768,
+      "route": "/saved",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 768,
+      "route": "/login",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 768,
+      "route": "/help",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 768,
+      "route": "/privacy",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 1440,
+      "route": "/library",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 1440,
+      "route": "/saved",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 1440,
+      "route": "/login",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 1440,
+      "route": "/help",
+      "overflow": false,
+      "noOldLinks": true
+    },
+    {
+      "width": 1440,
+      "route": "/privacy",
+      "overflow": false,
+      "noOldLinks": true
+    }
+  ],
+  "errors": [],
+  "completed": true,
+  "axe": [
+    {
+      "route": "/help",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/help",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "route": "/privacy",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/privacy",
+      "theme": "dark",
+      "violations": []
+    }
+  ]
+}

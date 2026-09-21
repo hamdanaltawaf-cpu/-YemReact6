@@ -6,7 +6,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: base, priority: 1 },
     { url: base + '/library', priority: 0.9 },
-    { url: base + '/about', priority: 0.5 },
+    { url: base + '/help', priority: 0.4 },
+    { url: base + '/privacy', priority: 0.3 },
     ...listReactions().map((r) => ({
       url: base + '/r/' + r.code,
       lastModified: new Date(r.publishedAt),

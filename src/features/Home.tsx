@@ -242,28 +242,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-      <section className="container story-section">
-        <div className="story-copy">
-          <span className="eyebrow">مش صفحة ميمز. مكتبة تستخدمها.</span>
-          <h2>
-            كان لكل موقف مَثَل.
-            <br />
-            واليوم، له <em>رياكشن.</em>
-          </h2>
-          <p>
-            نفس الروح اليمنية، في قصاصة رقمية. لحظة من حكاية أطول، تصير كلمتك في اللحظة المناسبة.
-          </p>
-          <Link className="btn btn-paper" href="/about">
-            هذه حكايتنا <ArrowUpLeft size={18} />
-          </Link>
-        </div>
-        <div className="story-mark" aria-hidden="true">
-          <div className="story-mark-ring" />
-          <Qusasa size={150} tone="gradient" />
-          <span>القُصاصة</span>
-          <small>SMALL CLIP. BIG FEELING.</small>
-        </div>
-      </section>
       <section className="container collection-callout">
         <div className="callout-icon">
           <Bookmark size={30} />

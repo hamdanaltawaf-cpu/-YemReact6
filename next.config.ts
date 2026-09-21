@@ -7,6 +7,10 @@ const config: NextConfig = {
   // Collect route data sequentially: parallel build workers can race SQLite initialization.
   experimental: { cpus: 1 },
   images: { unoptimized: true },
+  async redirects() {
+    // The browser preserves legacy fragments; /help handles #privacy client-side.
+    return [{ source: '/about', destination: '/help', permanent: true }];
+  },
   async headers() {
     return [
       {

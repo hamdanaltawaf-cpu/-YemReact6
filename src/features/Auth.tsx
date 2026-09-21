@@ -149,7 +149,7 @@ export default function Auth({
           </p>
         </div>
         <p className="social-privacy">
-          باستمرارك، أنت توافق على <Link href="/about#privacy">سياسة الخصوصية والحقوق</Link>.
+          باستمرارك، أنت توافق على <Link href="/privacy">سياسة الخصوصية والحقوق</Link>.
         </p>
         <div className="social-guest">
           <Link href="/library" className="text-button">

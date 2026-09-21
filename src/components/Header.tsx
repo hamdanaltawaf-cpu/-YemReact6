@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Bookmark, SlidersHorizontal, Search, Menu, X, Bell, ArrowUpLeft } from 'lucide-react';
+import { SlidersHorizontal, Menu, X, Bell, ArrowUpLeft, CircleHelp } from 'lucide-react';
 import { Qusasa } from './Qusasa';
 import { useApp } from './AppProvider';
 import { Modal } from './ui/Modal';
@@ -33,8 +33,8 @@ export function Header() {
   const links = [
     ['/library', 'المكتبة'],
     ['/saved', 'المحفوظات'],
-    ['/about', 'حكايتنا'],
   ];
+  const needsHelpShortcut = ['/library', '/saved', '/login'].includes(path.replace(/\/$/, ''));
   return (
     <>
       <a className="skip-link" href="#main">
@@ -64,6 +64,16 @@ export function Header() {
             )}
           </nav>
           <div className="header-actions">
+            {needsHelpShortcut && (
+              <Link
+                href="/help"
+                className="icon-btn header-help"
+                aria-label="المساعدة"
+                title="المساعدة"
+              >
+                <CircleHelp size={18} />
+              </Link>
+            )}
             <button
               className="icon-btn"
               aria-label="تخصيص المظهر"
@@ -108,6 +118,11 @@ export function Header() {
             ))}
             {app.user?.role === 'admin' && <Link href="/admin">الاستوديو</Link>}
             <Link href="/login">الحساب</Link>
+            {needsHelpShortcut && (
+              <Link href="/help" className="mobile-help">
+                المساعدة
+              </Link>
+            )}
           </nav>
         )}
       </header>

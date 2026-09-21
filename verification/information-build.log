@@ -1,0 +1,50 @@
+
+> yemreact-v3-exp@4.0.0-preview build /home/user/yemreact-v3-exp
+> next build
+
+   ▲ Next.js 15.5.23
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 20.4s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/10) ...
+   Generating static pages (2/10)
+   Generating static pages (4/10)
+   Generating static pages (7/10)
+ ✓ Generating static pages (10/10)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    6.78 kB         118 kB
+├ ƒ /_not-found                            156 B         103 kB
+├ ƒ /admin                               9.45 kB         121 kB
+├ ƒ /api/admin                             156 B         103 kB
+├ ƒ /api/auth                              156 B         103 kB
+├ ƒ /api/auth/oauth/[provider]             156 B         103 kB
+├ ƒ /api/auth/oauth/[provider]/callback    156 B         103 kB
+├ ƒ /api/events                            156 B         103 kB
+├ ƒ /api/media/[name]                      156 B         103 kB
+├ ƒ /api/reactions                         156 B         103 kB
+├ ƒ /api/saved                             156 B         103 kB
+├ ƒ /api/upload                            156 B         103 kB
+├ ƒ /help                                  510 B         107 kB
+├ ƒ /library                                2 kB         118 kB
+├ ƒ /login                               5.48 kB         112 kB
+├ ○ /manifest.webmanifest                  156 B         103 kB
+├ ƒ /offline                               166 B         106 kB
+├ ƒ /privacy                               166 B         106 kB
+├ ƒ /r/[code]                            5.64 kB         117 kB
+├ ○ /robots.txt                            156 B         103 kB
+├ ƒ /saved                                1.1 kB         117 kB
+└ ƒ /sitemap.xml                           156 B         103 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/78d81b0e-e84deb6b612c9287.js  54.2 kB
+  ├ chunks/998-f2fe7526ba86b354.js       46.5 kB
+  └ other shared chunks (total)          2.04 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
