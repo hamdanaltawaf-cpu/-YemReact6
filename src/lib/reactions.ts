@@ -1,3 +1,5 @@
+import seedMedia from './seed-media.json';
+import { verifiedMediaType } from './media';
 import type { CategoryId } from './categories';
 import { MAX_VIDEO_DURATION } from './video';
 /** A library item. Demo clips are explicitly identified in every viewing surface. */
@@ -6,7 +8,14 @@ export type Reaction = {
   caption: string;
   situation: string;
   category: CategoryId;
-  duration: number;
+  duration: number | null;
+  type?: 'image' | 'video' | 'unknown';
+  mimeType?: string | null;
+  mediaVerified?: boolean;
+  mediaMetadataVersion?: number;
+  mediaSha256?: string;
+  width?: number | null;
+  height?: number | null;
   keywords: string[];
   publishedAt: string;
   corner: 'tr' | 'tl';
@@ -35,7 +44,8 @@ export const REACTIONS: Reaction[] = rows.map((r, i) => ({
   caption: r[0],
   situation: r[1],
   category: r[2],
-  duration: [2, 3, 4, 3, 5, 2][portraits[i] - 1],
+  ...seedMedia[`/media/demo-${portraits[i]}.mp4` as keyof typeof seedMedia],
+  type: 'video',
   keywords: r[4],
   publishedAt: `2026-09-${String(i + 1).padStart(2, '0')}`,
   corner: i % 2 ? 'tl' : 'tr',
@@ -66,14 +76,14 @@ export function filterReactions(
     .filter(
       (r) =>
         (!cat || r.category === cat) &&
-        r.duration <= maxDuration &&
+        (verifiedMediaType(r) !== 'video' || r.duration == null || r.duration <= maxDuration) &&
         words.every((w) =>
           normalizeArabic([r.caption, r.situation, r.code, ...r.keywords].join(' ')).includes(w),
         ),
     )
     .sort((a, b) =>
       sort === 'shortest'
-        ? a.duration - b.duration
+        ? (a.duration ?? Infinity) - (b.duration ?? Infinity)
         : sort === 'oldest'
           ? a.publishedAt.localeCompare(b.publishedAt)
           : b.publishedAt.localeCompare(a.publishedAt),

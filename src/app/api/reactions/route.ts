@@ -2,13 +2,8 @@ import { z } from 'zod';
 import { db, listReactions, audit } from '@/server/db';
 import { requireAdmin, sameOrigin, apiError, ApiError } from '@/server/auth';
 import { CATEGORIES } from '@/lib/categories';
-import {
-  MIN_VIDEO_DURATION,
-  MAX_VIDEO_DURATION,
-  isValidVideoDuration,
-  VIDEO_DURATION_ERROR,
-} from '@/lib/video';
-import { probeVideoDuration, reactionVideoPath } from '@/server/video';
+import { isValidVideoDuration, VIDEO_DURATION_ERROR } from '@/lib/video';
+import { verifyStoredMedia } from '@/server/media';
 export const runtime = 'nodejs';
 export async function GET() {
   return Response.json(
@@ -21,13 +16,18 @@ const schema = z.object({
   caption: z.string().trim().min(1).max(100),
   situation: z.string().trim().min(3).max(250),
   category: z.string().refine((s) => CATEGORIES.some((c) => c.id === s)),
-  duration: z.number().finite().min(MIN_VIDEO_DURATION).max(MAX_VIDEO_DURATION),
+  duration: z.number().finite().nullable().optional(),
   keywords: z.array(z.string().trim().min(1).max(40)).max(12),
   publishedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   poster: z
     .string()
-    .regex(/^\/(media\/portrait-[1-6]\.webp|api\/media\/[a-f0-9-]+\.(webp|jpg|png))$/),
-  media: z.string().regex(/^\/(media\/demo-[1-6]\.mp4|api\/media\/[a-f0-9-]+\.(mp4|webm))$/),
+    .regex(/^\/(media\/portrait-[1-6]\.webp|api\/media\/[a-f0-9-]+\.(webp|jpg|png))$/)
+    .optional(),
+  media: z
+    .string()
+    .regex(
+      /^\/(media\/(demo-[1-6]\.mp4|portrait-[1-6]\.webp)|api\/media\/[a-f0-9-]+\.(mp4|webm|png|jpg|webp))$/,
+    ),
   isDemo: z.boolean(),
   corner: z.enum(['tr', 'tl']).default('tr'),
   gradient: z
@@ -39,12 +39,25 @@ export async function POST(req: Request) {
     sameOrigin(req);
     const u = await requireAdmin();
     const input = await req.json();
-    if (!isValidVideoDuration(input?.duration)) throw new ApiError(400, VIDEO_DURATION_ERROR);
-    const r = schema.parse(input);
-    if (r.media.startsWith('/media/demo-') && !r.isDemo)
+    const parsed = schema.parse(input);
+    if (parsed.media.startsWith('/media/') && !parsed.isDemo)
       throw new ApiError(400, 'يجب إبقاء علامة النموذج التجريبي على الوسائط التجريبية.');
-    // Do not trust the client-supplied duration or allow direct API publication to bypass upload checks.
-    r.duration = await probeVideoDuration(reactionVideoPath(r.media));
+    // Re-probe the actual file; never accept client-supplied type, MIME or verification flags.
+    const metadata = await verifyStoredMedia(parsed.media);
+    if (
+      metadata.type === 'video' &&
+      parsed.duration != null &&
+      !isValidVideoDuration(parsed.duration)
+    )
+      throw new ApiError(400, VIDEO_DURATION_ERROR);
+    let poster = parsed.media;
+    if (metadata.type === 'video') {
+      if (!parsed.poster) throw new ApiError(400, 'اختر صورة معاينة صالحة للفيديو.');
+      const cover = await verifyStoredMedia(parsed.poster);
+      if (cover.type !== 'image') throw new ApiError(400, 'غلاف الفيديو يجب أن يكون صورة.');
+      poster = parsed.poster;
+    }
+    const r = { ...parsed, ...metadata, poster };
     db.prepare(
       'INSERT INTO reactions VALUES (?,?) ON CONFLICT(code) DO UPDATE SET data=excluded.data',
     ).run(r.code, JSON.stringify(r));

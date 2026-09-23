@@ -1,0 +1,323 @@
+> yemreact-v3-exp@4.0.0-preview test /home/user/yemreact-v3-exp
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: Verified videos have permanent video identity, even for extensionless or misleading URLs
+ok 1 - Verified videos have permanent video identity, even for extensionless or misleading URLs
+  ---
+  duration_ms: 10.034459
+  ...
+# Subtest: Images never inherit video duration or playback from names, posters or stale duration
+ok 2 - Images never inherit video duration or playback from names, posters or stale duration
+  ---
+  duration_ms: 2.089214
+  ...
+# Subtest: Video badge survives missing or invalid durations without fabricating seconds
+ok 3 - Video badge survives missing or invalid durations without fabricating seconds
+  ---
+  duration_ms: 2.812159
+  ...
+# Subtest: Unknown, mismatched and unverified metadata never imply video
+ok 4 - Unknown, mismatched and unverified metadata never imply video
+  ---
+  duration_ms: 2.424629
+  ...
+# Subtest: Legacy privacy fragments map only to a fixed internal destination
+ok 5 - Legacy privacy fragments map only to a fixed internal destination
+  ---
+  duration_ms: 0.872466
+  ...
+# Subtest: Old about page permanently redirects to help, while sitemap lists the new pages only
+ok 6 - Old about page permanently redirects to help, while sitemap lists the new pages only
+  ---
+  duration_ms: 8.073246
+  ...
+# Subtest: Navigation, homepage and sign-in contain no old story links
+ok 7 - Navigation, homepage and sign-in contain no old story links
+  ---
+  duration_ms: 2.420913
+  ...
+# Subtest: Help preserves user-critical guidance without a brand story
+ok 8 - Help preserves user-critical guidance without a brand story
+  ---
+  duration_ms: 51.3965
+  ...
+# Subtest: Privacy covers identity, storage, usage events, content rights and account limitations
+ok 9 - Privacy covers identity, storage, usage events, content rights and account limitations
+  ---
+  duration_ms: 18.713136
+  ...
+# Subtest: Compact footer avoids self-links and provides a no-JavaScript privacy fallback on help
+ok 10 - Compact footer avoids self-links and provides a no-JavaScript privacy fallback on help
+  ---
+  duration_ms: 29.207907
+  ...
+# Subtest: Service worker changes cache version and includes only the replacement public info routes
+ok 11 - Service worker changes cache version and includes only the replacement public info routes
+  ---
+  duration_ms: 0.206575
+  ...
+# Subtest: JPG, PNG and WebP are fully decoded; filenames cannot turn an image into a video
+ok 12 - JPG, PNG and WebP are fully decoded; filenames cannot turn an image into a video
+  ---
+  duration_ms: 19.656465
+  ...
+# Subtest: Truncated and spoofed image headers are rejected, not trusted from their signature
+ok 13 - Truncated and spoofed image headers are rejected, not trusted from their signature
+  ---
+  duration_ms: 7.836676
+  ...
+# Subtest: MP4 and WebM streams verify as videos; poster is an actual decoded frame
+ok 14 - MP4 and WebM streams verify as videos; poster is an actual decoded frame
+  ---
+  duration_ms: 387.824251
+  ...
+# Subtest: Actual video duration boundaries are inclusive and out-of-range streams are rejected
+ok 15 - Actual video duration boundaries are inclusive and out-of-range streams are rejected
+  ---
+  duration_ms: 373.677691
+  ...
+# Subtest: Audio-only MP4, wrong EBML DocType, empty and oversized files fail closed
+ok 16 - Audio-only MP4, wrong EBML DocType, empty and oversized files fail closed
+  ---
+  duration_ms: 228.596034
+  ...
+# Subtest: Stored URLs are local allowlisted files; extension mismatches and symlinks are rejected
+ok 17 - Stored URLs are local allowlisted files; extension mismatches and symlinks are rejected
+  ---
+  duration_ms: 7.134085
+  ...
+# Subtest: Migration backs up and updates in place; preserves saved FKs and is idempotent
+ok 18 - Migration backs up and updates in place; preserves saved FKs and is idempotent
+  ---
+  duration_ms: 287.176151
+  ...
+# Subtest: Unavailable ffprobe halts migration without overwriting catalog or saves
+ok 19 - Unavailable ffprobe halts migration without overwriting catalog or saves
+  ---
+  duration_ms: 107.459776
+  ...
+# Subtest: Animated PNG and WebP cannot masquerade as static image publications
+ok 20 - Animated PNG and WebP cannot masquerade as static image publications
+  ---
+  duration_ms: 134.145323
+  ...
+# Subtest: A forged WebM DocType embedded in Matroska padding cannot fool verification
+ok 21 - A forged WebM DocType embedded in Matroska padding cannot fool verification
+  ---
+  duration_ms: 3.287395
+  ...
+# Subtest: OAuth configuration fails closed without secrets or a safe public origin
+ok 22 - OAuth configuration fails closed without secrets or a safe public origin
+  ---
+  duration_ms: 1.640806
+  ...
+# Subtest: OIDC accepts a valid signed identity; excludes unverified email
+ok 23 - OIDC accepts a valid signed identity; excludes unverified email
+  ---
+  duration_ms: 12.54468
+  ...
+# Subtest: OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
+ok 24 - OIDC rejects wrong nonce, issuer, audience, authorized party, expiry and signature
+  ---
+  duration_ms: 502.695513
+  ...
+# Subtest: Microsoft tenant-specific issuer is checked, including tenant restrictions
+ok 25 - Microsoft tenant-specific issuer is checked, including tenant restrictions
+  ---
+  duration_ms: 3.387422
+  ...
+# Subtest: Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
+ok 26 - Google authorization has PKCE, state, nonce and creates one member/session; replay rejected
+  ---
+  duration_ms: 63.469319
+  ...
+# Subtest: Missing browser binding and expired state fail before token exchange
+ok 27 - Missing browser binding and expired state fail before token exchange
+  ---
+  duration_ms: 32.092735
+  ...
+# Subtest: Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
+ok 28 - Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback
+  ---
+  duration_ms: 47.814506
+  ...
+# Subtest: Cancellation is recoverable and creates no account
+ok 29 - Cancellation is recoverable and creates no account
+  ---
+  duration_ms: 31.37702
+  ...
+# Subtest: Invalid identity token cannot create an account/session
+ok 30 - Invalid identity token cannot create an account/session
+  ---
+  duration_ms: 31.561452
+  ...
+# Subtest: An email collision never auto-links or takes over a legacy administrator
+ok 31 - An email collision never auto-links or takes over a legacy administrator
+  ---
+  duration_ms: 28.124269
+  ...
+# Subtest: Microsoft callback establishes a local member using the validated tenant identity
+ok 32 - Microsoft callback establishes a local member using the validated tenant identity
+  ---
+  duration_ms: 21.641714
+  ...
+# Subtest: An already-linked owner keeps the same account, role and admin destination
+ok 33 - An already-linked owner keeps the same account, role and admin destination
+  ---
+  duration_ms: 28.677773
+  ...
+# Subtest: Provider mismatch cannot consume a flow or create a session
+ok 34 - Provider mismatch cannot consume a flow or create a session
+  ---
+  duration_ms: 16.514759
+  ...
+# Subtest: OAuth host accepts only the public host or exact configured proxy
+ok 35 - OAuth host accepts only the public host or exact configured proxy
+  ---
+  duration_ms: 1.186265
+  ...
+# Subtest: Same-origin mutations work on direct or explicitly mapped public origins
+ok 36 - Same-origin mutations work on direct or explicitly mapped public origins
+  ---
+  duration_ms: 0.22061
+  ...
+# Subtest: Proxy mapping never authorizes unrelated, missing or malformed origins
+ok 37 - Proxy mapping never authorizes unrelated, missing or malformed origins
+  ---
+  duration_ms: 0.196965
+  ...
+# Subtest: Cross-site browser mutations are rejected even when a proxy rewrites Origin
+ok 38 - Cross-site browser mutations are rejected even when a proxy rewrites Origin
+  ---
+  duration_ms: 0.137281
+  ...
+# Subtest: Saved selection preserves mixed media without duration gates and ignores missing/duplicate saved IDs
+ok 39 - Saved selection preserves mixed media without duration gates and ignores missing/duplicate saved IDs
+  ---
+  duration_ms: 9.081999
+  ...
+# Subtest: Media kinds use the pathname, not query text
+ok 40 - Media kinds use the pathname, not query text
+  ---
+  duration_ms: 0.468554
+  ...
+# Subtest: Downloads keep the actual image/video file extension
+ok 41 - Downloads keep the actual image/video file extension
+  ---
+  duration_ms: 0.395106
+  ...
+# Subtest: Saved page contains one name and no search, sorting, duration controls, counters or export toolbar
+ok 42 - Saved page contains one name and no search, sorting, duration controls, counters or export toolbar
+  ---
+  duration_ms: 59.444688
+  ...
+# Subtest: Saved loading does not flash the empty state; an empty page offers library navigation
+ok 43 - Saved loading does not flash the empty state; an empty page offers library navigation
+  ---
+  duration_ms: 29.548331
+  ...
+# Subtest: Saved footer is absent, including the trailing-slash route; home footer is unchanged
+ok 44 - Saved footer is absent, including the trailing-slash route; home footer is unchanged
+  ---
+  duration_ms: 27.582779
+  ...
+# Subtest: Image preview uses an image, not a video element
+ok 45 - Image preview uses an image, not a video element
+  ---
+  duration_ms: 21.866428
+  ...
+# Subtest: normalizes Arabic diacritics and hamza
+ok 46 - normalizes Arabic diacritics and hamza
+  ---
+  duration_ms: 1.028358
+  ...
+# Subtest: all nine categories have seed content
+ok 47 - all nine categories have seed content
+  ---
+  duration_ms: 0.124999
+  ...
+# Subtest: search uses all normalized query words
+ok 48 - search uses all normalized query words
+  ---
+  duration_ms: 0.429396
+  ...
+# Subtest: category filtering is exact
+ok 49 - category filtering is exact
+  ---
+  duration_ms: 5.124145
+  ...
+# Subtest: duration and sorting are composed
+ok 50 - duration and sorting are composed
+  ---
+  duration_ms: 0.207576
+  ...
+# Subtest: unique codes and honest demo flags
+ok 51 - unique codes and honest demo flags
+  ---
+  duration_ms: 0.095111
+  ...
+# Subtest: empty and unknown queries do not throw
+ok 52 - empty and unknown queries do not throw
+  ---
+  duration_ms: 0.307992
+  ...
+# Subtest: default discovery includes long videos through 60 seconds; short filters still apply
+ok 53 - default discovery includes long videos through 60 seconds; short filters still apply
+  ---
+  duration_ms: 0.20616
+  ...
+# Subtest: Images stay discoverable regardless of null or stale duration values
+ok 54 - Images stay discoverable regardless of null or stale duration values
+  ---
+  duration_ms: 0.219292
+  ...
+# Subtest: Studio redirects unauthenticated visitors before rendering
+ok 55 - Studio redirects unauthenticated visitors before rendering
+  ---
+  duration_ms: 49.394507
+  ...
+# Subtest: Studio denies non-admin roles on the server
+ok 56 - Studio denies non-admin roles on the server
+  ---
+  duration_ms: 27.99931
+  ...
+# Subtest: Studio renders for an authenticated admin
+ok 57 - Studio renders for an authenticated admin
+  ---
+  duration_ms: 8.80644
+  ...
+# Subtest: Guest and member navigation omit every studio link, including mobile and footer
+ok 58 - Guest and member navigation omit every studio link, including mobile and footer
+  ---
+  duration_ms: 155.903993
+  ...
+# Subtest: Admin navigation retains studio links on desktop, mobile and footer
+ok 59 - Admin navigation retains studio links on desktop, mobile and footer
+  ---
+  duration_ms: 54.150022
+  ...
+# Subtest: Header avatar opens the account page without a logout action
+ok 60 - Header avatar opens the account page without a logout action
+  ---
+  duration_ms: 89.612501
+  ...
+# Subtest: video duration boundaries are inclusive: 2 and 60 seconds
+ok 61 - video duration boundaries are inclusive: 2 and 60 seconds
+  ---
+  duration_ms: 0.906413
+  ...
+# Subtest: video duration rejects values outside bounds without rounding or tolerance
+ok 62 - video duration rejects values outside bounds without rounding or tolerance
+  ---
+  duration_ms: 0.235432
+  ...
+1..62
+# tests 62
+# suites 0
+# pass 62
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7828.85429

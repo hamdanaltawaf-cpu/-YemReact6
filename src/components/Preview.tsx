@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
+import { verifiedMediaType } from '@/lib/media';
 import { useApp } from './AppProvider';
 import { Modal } from './ui/Modal';
 import { ClipPlayer, ReactionActions } from './Clip';
@@ -13,7 +14,18 @@ export function Preview() {
   const touch = useRef(0);
   const reduced = useReducedMotion() || app.reduced;
   return (
-    <Modal open={!!r} onClose={() => app.setPreview(null)} title="لقطة في محلّها" wide>
+    <Modal
+      open={!!r}
+      onClose={() => app.setPreview(null)}
+      title={
+        r && verifiedMediaType(r) === 'image'
+          ? 'معاينة الصورة'
+          : r && verifiedMediaType(r) === 'video'
+            ? 'مشغّل الفيديو'
+            : 'معاينة الملف'
+      }
+      wide
+    >
       {r && (
         <motion.div
           initial={reduced ? false : { opacity: 0, y: 8 }}

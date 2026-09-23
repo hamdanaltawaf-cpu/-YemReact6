@@ -4,7 +4,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 FROM base AS dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ ca-certificates ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile

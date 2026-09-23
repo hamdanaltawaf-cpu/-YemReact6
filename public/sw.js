@@ -1,5 +1,5 @@
 /* Public content only. Sessions, private pages, APIs and video files never enter this cache. */
-const CACHE = 'yemreact-public-v4.3-information';
+const CACHE = 'yemreact-public-v4.4-verified-media';
 const MAX_ENTRIES = 160;
 async function store(request, response) {
   const cache = await caches.open(CACHE);

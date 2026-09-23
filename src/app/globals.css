@@ -3493,3 +3493,53 @@ kbd {
   .information-faq details > p, .policy-page > section p { font-size: 13px; }
   .policy-page > section h2 { font-size: 17px; }
 }
+
+/* Media identity is permanent, including touch; it never relies on the cover artwork. */
+.card-preview .media-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 7px;
+  min-height: 27px;
+  border: 1px solid #ffffff40;
+  border-radius: 7px;
+  background: #141416ed;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  pointer-events: none;
+  opacity: 1;
+  z-index: 2;
+}
+.media-kind-badge b { font-size: 10px; font-weight: 500; }
+.card-preview .card-expand {
+  top: 10px;
+  right: 10px;
+  left: auto;
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  background: #141416ed;
+  opacity: 1;
+  transform: none;
+  pointer-events: none;
+}
+.card-preview:focus-visible { outline: 3px solid #fff; outline-offset: -5px; }
+.reaction-card .save-button { min-width: 44px; min-height: 44px; }
+@media (hover: none) {
+  .reaction-card .save-button { opacity: 1; transform: none; }
+  .card-preview:hover .card-image { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-image, .card-play, .save-button { transition: none; }
+  .card-preview:hover .card-image { transform: none; }
+}
+@container (max-width: 180px) {
+  .card-preview .media-kind-badge { gap: 4px; padding: 4px 5px; font-size: 10px; }
+  .media-kind-badge b { font-size: 9px; }
+  .media-kind-badge svg { width: 10px; height: 10px; }
+}
+[data-motion="reduce"] .card-preview:hover .card-image { transform: none; }

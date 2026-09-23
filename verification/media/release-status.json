@@ -1,0 +1,18 @@
+{
+  "implementation": "complete and locally verified",
+  "unitTestsPassed": 62,
+  "productionBuild": "passed",
+  "typecheck": "passed",
+  "browserVerification": "passed",
+  "responsiveChecks": 12,
+  "axeAudits": 4,
+  "axeViolations": 0,
+  "githubPush": "blocked: no available GitHub authentication in this session",
+  "railwayDeployment": "not attempted because GitHub push did not succeed",
+  "liveCatalogSize": 12,
+  "liveRecordsWithNewVerifiedMetadata": 0,
+  "productionDataMutated": false,
+  "migrationVerifiedWithDisposableDatabase": true,
+  "physicalMobileDeviceTests": false,
+  "localDockerImageBuilt": false
+}

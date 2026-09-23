@@ -5,18 +5,36 @@ import vm from 'node:vm';
 import ts from 'typescript';
 const source = fs.readFileSync('src/lib/reactions.ts', 'utf8');
 const code = ts.transpileModule(source, {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  compilerOptions: {
+    module: ts.ModuleKind.CommonJS,
+    target: ts.ScriptTarget.ES2022,
+    esModuleInterop: true,
+  },
 }).outputText;
 const policyContext = { exports: {} };
 vm.runInNewContext(
-  ts.transpileModule(fs.readFileSync('src/lib/video.ts', 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  ts.transpileModule(fs.readFileSync('scripts/video-policy.mjs', 'utf8'), {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      esModuleInterop: true,
+    },
   }).outputText,
   policyContext,
+);
+const mediaContext = { exports: {} };
+vm.runInNewContext(
+  ts.transpileModule(fs.readFileSync('src/lib/media.ts', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText,
+  mediaContext,
 );
 const context = {
   exports: {},
   require: (name) => {
+    if (name === './seed-media.json')
+      return JSON.parse(fs.readFileSync('src/lib/seed-media.json', 'utf8'));
+    if (name === './media') return mediaContext.exports;
     if (name === './video') return policyContext.exports;
     throw Error(name);
   },
@@ -53,4 +71,15 @@ test('default discovery includes long videos through 60 seconds; short filters s
   }));
   assert.equal(filterReactions(items, '').length, 6);
   assert.equal(filterReactions(items, '', '', 'shortest', 3).length, 1);
+});
+
+test('Images stay discoverable regardless of null or stale duration values', () => {
+  const images = [null, 999].map((duration, i) => ({
+    ...REACTIONS[0],
+    code: 'IMAGE-' + i,
+    type: 'image',
+    mimeType: 'image/png',
+    duration,
+  }));
+  assert.equal(filterReactions(images, '', '', 'shortest', 1).length, 2);
 });

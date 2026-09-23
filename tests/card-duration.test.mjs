@@ -37,6 +37,7 @@ const context = {
         Play: () => null,
         ArrowUpLeft: () => null,
         Expand: () => null,
+        FileQuestion: () => null,
       };
     if (name === './AppProvider')
       return { useApp: () => ({ saved: [], setPreview() {}, toggleSave() {} }) };
@@ -44,7 +45,7 @@ const context = {
   },
 };
 vm.runInNewContext(code, context);
-const render = (media, duration = 3) =>
+const render = (media, duration = 3, metadata = {}) =>
   renderToStaticMarkup(
     React.createElement(context.exports.ReactionCard, {
       reaction: {
@@ -56,35 +57,50 @@ const render = (media, duration = 3) =>
         duration,
         category: 'laugh',
         isDemo: true,
+        ...metadata,
       },
     }),
   );
-test('Video cards show the duration badge for supported video URLs only', () => {
-  for (const media of [
-    '/media/demo-1.mp4',
-    '/api/media/upload.webm',
-    '/VIDEO.MP4?token=x',
-    '/clip.webm#t=1',
-  ]) {
-    const html = render(media);
-    assert.match(html, /class="card-duration mono" dir="ltr">3s<\/span>/);
+const video = {
+  type: 'video',
+  mimeType: 'video/mp4',
+  mediaVerified: true,
+  mediaMetadataVersion: 1,
+};
+const image = { ...video, type: 'image', mimeType: 'image/png' };
+test('Verified videos have permanent video identity, even for extensionless or misleading URLs', () => {
+  for (const url of ['/clip.mp4', '/clip.webm?x=.png', '/file', '/cover.jpg']) {
+    const html = render(url, 3, video);
+    assert.match(html, /media-kind-badge card-duration/);
+    assert.match(html, /dir="ltr">3s/);
+    assert.match(html, /تشغيل الفيديو/);
     assert.doesNotMatch(html, /card-code|card-tag|category-label/);
   }
 });
-test('Non-video cards never display a video duration, even if a duration exists in data', () => {
-  for (const media of [
-    '/image.jpg',
-    '/image.webp',
-    '/animation.gif',
-    '/audio.mp3',
-    '/not-mp4',
-    '/image.jpg?file=video.mp4',
-  ]) {
-    // Query strings must not be interpreted as the media pathname.
-    assert.doesNotMatch(render(media), /card-duration/);
+test('Images never inherit video duration or playback from names, posters or stale duration', () => {
+  for (const url of ['/photo.jpg', '/photo.png?file=.mp4', '/file', '/clip.mp4']) {
+    const html = render(url, 999, image);
+    assert.doesNotMatch(html, /card-duration|999s|تشغيل الفيديو/);
+    assert.match(html, /عرض الصورة/);
+    assert.match(html, /card-expand/);
   }
 });
-test('Invalid video durations are not rendered', () => {
-  for (const duration of [0, -1, NaN, Infinity])
-    assert.doesNotMatch(render('/clip.mp4', duration), /card-duration/);
+test('Video badge survives missing or invalid durations without fabricating seconds', () => {
+  for (const duration of [null, 0, -1, NaN, Infinity]) {
+    const html = render('/clip.mp4', duration, video);
+    assert.match(html, /media-kind-badge/);
+    assert.doesNotMatch(html, /dir="ltr"/);
+  }
+});
+test('Unknown, mismatched and unverified metadata never imply video', () => {
+  for (const metadata of [
+    {},
+    { ...video, mediaVerified: false },
+    { ...video, mimeType: 'image/png' },
+    { ...video, mediaMetadataVersion: 0 },
+  ]) {
+    const html = render('/clip.mp4', 3, metadata);
+    assert.match(html, /data-media-type="unknown"/);
+    assert.doesNotMatch(html, /card-duration|تشغيل الفيديو|card-expand/);
+  }
 });

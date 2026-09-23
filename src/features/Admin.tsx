@@ -19,18 +19,29 @@ import {
   Check,
   Upload,
   Play,
+  Expand,
+  FileQuestion,
   RefreshCw,
 } from 'lucide-react';
 import { useApp } from '@/components/AppProvider';
 import { Modal } from '@/components/ui/Modal';
 import { Qusasa } from '@/components/Qusasa';
-import type { Reaction } from '@/lib/reactions';
+import { REACTIONS, type Reaction } from '@/lib/reactions';
+import seedMedia from '@/lib/seed-media.json';
+import { verifiedMediaType, mediaActionLabel } from '@/lib/media';
+import { browserVideoDuration } from '@/lib/browser-media';
+import { ClipPlayer } from '@/components/Clip';
 import {
   MIN_VIDEO_DURATION,
   MAX_VIDEO_DURATION,
   isValidVideoDuration,
   VIDEO_DURATION_ERROR,
 } from '@/lib/video';
+function PreviewIcon({ reaction, size }: { reaction: Reaction; size: number }) {
+  const kind = verifiedMediaType(reaction);
+  const Icon = kind === 'video' ? Play : kind === 'image' ? Expand : FileQuestion;
+  return <Icon size={size} aria-hidden="true" />;
+}
 type Metrics = {
   users: { id: string; name: string; email: string; role: string; created_at: string }[];
   events: { kind: string; count: number }[];
@@ -255,16 +266,16 @@ export default function Admin() {
                         </div>
                       </td>
                       <td>
-                        <span className="status-pill">{r.isDemo ? 'نموذج' : 'مقطع مرفوع'}</span>
+                        <span className="status-pill">{r.isDemo ? 'نموذج' : 'ملف مرفوع'}</span>
                       </td>
                       <td>
                         <div className="table-actions">
                           <button
                             className="icon-btn"
-                            aria-label={`معاينة ${r.caption}`}
+                            aria-label={`${mediaActionLabel(r)}: ${r.caption}`}
                             onClick={() => app.setPreview(r.code)}
                           >
-                            <Play size={15} />
+                            <PreviewIcon reaction={r} size={15} />
                           </button>
                           {admin && (
                             <>
@@ -309,8 +320,8 @@ export default function Admin() {
                     <b>{r.caption}</b>
                     <p className="muted">{r.isDemo ? 'نموذج مولّد' : 'وسائط مرفوعة'}</p>
                     <button className="text-button" onClick={() => app.setPreview(r.code)}>
-                      <Play size={14} />
-                      معاينة
+                      <PreviewIcon reaction={r} size={14} />
+                      {mediaActionLabel(r)}
                     </button>
                   </div>
                 </article>
@@ -443,11 +454,12 @@ function Editor({
   const [r, setR] = useState<Reaction>(
     fresh
       ? {
+          ...REACTIONS[0],
           code: `YR-${Date.now().toString(36).toUpperCase()}`,
           caption: '',
           situation: '',
           category: 'laugh',
-          duration: MIN_VIDEO_DURATION,
+          duration: REACTIONS[0].duration,
           keywords: [],
           publishedAt: new Date().toISOString().slice(0, 10),
           poster: '/media/portrait-1.webp',
@@ -466,7 +478,7 @@ function Editor({
   function patch<K extends keyof Reaction>(key: K, v: Reaction[K]) {
     setR((old) => ({ ...old, [key]: v }));
   }
-  async function upload(file: File | undefined, kind: 'image' | 'video') {
+  async function upload(file: File | undefined, kind: 'poster' | 'media') {
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) {
       setError('حجم الملف يتجاوز 15MB.');
@@ -475,51 +487,23 @@ function Editor({
     setBusy(true);
     setError('');
     try {
-      let duration = r.duration;
-      if (kind === 'video') {
-        const url = URL.createObjectURL(file);
-        try {
-          duration = await new Promise<number>((resolve, reject) => {
-            const video = document.createElement('video');
-            const finish = (error?: Error) => {
-              clearTimeout(timer);
-              const measured = video.duration;
-              video.onloadedmetadata = null;
-              video.onerror = null;
-              video.removeAttribute('src');
-              video.load();
-              if (error) reject(error);
-              else resolve(measured);
-            };
-            const timer = setTimeout(
-              () => finish(Error('تعذّر قراءة مدة الفيديو. حاول اختيار الملف مجددًا.')),
-              15000,
-            );
-            video.preload = 'metadata';
-            video.onloadedmetadata = () => finish();
-            video.onerror = () => finish(Error('تعذّرت قراءة الفيديو'));
-            video.src = url;
-          });
-        } finally {
-          URL.revokeObjectURL(url);
-        }
-        if (!isValidVideoDuration(duration)) throw Error(VIDEO_DURATION_ERROR);
-      }
+      const duration = await browserVideoDuration(file);
+      if (duration !== null && !isValidVideoDuration(duration)) throw Error(VIDEO_DURATION_ERROR);
       const data = new FormData();
       data.set('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: data });
       const body = await res.json();
       if (!res.ok) throw Error(body.error);
-      if (body.type !== kind) throw Error('نوع الملف لا يطابق الحقل.');
-      if (kind === 'video') {
-        if (!isValidVideoDuration(body.duration)) throw Error(VIDEO_DURATION_ERROR);
-        setR((old) => ({
-          ...old,
-          media: body.url,
-          duration: body.duration,
-          isDemo: false,
-        }));
-      } else patch('poster', body.url);
+      if (kind === 'poster') {
+        if (verifiedMediaType(body) !== 'image') throw Error('الغلاف يجب أن يكون صورة ثابتة.');
+        patch('poster', body.url);
+      } else {
+        if (verifiedMediaType(body) === 'unknown') throw Error('تعذّر التحقق من نوع الملف.');
+        if (body.type === 'video' && !isValidVideoDuration(body.duration))
+          throw Error(VIDEO_DURATION_ERROR);
+        setR((old) => ({ ...old, ...body, media: body.url, poster: body.poster, isDemo: false }));
+        setRights(false);
+      }
       app.toast('تم رفع الملف بنجاح');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'تعذّر الرفع');
@@ -534,7 +518,11 @@ function Editor({
       setStep(step + 1);
       return;
     }
-    if (!isValidVideoDuration(r.duration)) {
+    if (verifiedMediaType(r) === 'unknown') {
+      setError('ارفع ملفًا صالحًا قبل النشر.');
+      return;
+    }
+    if (verifiedMediaType(r) === 'video' && !isValidVideoDuration(r.duration)) {
       setError(VIDEO_DURATION_ERROR);
       return;
     }
@@ -627,38 +615,50 @@ function Editor({
             <div className="upload-field">
               <label className="form-label">
                 <Upload size={19} />
-                فيديو الرياكشن
+                صورة أو فيديو
                 <input
                   type="file"
-                  accept="video/mp4,video/webm"
+                  accept="image/png,image/jpeg,image/webp,video/mp4,video/webm"
                   disabled={busy}
-                  onChange={(e) => upload(e.target.files?.[0], 'video')}
+                  onChange={(e) => upload(e.target.files?.[0], 'media')}
                 />
               </label>
               <p>
-                MP4 أو WebM · من {MIN_VIDEO_DURATION} إلى {MAX_VIDEO_DURATION} ثانية · حتى 15MB
+                صور ثابتة: JPG، PNG، WebP. فيديو: MP4 أو WebM من {MIN_VIDEO_DURATION} إلى{' '}
+                {MAX_VIDEO_DURATION} ثانية. حتى 15MB؛ يتحقق الخادم من الملف قبل قبوله.
               </p>
-              <p>{r.isDemo ? 'فيديو تجريبي محدد' : 'تم اختيار الفيديو'}</p>
+              <p role="status">
+                {r.isDemo
+                  ? 'فيديو تجريبي محدد'
+                  : verifiedMediaType(r) === 'image'
+                    ? 'صورة ثابتة · تم التحقق'
+                    : verifiedMediaType(r) === 'video'
+                      ? 'فيديو · تم التحقق'
+                      : 'أعد رفع الملف للتحقق منه'}
+              </p>
             </div>
-            <div className="upload-field">
-              <label className="form-label">
-                <ImageIcon size={19} />
-                صورة الغلاف
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  disabled={busy}
-                  onChange={(e) => upload(e.target.files?.[0], 'image')}
-                />
-              </label>
-              <p>JPG، PNG أو WebP</p>
-            </div>
+            {verifiedMediaType(r) === 'video' && (
+              <div className="upload-field">
+                <label className="form-label">
+                  <ImageIcon size={19} />
+                  غلاف الفيديو (اختياري)
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    disabled={busy}
+                    onChange={(e) => upload(e.target.files?.[0], 'poster')}
+                  />
+                </label>
+                <p>نستخرج غلافًا عند رفع الفيديو. يمكنك استبداله بصورة JPG، PNG أو WebP.</p>
+              </div>
+            )}
             <p className="muted text-small">أو اختر نموذجًا تجريبيًا. سيبقى موسومًا بأنه مولّد.</p>
             <div className="swatches" style={{ flexWrap: 'wrap' }}>
-              {[1, 2, 3, 4, 5, 6].map((n, i) => (
+              {[1, 2, 3, 4, 5, 6].map((n) => (
                 <button
                   type="button"
                   key={n}
+                  disabled={busy}
                   aria-label={`اختيار النموذج ${n}`}
                   aria-pressed={r.media === `/media/demo-${n}.mp4`}
                   style={{ borderRadius: 6, overflow: 'hidden', width: 48, height: 48, padding: 0 }}
@@ -667,7 +667,8 @@ function Editor({
                       ...old,
                       media: `/media/demo-${n}.mp4`,
                       poster: `/media/portrait-${n}.webp`,
-                      duration: [2, 3, 4, 3, 5, 2][i],
+                      ...seedMedia[`/media/demo-${n}.mp4` as keyof typeof seedMedia],
+                      type: 'video',
                       isDemo: true,
                     }))
                   }
@@ -680,6 +681,7 @@ function Editor({
         )}
         {step === 3 && (
           <>
+            <ClipPlayer reaction={r} />
             <div className="table-reaction">
               <Image src={r.poster} alt={r.caption} width={68} height={85} />
               <div>

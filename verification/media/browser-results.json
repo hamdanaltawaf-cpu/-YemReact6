@@ -1,0 +1,120 @@
+{
+  "scope": "Disposable local production-build database and synthetic local-only uploads; no production mutations.",
+  "checks": [
+    "Real JPG/PNG/WebP/MP4/WebM uploads verified from bytes; misleading names/MIME canonicalized; corrupt and short files rejected; automatic video frame generated.",
+    "Publish re-probes files, overrides spoofed metadata/stale image duration, rejects invalid video duration, and edits preserve saved rows. Video/image fixtures deliberately share cover artwork.",
+    "Touch and keyboard select correct viewers; Escape restores focus; actual video plays inline only after user action; image download has correct extension; unknown media never becomes a player; video badge survives absent duration.",
+    "Mobile admin rejects short video before uploading and publishes a real image with image-only review and rights confirmation; shared detail viewers remain consistent. Four light/dark reduced-motion axe audits have zero violations.",
+    "Guest and account saved collections retain mixed images/videos; admin publishing does not alter member saves."
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "route": "/library",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 320,
+      "route": "/saved",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/library",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/saved",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/library",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/saved",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/library",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/saved",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/library",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/saved",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/library",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/saved",
+      "badgesPermanent": true,
+      "noOverlap": true,
+      "noOverflow": true
+    }
+  ],
+  "axe": [
+    {
+      "route": "/saved",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/saved",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "route": "/library",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/library",
+      "theme": "dark",
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

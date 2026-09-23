@@ -3,14 +3,15 @@
   "version": "4.0.0-preview",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0",
-    "build": "next build",
-    "start": "next start --hostname 0.0.0.0",
+    "dev": "node scripts/verify-seed-media.mjs --dev && node scripts/migrate-media.mjs --dev && next dev --hostname 0.0.0.0",
+    "build": "node scripts/verify-seed-media.mjs && next build",
+    "start": "node scripts/migrate-media.mjs && next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "admin:create": "node scripts/create-admin.mjs",
     "test": "node --test tests/*.test.mjs",
     "format": "prettier --write src scripts tests next.config.ts",
-    "format:check": "prettier --check src scripts tests next.config.ts"
+    "format:check": "prettier --check src scripts tests next.config.ts",
+    "media:migrate": "node scripts/migrate-media.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
@@ -20,6 +21,7 @@
     "next": "15.5.23",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "sharp": "^0.34.5",
     "zod": "^3.24.0"
   },
   "devDependencies": {

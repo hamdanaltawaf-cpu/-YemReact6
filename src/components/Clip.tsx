@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
-import { isImageMedia, mediaFileExtension } from '@/lib/media';
+import { verifiedMediaType, mediaFileExtension } from '@/lib/media';
 import { Bookmark, Download, Share2, VolumeX } from 'lucide-react';
 import { useApp, track } from './AppProvider';
 import type { Reaction } from '@/lib/reactions';
@@ -54,7 +54,11 @@ export function ReactionActions({ reaction }: { reaction: Reaction }) {
   }
   return (
     <div className="reaction-actions">
-      <button className="btn btn-primary" onClick={download} disabled={busy}>
+      <button
+        className="btn btn-primary"
+        onClick={download}
+        disabled={busy || verifiedMediaType(reaction) === 'unknown'}
+      >
         <Download size={18} />
         {busy ? 'لحظة...' : 'خذها'}
       </button>
@@ -77,11 +81,12 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
   const video = useRef<HTMLVideoElement>(null),
     [failed, setFailed] = useState(false);
   const counted = useRef(false);
-  const isImage = isImageMedia(reaction.media);
+  const kind = verifiedMediaType(reaction);
+  const isImage = kind === 'image';
   useEffect(() => {
     counted.current = false;
     setFailed(false);
-  }, [reaction.code]);
+  }, [reaction.code, reaction.media]);
   useEffect(() => {
     if (!active) video.current?.pause();
   }, [active]);
@@ -89,7 +94,7 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
     <div className="clip-player">
       {isImage ? (
         <Image
-          key={reaction.code}
+          key={`${reaction.code}:${reaction.media}`}
           src={reaction.media}
           alt={reaction.caption}
           fill
@@ -97,9 +102,9 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
           className="clip-still"
           onError={() => setFailed(true)}
         />
-      ) : (
+      ) : kind === 'video' ? (
         <video
-          key={reaction.code}
+          key={`${reaction.code}:${reaction.media}`}
           ref={video}
           controls
           aria-label={`معاينة ${reaction.caption}`}
@@ -115,16 +120,20 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
             }
           }}
         >
-          <source src={reaction.media} />
+          <source src={reaction.media} type={reaction.mimeType || undefined} />
           {reaction.caption}
         </video>
+      ) : (
+        <p className="media-error" role="status">
+          هذا الملف غير متاح للمعاينة حاليًا.
+        </p>
       )}
       {failed && (
         <p className="media-error" role="alert">
           تعذّر تحميل الملف. تحقق من الاتصال.
         </p>
       )}
-      {reaction.isDemo && !isImage && (
+      {reaction.isDemo && kind === 'video' && (
         <span className="demo-label">
           <VolumeX size={12} />
           نموذج متحرك بلا صوت • صورة مولّدة

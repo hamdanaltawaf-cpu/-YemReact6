@@ -122,7 +122,7 @@ test('Compact footer avoids self-links and provides a no-JavaScript privacy fall
 });
 test('Service worker changes cache version and includes only the replacement public info routes', () => {
   const sw = fs.readFileSync('public/sw.js', 'utf8');
-  assert.match(sw, /v4\.3-information/);
+  assert.match(sw, /v4\.4-verified-media/);
   assert.doesNotMatch(sw, /\/about/);
   assert.match(sw, /'\/help', '\/privacy'/);
 });

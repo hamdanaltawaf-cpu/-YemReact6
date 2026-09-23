@@ -2,7 +2,7 @@ import { mkdir, writeFile, mkdtemp, rm, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { requireAdmin, sameOrigin, rateLimit, ApiError, apiError } from '@/server/auth';
-import { probeVideoDuration } from '@/server/video';
+import { verifyMediaFile, makeVideoPoster } from '@/server/media';
 export const runtime = 'nodejs';
 export async function POST(req: Request) {
   try {
@@ -13,42 +13,31 @@ export async function POST(req: Request) {
       throw new ApiError(413, 'الحد الأقصى للملف 15MB.');
     const file = (await req.formData()).get('file');
     if (!(file instanceof File) || file.size > 15 * 1024 * 1024 || !file.size)
-      throw new ApiError(400, 'اختر ملفًا صالحًا بحجم أقل من 15MB.');
-    const buffer = Buffer.from(await file.arrayBuffer());
-    let ext = '';
-    if (buffer.subarray(4, 8).toString() === 'ftyp') ext = 'mp4';
-    else if (buffer.subarray(0, 4).toString('hex') === '1a45dfa3') ext = 'webm';
-    else if (buffer.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') ext = 'png';
-    else if (buffer.subarray(0, 3).toString('hex') === 'ffd8ff') ext = 'jpg';
-    else if (
-      buffer.subarray(0, 4).toString() === 'RIFF' &&
-      buffer.subarray(8, 12).toString() === 'WEBP'
-    )
-      ext = 'webp';
-    if (!ext) throw new ApiError(400, 'الصيغ المقبولة: MP4، WebM، JPG، PNG، WebP.');
+      throw new ApiError(400, 'اختر ملفًا صالحًا بحجم لا يتجاوز 15MB.');
     const root = path.resolve(process.env.DATA_DIR || 'data');
     const dir = path.join(root, 'uploads');
     await mkdir(dir, { recursive: true });
-    const name = randomUUID() + '.' + ext;
-    const isVideo = ext === 'mp4' || ext === 'webm';
-    let duration: number | undefined;
-    if (isVideo) {
-      // Keep unvalidated files outside the public /api/media namespace, then remove on any failure.
-      const temporary = await mkdtemp(path.join(root, '.video-check-'));
-      try {
-        const candidate = path.join(temporary, 'upload.' + ext);
-        await writeFile(candidate, buffer, { flag: 'wx' });
-        duration = await probeVideoDuration(candidate);
-        await rename(candidate, path.join(dir, name));
-      } finally {
-        await rm(temporary, { recursive: true, force: true });
+    const temporary = await mkdtemp(path.join(root, '.media-check-'));
+    try {
+      // Names and browser MIME are hints only. Validate bytes before publishing any URL.
+      const candidate = path.join(temporary, 'upload');
+      await writeFile(candidate, Buffer.from(await file.arrayBuffer()), { flag: 'wx' });
+      const metadata = await verifyMediaFile(candidate);
+      const name = randomUUID() + '.' + metadata.extension;
+      const url = '/api/media/' + name;
+      let poster = url;
+      if (metadata.type === 'video') {
+        const posterName = randomUUID() + '.jpg';
+        const frame = path.join(temporary, 'frame.jpg');
+        await makeVideoPoster(candidate, frame);
+        await rename(frame, path.join(dir, posterName));
+        poster = '/api/media/' + posterName;
       }
-    } else await writeFile(path.join(dir, name), buffer, { flag: 'wx' });
-    return Response.json({
-      url: '/api/media/' + name,
-      type: isVideo ? 'video' : 'image',
-      ...(isVideo ? { duration } : {}),
-    });
+      await rename(candidate, path.join(dir, name));
+      return Response.json({ url, poster, ...metadata });
+    } finally {
+      await rm(temporary, { recursive: true, force: true });
+    }
   } catch (e) {
     return apiError(e);
   }

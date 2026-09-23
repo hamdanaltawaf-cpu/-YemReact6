@@ -25,7 +25,17 @@ function load(file, overrides = {}) {
 const media = load('src/lib/media.ts');
 const saved = load('src/lib/saved.ts');
 const items = [
-  { code: 'IMAGE', media: '/picture.png', duration: 0, publishedAt: '2026-09-19', caption: 'صورة' },
+  {
+    type: 'image',
+    mimeType: 'image/png',
+    mediaVerified: true,
+    mediaMetadataVersion: 1,
+    code: 'IMAGE',
+    media: '/picture.png',
+    duration: 0,
+    publishedAt: '2026-09-19',
+    caption: 'صورة',
+  },
   { code: 'VIDEO', media: '/clip.mp4', duration: 60, publishedAt: '2026-09-20', caption: 'فيديو' },
   {
     code: 'PHOTO',

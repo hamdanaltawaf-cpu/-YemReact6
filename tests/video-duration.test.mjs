@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 const context = { exports: {} };
 vm.runInNewContext(
-  ts.transpileModule(fs.readFileSync('src/lib/video.ts', 'utf8'), {
+  ts.transpileModule(fs.readFileSync('scripts/video-policy.mjs', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText,
   context,

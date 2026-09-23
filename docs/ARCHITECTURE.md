@@ -48,7 +48,7 @@ The exact folder names are not the architecture: domain logic, persistence, HTTP
 - This deployment is not horizontally scalable: local SQLite, local uploads and process-local rate-limit buckets assume one application instance.
 - OAuth routes are implemented for Google/Apple/Microsoft but need provider credentials and live testing. No local passwords, self-service provider linking, site-managed 2FA, account deletion or external object storage. See SOCIAL-AUTH.md.
 - The user management view lists the latest 100 accounts. Owner promotion is CLI-only, not an unrestricted browser endpoint.
-- File signatures and client-side video duration are checked; server-side FFprobe metadata duration checks are now enforced on upload and publish. This is not malware scanning, full media decoding or a sandboxed transcoder.
+- File bytes determine server-verified image/video metadata. Sharp decodes images, FFprobe checks video structure/duration, and FFmpeg extracts video covers. Upload and publication both verify files. A startup migration updates existing JSON in place with a SQLite snapshot, preserving saves. Shared viewers use verified metadata, never extensions. See VERIFIED-MEDIA.md. This is not malware scanning, complete video decoding or a sandboxed transcoder.
 - Photos and demo MP4s are original AI-generated still portraits animated by a zoom, not authentic footage. Labeling is present in hero, gallery, player, details and policy copy.
 - No WCAG AAA certificate, global performance SLA, independent penetration test or load-test claim is made.
 

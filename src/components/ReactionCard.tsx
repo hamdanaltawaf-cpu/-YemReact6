@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bookmark, Play, ArrowUpLeft, Expand } from 'lucide-react';
+import { Bookmark, Play, ArrowUpLeft, Expand, FileQuestion } from 'lucide-react';
 import type { Reaction } from '@/lib/reactions';
-import { isImageMedia, isVideoMedia } from '@/lib/media';
+import { verifiedMediaType, mediaActionLabel, videoSeconds } from '@/lib/media';
 import { useApp } from './AppProvider';
 export function ReactionCard({
   reaction,
@@ -18,29 +18,22 @@ export function ReactionCard({
   const app = useApp(),
     saved = app.saved.includes(reaction.code);
   const [ratio, setRatio] = useState<number>();
-  const isVideo = isVideoMedia(reaction.media);
-  const isImage = isImageMedia(reaction.media);
+  const isVideo = verifiedMediaType(reaction) === 'video';
+  const isImage = verifiedMediaType(reaction) === 'image';
   return (
     <article
       className={`reaction-card${savedView ? ' saved-card' : ''}`}
-      data-media-type={isVideo ? 'video' : isImage ? 'image' : 'other'}
+      data-media-type={isVideo ? 'video' : isImage ? 'image' : 'unknown'}
     >
       <div className="card-visual" style={savedView && ratio ? { aspectRatio: ratio } : undefined}>
         <button
           className="card-preview"
           onClick={() => app.setPreview(reaction.code)}
-          title={`معاينة الرياكشن: ${reaction.caption}`}
+          aria-label={`${mediaActionLabel(reaction)}: ${reaction.caption}`}
         >
-          <span className="sr-only">معاينة الرياكشن: {savedView ? reaction.caption : ''}</span>
           <Image
             src={isImage ? reaction.media : reaction.poster}
-            alt={
-              reaction.isDemo
-                ? `نموذج بصري مولّد: ${reaction.caption}`
-                : isImage
-                  ? reaction.caption
-                  : `${reaction.caption} — غلاف الرياكشن`
-            }
+            alt=""
             fill
             sizes="(max-width: 600px) 46vw, (max-width: 1000px) 30vw, 290px"
             loading="lazy"
@@ -58,13 +51,25 @@ export function ReactionCard({
             }
           />
           {!savedView && <span className="card-shade" />}
-          {isVideo && Number.isFinite(reaction.duration) && reaction.duration > 0 && (
-            <span className="card-duration mono" dir="ltr">
-              {reaction.duration}s
+          {isVideo && (
+            <span className="media-kind-badge card-duration" aria-hidden="true">
+              <Play size={12} fill="currentColor" />
+              <span>فيديو</span>
+              {videoSeconds(reaction.duration) && (
+                <b className="mono" dir="ltr">
+                  {videoSeconds(reaction.duration)}
+                </b>
+              )}
             </span>
           )}
-          <span className="card-play" aria-hidden="true">
-            {isVideo ? <Play size={22} fill="currentColor" /> : <Expand size={22} />}
+          <span className={`card-play${isImage ? ' card-expand' : ''}`} aria-hidden="true">
+            {isVideo ? (
+              <Play size={22} fill="currentColor" />
+            ) : isImage ? (
+              <Expand size={18} />
+            ) : (
+              <FileQuestion size={22} />
+            )}
           </span>
           {!savedView && (
             <span className="card-caption">
