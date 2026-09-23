@@ -68,11 +68,12 @@ const video = {
   mediaMetadataVersion: 1,
 };
 const image = { ...video, type: 'image', mimeType: 'image/png' };
-test('Verified videos have permanent video identity, even for extensionless or misleading URLs', () => {
+test('Verified video cards restore the original seconds-only duration badge', () => {
   for (const url of ['/clip.mp4', '/clip.webm?x=.png', '/file', '/cover.jpg']) {
     const html = render(url, 3, video);
-    assert.match(html, /media-kind-badge card-duration/);
-    assert.match(html, /dir="ltr">3s/);
+    assert.match(html, /class="card-duration mono" dir="ltr" aria-hidden="true">3s<\/span>/);
+    assert.doesNotMatch(html, /media-kind-badge|<span>فيديو<\/span>/);
+
     assert.match(html, /تشغيل الفيديو/);
     assert.doesNotMatch(html, /card-code|card-tag|category-label/);
   }
@@ -85,10 +86,11 @@ test('Images never inherit video duration or playback from names, posters or sta
     assert.match(html, /card-expand/);
   }
 });
-test('Video badge survives missing or invalid durations without fabricating seconds', () => {
+test('Missing or invalid video durations do not fabricate a badge or seconds', () => {
   for (const duration of [null, 0, -1, NaN, Infinity]) {
     const html = render('/clip.mp4', duration, video);
-    assert.match(html, /media-kind-badge/);
+    assert.doesNotMatch(html, /card-duration|media-kind-badge/);
+    assert.match(html, /data-media-type="video"/);
     assert.doesNotMatch(html, /dir="ltr"/);
   }
 });

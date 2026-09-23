@@ -3,7 +3,7 @@
 ## User-facing contract
 
 - Cards use **server-verified `type` and MIME**, not file extensions, duration, poster, or browser MIME. The same helper governs the library, saved items, shared preview/detail player and admin previews.
-- Videos always have a top-right **Play + فيديو** badge. A positive known duration appears in seconds; missing/invalid duration never removes video identity or invents a value. Images have an expand affordance, never Play or duration.
+- Per the requested visual rollback, videos with a positive known duration show the original small, translucent top-right seconds-only badge (for example `3s`), without a Play icon or the word فيديو inside it. Missing/invalid duration produces no duration badge. Verified video classification and the separate playback affordance are unchanged. Images have an expand affordance, never Play or duration.
 - Image → contained image preview. Video → inline native controls, no autoplay. Unknown/unverified metadata → an unavailable message, never a guessed video player; downloading is disabled.
 - Type-specific accessible button names, visible keyboard focus, native-dialog focus restoration, 44px save targets, permanent touch cues and reduced-motion handling. Existing public counters/categories/toolbars remain absent.
 - The shipped catalog is still twelve demo **videos**. Their static covers were not converted into public image records. Mixed-media verification uses disposable local-only fixtures.

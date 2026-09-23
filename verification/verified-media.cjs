@@ -66,11 +66,11 @@ const report={scope:'Disposable local production-build database and synthetic lo
    for(const route of ['/library','/saved']){
     await load(route);
     const images=page.locator('[data-media-type="image"]'),videos=page.locator('[data-media-type="video"]');assert.ok(await images.count()>0);assert.ok(await videos.count()>0);
-    assert.equal(await images.locator('.media-kind-badge,.lucide-play').count(),0);
-    assert.equal(await videos.locator('.media-kind-badge').count(),await videos.count());
+    assert.equal(await images.locator('.card-duration,.lucide-play').count(),0);
+    assert.ok(await videos.locator('.card-duration').count()>0);assert.equal(await videos.locator('.card-duration svg').count(),0);
     assert.equal(await page.locator('.site-footer').count(),0);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-    const badges=await videos.evaluateAll(cards=>cards.map(card=>{const b=card.querySelector('.media-kind-badge'),save=card.querySelector('.save-button'),bb=b.getBoundingClientRect(),sb=save.getBoundingClientRect();return {visible:getComputedStyle(b).opacity==='1',overlap:bb.left<sb.right&&bb.right>sb.left&&bb.top<sb.bottom&&bb.bottom>sb.top,saveWidth:sb.width,saveHeight:sb.height};}));
+    const badges=await videos.evaluateAll(cards=>cards.filter(card=>card.querySelector('.card-duration')).map(card=>{const b=card.querySelector('.card-duration'),save=card.querySelector('.save-button'),bb=b.getBoundingClientRect(),sb=save.getBoundingClientRect();return {visible:getComputedStyle(b).opacity==='1',overlap:bb.left<sb.right&&bb.right>sb.left&&bb.top<sb.bottom&&bb.bottom>sb.top,saveWidth:sb.width,saveHeight:sb.height};}));
     assert.ok(badges.every(b=>b.visible&&!b.overlap&&b.saveWidth>=44&&b.saveHeight>=44),JSON.stringify({width,route,badges}));
     report.widths.push({width,route,badgesPermanent:true,noOverlap:true,noOverflow:true});
    }
@@ -89,8 +89,8 @@ const report={scope:'Disposable local production-build database and synthetic lo
   await page.locator('dialog[open] video').evaluate(v=>v.play());await page.waitForFunction(()=>{const v=document.querySelector('dialog[open] video');return v&&!v.paused&&v.currentTime>0;});
   await page.keyboard.press('Escape');
   await page.locator('[data-media-type="unknown"] .card-preview').tap();assert.equal(await page.locator('dialog[open] video,dialog[open] .clip-still').count(),0);assert.equal(await page.locator('dialog[open]').getByRole('button',{name:'خذها',exact:true}).isDisabled(),true);await page.keyboard.press('Escape');
-  const missing=page.locator('.reaction-card').filter({has:page.locator('a[href="/r/YR-MEDIA-QA-NODURATION"]')});assert.equal(await missing.locator('.media-kind-badge').count(),1);assert.equal(await missing.locator('.media-kind-badge b').count(),0);
-  report.checks.push('Touch and keyboard select correct viewers; Escape restores focus; actual video plays inline only after user action; image download has correct extension; unknown media never becomes a player; video badge survives absent duration.');
+  const missing=page.locator('.reaction-card').filter({has:page.locator('a[href="/r/YR-MEDIA-QA-NODURATION"]')});assert.equal(await missing.locator('.card-duration').count(),0);assert.equal(await missing.locator('.card-duration b').count(),0);
+  report.checks.push('Touch and keyboard select correct viewers; Escape restores focus; actual video plays inline only after user action; image download has correct extension; unknown media never becomes a player; missing duration never invents a badge; the original seconds-only badge has no icon or visible video label.');
   for(const route of ['/saved','/library'])for(const theme of ['light','dark']){
    await page.emulateMedia({reducedMotion:'reduce',colorScheme:theme});await load(route);await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
    const audit=await new AxeBuilder({page}).analyze();report.axe.push({route,theme,violations:audit.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length}))});assert.equal(audit.violations.length,0,JSON.stringify(report.axe.at(-1)));
@@ -108,7 +108,7 @@ const report={scope:'Disposable local production-build database and synthetic lo
   await dialog.locator('input[type=checkbox]').check();await dialog.getByRole('button',{name:'نشر القصاصة',exact:true}).click();await editor.waitForFunction(()=>!document.querySelector('dialog[open]'));
   const created=JSON.parse(db.prepare("SELECT data FROM reactions WHERE json_extract(data,'$.caption')=?").get('اختبار صورة من الاستوديو').data);codes.push(created.code);uploads.push(created.media);assert.equal(created.type,'image');assert.equal(created.duration,null);
   report.checks.push('Mobile admin rejects short video before uploading and publishes a real image with image-only review and rights confirmation; shared detail viewers remain consistent. Four light/dark reduced-motion axe audits have zero violations.');
-  const desktop=await admin.newPage();await desktop.setViewportSize({width:1440,height:900});await desktop.goto(base+'/library',{waitUntil:'networkidle'});assert.ok((await desktop.locator('.media-kind-badge').evaluateAll(items=>items.map(e=>getComputedStyle(e).opacity))).every(v=>v==='1'));
+  const desktop=await admin.newPage();await desktop.setViewportSize({width:1440,height:900});await desktop.goto(base+'/library',{waitUntil:'networkidle'});assert.ok((await desktop.locator('.card-duration').evaluateAll(items=>items.map(e=>getComputedStyle(e).opacity))).every(v=>v==='1'));
   const account=await admin.newPage();await account.goto(base+'/saved',{waitUntil:'networkidle'});assert.equal(await account.locator('.reaction-card').count(),5);
   assert.equal(await account.locator('[data-media-type=image]').count(),3);assert.equal(await account.locator('[data-media-type=video]').count(),2);
   report.checks.push('Guest and account saved collections retain mixed images/videos; admin publishing does not alter member saves.');

@@ -51,15 +51,9 @@ export function ReactionCard({
             }
           />
           {!savedView && <span className="card-shade" />}
-          {isVideo && (
-            <span className="media-kind-badge card-duration" aria-hidden="true">
-              <Play size={12} fill="currentColor" />
-              <span>فيديو</span>
-              {videoSeconds(reaction.duration) && (
-                <b className="mono" dir="ltr">
-                  {videoSeconds(reaction.duration)}
-                </b>
-              )}
+          {isVideo && videoSeconds(reaction.duration) && (
+            <span className="card-duration mono" dir="ltr" aria-hidden="true">
+              {videoSeconds(reaction.duration)}
             </span>
           )}
           <span className={`card-play${isImage ? ' card-expand' : ''}`} aria-hidden="true">
