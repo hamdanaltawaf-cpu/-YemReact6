@@ -3,7 +3,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'YemReact — يمن رياكت',
     short_name: 'يمن رياكت',
-    description: 'الموقف يمني. والردّ جاهز.',
+    description: 'ردّك في لقطة. مكتبة رياكشنات يمنية.',
     lang: 'ar',
     dir: 'rtl',
     start_url: '/',

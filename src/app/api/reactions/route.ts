@@ -14,7 +14,8 @@ export async function GET() {
 const schema = z.object({
   code: z.string().regex(/^YR-[A-Z0-9-]{4,32}$/),
   caption: z.string().trim().min(1).max(100),
-  situation: z.string().trim().min(3).max(250),
+  situation: z.string().trim().max(250).default(''),
+  characterName: z.string().trim().max(70).optional(),
   category: z.string().refine((s) => CATEGORIES.some((c) => c.id === s)),
   duration: z.number().finite().nullable().optional(),
   keywords: z.array(z.string().trim().min(1).max(40)).max(12),

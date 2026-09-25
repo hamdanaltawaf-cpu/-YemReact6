@@ -32,6 +32,7 @@ export function Header() {
   }, []);
   const links = [
     ['/library', 'المكتبة'],
+    ['/collections', 'المجموعات'],
     ['/saved', 'المحفوظات'],
   ];
   const needsHelpShortcut = ['/library', '/saved', '/login'].includes(path.replace(/\/$/, ''));
@@ -53,7 +54,15 @@ export function Header() {
           </Link>
           <nav className="desktop-nav" aria-label="التنقل الرئيسي">
             {links.map(([href, label]) => (
-              <Link aria-current={path === href ? 'page' : undefined} key={href} href={href}>
+              <Link
+                aria-current={
+                  path === href || (href === '/collections' && path.startsWith('/collections/'))
+                    ? 'page'
+                    : undefined
+                }
+                key={href}
+                href={href}
+              >
                 {label}
               </Link>
             ))}
@@ -135,7 +144,7 @@ export function Header() {
                 <li key={n.id}>
                   <span>{n.text}</span>
                   <time>
-                    {new Date(n.time).toLocaleTimeString('ar', {
+                    {new Date(n.time).toLocaleTimeString('ar-u-nu-latn', {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}

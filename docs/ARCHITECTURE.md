@@ -2,16 +2,16 @@
 
 ## Product boundary
 
-YemReact is a situation-indexed reaction library, not a social network or shop. The rebuild adds the missing discovery → preview → save → download/share workflow and an actual owner CMS. It deliberately does **not** add payments, pricing, a blog, comments, public follower counts, invented testimonials, WebGL, an external analytics SDK, or AI API calls. None helps the core workflow enough to justify its cost or privacy/accessibility burden here.
+YemReact is a situation-indexed reaction library, not a social network or shop. The rebuild adds the missing discovery → detail → save → download/share workflow and an actual owner CMS. It deliberately does **not** add payments, pricing, a blog, comments, public follower counts, invented testimonials, WebGL, an external analytics SDK, or AI API calls. None helps the core workflow enough to justify its cost or privacy/accessibility burden here.
 
 This is a tested **single-node full-stack preview**, not a claim of audited enterprise readiness.
 
 ## Stack
 
 - Next.js 15.5.23, App Router, React 19.2, strict TypeScript.
-- Cairo variable body font, Lalezar display font, IBM Plex Mono technical labels; self-hosted by `next/font` after build.
+- IBM Plex Sans Arabic for Arabic UI, Inter for Latin, IBM Plex Mono for numeric/technical labels, and Lalezar for the Header wordmark only; bundled locally after build.
 - Semantic CSS tokens, Tailwind v4 available for utilities; explicit source directory avoids scanning logs/tooling.
-- Framer Motion in the on-demand media lightbox; compositor-friendly CSS for the hero and other motion.
+- Framer Motion remains available for the admin-only media lightbox; public card hover uses CSS and silent video playback only when motion is allowed.
 - React context for app-wide state. Unused Zustand and React Compiler dependencies from the baseline were removed.
 - SQLite (`better-sqlite3`), WAL, parameterized SQL, foreign-key enforcement.
 - Local filesystem media with bounded-size upload acceptance and HTTP byte ranges.
@@ -24,7 +24,7 @@ src/app/                 routing, metadata, API route adapters
 src/features/            page-level workflows (Home, Library, Detail, Auth, Admin)
 src/components/          shared organisms and molecules
 src/components/ui/       native-dialog primitive
-src/lib/                 domain types, categories, seed records, pure search
+src/lib/                 domain types, collections, legacy categories, seed records, pure search
 src/server/              server-only database, sessions, authorization, errors
 public/media/            clearly identified demo images and videos
 public/sw.js             public-content-only service worker
@@ -37,10 +37,10 @@ The exact folder names are not the architecture: domain logic, persistence, HTTP
 
 1. The root server layout loads the public library and passes serializable records to `AppProvider`.
 2. Clients never import database/auth modules; `server-only` enforces the boundary.
-3. Search/filter/sort run locally for this small catalog. Query and category have shareable URLs; sorting and duration are session UI state.
+3. The public library renders its curated complete catalog without infinite scrolling, sorting controls or category filters. Legacy search/category query URLs still resolve; server-backed collections are the primary public curation.
 4. Anonymous bookmarks live in `yr:guest-saved`. Account bookmarks use `/api/saved`. These are separate collections, not silently merged.
 5. Mutations use same-origin requests, then session and role checks, then schema validation and SQL.
-6. The editor refreshes the catalog after success. Database deletion cascades account bookmarks. Unreferenced media remain on disk pending deliberate cleanup.
+6. The editor refreshes the catalog after success. Admin-managed collection membership is independent of legacy categories; reaction deletion cascades collection membership and account bookmarks. Reports are stored for admin review only. Unreferenced media remain on disk pending deliberate cleanup.
 7. Aggregate events contain kind/code/timestamp only. They are approximate action counts, **not unique people or trusted billing metrics**.
 
 ## Important limitations
@@ -49,7 +49,7 @@ The exact folder names are not the architecture: domain logic, persistence, HTTP
 - OAuth routes are implemented for Google/Apple/Microsoft but need provider credentials and live testing. No local passwords, self-service provider linking, site-managed 2FA, account deletion or external object storage. See SOCIAL-AUTH.md.
 - The user management view lists the latest 100 accounts. Owner promotion is CLI-only, not an unrestricted browser endpoint.
 - File bytes determine server-verified image/video metadata. Sharp decodes images, FFprobe checks video structure/duration, and FFmpeg extracts video covers. Upload and publication both verify files. A startup migration updates existing JSON in place with a SQLite snapshot, preserving saves. Shared viewers use verified metadata, never extensions. See VERIFIED-MEDIA.md. This is not malware scanning, complete video decoding or a sandboxed transcoder.
-- Photos and demo MP4s are original AI-generated still portraits animated by a zoom, not authentic footage. Labeling is present in hero, gallery, player, details and policy copy.
+- The seeded MP4s animate original AI-generated portraits; they are not authentic footage. Disclosure is present in the detail player text, help and privacy copy, but not as a watermark or label overlay on cards/media.
 - No WCAG AAA certificate, global performance SLA, independent penetration test or load-test claim is made.
 
 ## Scaling path

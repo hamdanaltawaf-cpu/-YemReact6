@@ -23,14 +23,74 @@ db.exec(`
  CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY AUTOINCREMENT,kind TEXT NOT NULL,code TEXT NOT NULL,created_at TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id TEXT,action TEXT NOT NULL,detail TEXT NOT NULL,created_at TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+ CREATE TABLE IF NOT EXISTS collections(slug TEXT PRIMARY KEY,title TEXT NOT NULL,description TEXT NOT NULL DEFAULT '',cover_code TEXT REFERENCES reactions(code) ON DELETE SET NULL,active INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL,kind TEXT NOT NULL DEFAULT 'thematic');
+ CREATE TABLE IF NOT EXISTS collection_items(slug TEXT NOT NULL REFERENCES collections(slug) ON DELETE CASCADE,code TEXT NOT NULL REFERENCES reactions(code) ON DELETE CASCADE,position INTEGER NOT NULL,PRIMARY KEY(slug,code));
+ CREATE INDEX IF NOT EXISTS idx_collection_items_code ON collection_items(code);
+ CREATE TABLE IF NOT EXISTS reports(id INTEGER PRIMARY KEY AUTOINCREMENT,code TEXT NOT NULL,reason TEXT NOT NULL,detail TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL);
+ CREATE INDEX IF NOT EXISTS idx_reports_created ON reports(created_at);
  CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);
  CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires);
 `);
+// Existing preview databases may have been created before curated kinds were introduced.
+if (
+  !(db.pragma('table_info(collections)') as { name: string }[]).some(
+    (column) => column.name === 'kind',
+  )
+)
+  db.exec("ALTER TABLE collections ADD COLUMN kind TEXT NOT NULL DEFAULT 'thematic'");
 if (!db.prepare("SELECT value FROM meta WHERE key='seeded'").get())
   db.transaction(() => {
     const put = db.prepare('INSERT OR IGNORE INTO reactions(code,data) VALUES (?,?)');
     REACTIONS.forEach((r) => put.run(r.code, JSON.stringify(r)));
     db.prepare("INSERT INTO meta(key,value) VALUES ('seeded','1')").run();
+  })();
+// Only curated links to the existing demo clips: no synthetic public reactions are created.
+// The marker prevents deleted example collections from reappearing after a restart.
+if (!db.prepare("SELECT value FROM meta WHERE key='collections-curated-v1'").get())
+  db.transaction(() => {
+    const examples = [
+      {
+        slug: 'students',
+        title: 'طلاب',
+        description: 'ردود لدوام الدراسة، والتفاجؤ، والنجاح.',
+        codes: ['YR-0002', 'YR-0005', 'YR-0009'],
+      },
+      {
+        slug: 'groups',
+        title: 'قروبات',
+        description: 'لقطات جاهزة لمحادثات القروبات.',
+        coverCode: 'YR-0006',
+        codes: ['YR-0003', 'YR-0006', 'YR-0011'],
+      },
+      {
+        slug: 'out-of-context',
+        title: 'بلا سياق',
+        description: 'ردود مختصرة تشتغل في أكثر من حكاية.',
+        codes: ['YR-0001', 'YR-0007'],
+      },
+    ];
+    const put = db.prepare(
+      'INSERT OR IGNORE INTO collections(slug,title,description,cover_code,active,created_at) VALUES (?,?,?,?,1,?)',
+    );
+    const join = db.prepare(
+      'INSERT OR IGNORE INTO collection_items(slug,code,position) VALUES (?,?,?)',
+    );
+    examples.forEach((example, index) => {
+      if (
+        !example.codes.every((code) => db.prepare('SELECT 1 FROM reactions WHERE code=?').get(code))
+      )
+        return;
+      const result = put.run(
+        example.slug,
+        example.title,
+        example.description,
+        example.coverCode || example.codes[0],
+        new Date(Date.now() + index).toISOString(),
+      );
+      if (result.changes)
+        example.codes.forEach((code, position) => join.run(example.slug, code, position));
+    });
+    db.prepare("INSERT INTO meta(key,value) VALUES ('collections-curated-v1','1')").run();
   })();
 export const listReactions = () =>
   (db.prepare('SELECT data FROM reactions ORDER BY code').all() as { data: string }[]).map(

@@ -22,15 +22,19 @@ import {
   Expand,
   FileQuestion,
   RefreshCw,
+  Layers3,
+  Flag,
 } from 'lucide-react';
 import { useApp } from '@/components/AppProvider';
 import { Modal } from '@/components/ui/Modal';
-import { Qusasa } from '@/components/Qusasa';
+
 import { REACTIONS, type Reaction } from '@/lib/reactions';
 import seedMedia from '@/lib/seed-media.json';
 import { verifiedMediaType, mediaActionLabel } from '@/lib/media';
 import { browserVideoDuration } from '@/lib/browser-media';
 import { ClipPlayer } from '@/components/Clip';
+import CollectionStudio from './CollectionStudio';
+import ReportsStudio from './ReportsStudio';
 import {
   MIN_VIDEO_DURATION,
   MAX_VIDEO_DURATION,
@@ -51,6 +55,8 @@ type Metrics = {
 const sections = [
   { id: 'overview', label: 'نظرة عامة', icon: LayoutDashboard },
   { id: 'content', label: 'الرياكشنات', icon: Film },
+  { id: 'collections', label: 'المجموعات', icon: Layers3 },
+  { id: 'reports', label: 'البلاغات', icon: Flag },
   { id: 'media', label: 'الوسائط', icon: ImageIcon },
   { id: 'users', label: 'المستخدمون', icon: Users },
   { id: 'audit', label: 'سجل العمليات', icon: ScrollText },
@@ -136,7 +142,7 @@ export default function Admin() {
     <section className="container admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-title">
-          <Qusasa size={27} />
+          <LayoutDashboard size={24} aria-hidden="true" />
           الاستوديو<span className="tiny-tag">BETA</span>
         </div>
         <nav aria-label="أقسام لوحة الإدارة">
@@ -171,16 +177,11 @@ export default function Admin() {
                 : 'شاهد مساحة العمل. التعديل متاح للمالك فقط.'}
             </p>
           </div>
-          {admin ? (
+          {admin && tab !== 'collections' && tab !== 'reports' && (
             <button className="btn btn-dark btn-small" onClick={() => setEditor('new')}>
               <Plus size={16} />
               رياكشن جديد
             </button>
-          ) : (
-            <Link className="btn btn-dark btn-small" href="/login">
-              <LockKeyhole size={15} />
-              دخول المالك
-            </Link>
           )}
         </div>
         {!admin && (
@@ -237,7 +238,7 @@ export default function Admin() {
                 id="admin-search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="ابحث بالاقتباس أو الموقف..."
+                placeholder="ابحث بالعنوان أو الوصف..."
               />
             </div>
             <div
@@ -305,6 +306,8 @@ export default function Admin() {
             </div>
           </>
         )}
+        {tab === 'collections' && <CollectionStudio />}
+        {tab === 'reports' && <ReportsStudio />}
         {tab === 'media' && (
           <>
             <div className="admin-subtoolbar">
@@ -390,7 +393,7 @@ export default function Admin() {
                       {app.reactions.find((r) => r.code === a.detail)?.caption ||
                         'تم تسجيل العملية'}
                     </span>
-                    <time>{new Date(a.created_at).toLocaleString('ar-YE')}</time>
+                    <time>{new Date(a.created_at).toLocaleString('ar-YE-u-nu-latn')}</time>
                   </li>
                 ))}
               </ul>
@@ -458,6 +461,7 @@ function Editor({
           code: `YR-${Date.now().toString(36).toUpperCase()}`,
           caption: '',
           situation: '',
+          characterName: '',
           category: 'laugh',
           duration: REACTIONS[0].duration,
           keywords: [],
@@ -557,7 +561,7 @@ function Editor({
   return (
     <Modal open onClose={() => !busy && onClose()} title={fresh ? 'قصاصة جديدة' : 'تعديل القصاصة'}>
       <div className="segmented" aria-label="خطوات الإضافة">
-        {['الموقف', 'الوسائط', 'المراجعة'].map((s, i) => (
+        {['النص', 'الوسائط', 'المراجعة'].map((s, i) => (
           <span
             key={s}
             className="editor-step"
@@ -577,7 +581,7 @@ function Editor({
         {step === 1 && (
           <>
             <label>
-              الاقتباس
+              العنوان / الوصف الأساسي
               <input
                 value={r.caption}
                 onChange={(e) => patch('caption', e.target.value)}
@@ -588,14 +592,21 @@ function Editor({
               />
             </label>
             <label>
-              متى نستخدمه؟
+              الوصف الثنائي (اختياري)
               <textarea
                 value={r.situation}
                 onChange={(e) => patch('situation', e.target.value)}
-                minLength={3}
                 maxLength={250}
-                required
-                placeholder="لما تسمع خبر صادم..."
+                placeholder="تفاصيل إضافية تُعرض مطوية في صفحة الرياكشن"
+              />
+            </label>
+            <label>
+              اسم الشخصية (اختياري)
+              <input
+                value={r.characterName || ''}
+                onChange={(e) => patch('characterName', e.target.value)}
+                maxLength={70}
+                placeholder="يظهر كوسم غير قابل للنقر في التفاصيل فقط"
               />
             </label>
             <label>
@@ -686,7 +697,7 @@ function Editor({
               <Image src={r.poster} alt={r.caption} width={68} height={85} />
               <div>
                 <h3>{r.caption}</h3>
-                <p className="muted text-small">{r.situation}</p>
+                {r.situation?.trim() && <p className="muted text-small">{r.situation}</p>}
                 <span className="status-pill">{r.isDemo ? 'نموذج مولّد' : 'ملف مرفوع'}</span>
               </div>
             </div>

@@ -3,8 +3,8 @@ import LibraryFeed from '@/features/LibraryFeed';
 import Loading from './loading';
 export const metadata = {
   alternates: { canonical: '/library' },
-  title: 'المكتبة — لكل موقف رياكشن',
-  description: 'تصفّح رياكشنات يمنية بالموقف في مكتبة بصرية، مع المزيد تلقائيًا عند التمرير.',
+  title: 'المكتبة — رياكشنات يمنية',
+  description: 'تصفّح مكتبة رياكشنات يمنية من الصور والفيديوهات في عرض بصري بسيط.',
 };
 export default function Page() {
   return (

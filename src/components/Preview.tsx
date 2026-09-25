@@ -46,7 +46,17 @@ export function Preview() {
           <ClipPlayer reaction={r} active={!!app.preview} />
           <div className="preview-copy">
             <h3>{r.caption}</h3>
-            <p>{r.situation}</p>
+            {r.characterName && (
+              <span className="character-chip" title={r.characterName}>
+                {r.characterName}
+              </span>
+            )}
+            {r.situation?.trim() && (
+              <details className="detail-secondary">
+                <summary>الوصف الثنائي</summary>
+                <p>{r.situation}</p>
+              </details>
+            )}
             <ReactionActions reaction={r} />
             {r.isDemo && (
               <p className="demo-disclosure">

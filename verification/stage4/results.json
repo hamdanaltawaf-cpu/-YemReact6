@@ -1,0 +1,203 @@
+{
+  "scope": "Local disposable preview; no live-site mutations",
+  "checks": [
+    "Three curated groups have correct membership and public counts; admin-only collection and report APIs reject guests.",
+    "Six viewport widths: no horizontal overflow, all 12 cards rendered immediately, top-right 32×20s-only video badges and 34×34 menus; details have a same-row H1/action group and optional sections.",
+    "Video hover actually plays muted on desktop, stops on exit, click opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.",
+    "Keyboard menu, guest save, link copy, report form, mobile detail navigation and reduced-motion no-hover playback pass.",
+    "Verified static image has no video badge/player, a long title stays on the H1/action row at 320px, absent fields are omitted, and downloaded bytes match SHA-256; the local fixture is deleted.",
+    "Admin studio creates a curated collection with two members, renders its public page, and sees the submitted report; guest APIs remain blocked.",
+    "Seven axe audits across public pages and the admin collection studio/editor in light/dark + reduced-motion contexts: no violations."
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "route": "/",
+      "noOverflow": true
+    },
+    {
+      "width": 320,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 320,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 320,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 320,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/",
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 375,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 768,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/",
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 1024,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 1440,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/",
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 1920,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    }
+  ],
+  "axe": [
+    {
+      "route": "/admin (collections, mobile)",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/admin (collection editor, mobile)",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/collections",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/library",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "route": "/r/YR-0001",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "route": "/library",
+      "theme": "light",
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "completed": true
+}

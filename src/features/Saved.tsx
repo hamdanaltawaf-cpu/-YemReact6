@@ -1,7 +1,7 @@
 'use client';
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bookmark } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useApp } from '@/components/AppProvider';
 import { ReactionMasonry } from '@/components/ReactionMasonry';
 import { savedReactions } from '@/lib/saved';
@@ -16,11 +16,11 @@ export default function Saved() {
           <h1 id="saved-title">المحفوظات</h1>
           <p>
             {user
-              ? 'صور وفيديوهات اخترتها، لتعود إليها متى شئت.'
-              : 'صور وفيديوهات احتفظت بها في هذا المتصفح.'}
+              ? 'احفظ ما يعجبك لتعود إليه من أي جهاز.'
+              : 'احفظ ما يعجبك لتعود إليه من هذا المتصفح.'}
           </p>
         </div>
-        {authReady && items.length > 0 && (
+        {authReady && (
           <Link className="saved-browse" href="/library">
             تصفّح المكتبة <ArrowLeft size={17} aria-hidden="true" />
           </Link>
@@ -33,21 +33,12 @@ export default function Saved() {
             <div className="saved-placeholder" key={key} aria-hidden="true" />
           ))}
         </div>
-      ) : items.length ? (
-        <div className="saved-gallery">
-          <ReactionMasonry key={user?.id || 'guest'} items={items} savedView />
-        </div>
       ) : (
-        <div className="saved-empty">
-          <div className="saved-empty-icon" aria-hidden="true">
-            <Bookmark size={30} strokeWidth={1.5} />
+        items.length > 0 && (
+          <div className="saved-gallery">
+            <ReactionMasonry key={user?.id || 'guest'} items={items} savedView />
           </div>
-          <h2>احتفظ بما يعجبك.</h2>
-          <p>احفظ صورة أو فيديو من المكتبة، وستجده هنا.</p>
-          <Link className="btn btn-dark" href="/library">
-            تصفّح المكتبة <ArrowLeft size={17} aria-hidden="true" />
-          </Link>
-        </div>
+        )
       )}
     </section>
   );

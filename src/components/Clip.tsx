@@ -2,7 +2,7 @@
 import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { verifiedMediaType, mediaFileExtension } from '@/lib/media';
-import { Bookmark, Download, Share2, VolumeX } from 'lucide-react';
+import { Bookmark, Download, Share2 } from 'lucide-react';
 import { useApp, track } from './AppProvider';
 import type { Reaction } from '@/lib/reactions';
 /** Shared media primitives stay separate from the on-demand animation bundle. */
@@ -39,8 +39,7 @@ export function ReactionActions({ reaction }: { reaction: Reaction }) {
   async function share() {
     const url = location.origin + '/r/' + reaction.code;
     try {
-      if (navigator.share)
-        await navigator.share({ title: reaction.caption, text: reaction.situation, url });
+      if (navigator.share) await navigator.share({ title: reaction.caption, url });
       else {
         await navigator.clipboard.writeText(url);
         app.toast('نسخنا رابط الرياكشن');
@@ -55,24 +54,26 @@ export function ReactionActions({ reaction }: { reaction: Reaction }) {
   return (
     <div className="reaction-actions">
       <button
-        className="btn btn-primary"
-        onClick={download}
-        disabled={busy || verifiedMediaType(reaction) === 'unknown'}
-      >
-        <Download size={18} />
-        {busy ? 'لحظة...' : 'خذها'}
-      </button>
-      <button
         className={`btn btn-outline ${saved ? 'selected' : ''}`}
+        aria-label={saved ? 'إزالة من المحفوظات' : 'حفظ'}
         onClick={() => app.toggleSave(reaction.code)}
         aria-pressed={saved}
       >
-        <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} />
-        {saved ? 'محفوظة' : 'احفظها'}
+        <Bookmark size={18} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
+        <span>{saved ? 'محفوظ' : 'حفظ'}</span>
       </button>
-      <button className="btn btn-outline" onClick={share}>
-        <Share2 size={18} />
-        شارك
+      <button
+        className="btn btn-primary"
+        aria-label={busy ? 'جارٍ التنزيل' : 'تنزيل'}
+        onClick={download}
+        disabled={busy || verifiedMediaType(reaction) === 'unknown'}
+      >
+        <Download size={18} aria-hidden="true" />
+        <span>{busy ? 'لحظة…' : 'تنزيل'}</span>
+      </button>
+      <button className="btn btn-outline" aria-label="مشاركة" onClick={share}>
+        <Share2 size={18} aria-hidden="true" />
+        <span>مشاركة</span>
       </button>
     </div>
   );
@@ -132,12 +133,6 @@ export function ClipPlayer({ reaction, active = true }: { reaction: Reaction; ac
         <p className="media-error" role="alert">
           تعذّر تحميل الملف. تحقق من الاتصال.
         </p>
-      )}
-      {reaction.isDemo && kind === 'video' && (
-        <span className="demo-label">
-          <VolumeX size={12} />
-          نموذج متحرك بلا صوت • صورة مولّدة
-        </span>
       )}
     </div>
   );

@@ -30,7 +30,7 @@ const context = {
     if (name === '@/lib/media') return media;
     if (name === 'next/image') return () => null;
     if (name === 'next/link')
-      return ({ children, href }) => React.createElement('a', { href }, children);
+      return ({ children, ...props }) => React.createElement('a', props, children);
     if (name === 'lucide-react')
       return {
         Bookmark: () => null,
@@ -39,8 +39,16 @@ const context = {
         Expand: () => null,
         FileQuestion: () => null,
       };
-    if (name === './AppProvider')
-      return { useApp: () => ({ saved: [], setPreview() {}, toggleSave() {} }) };
+    if (name === './AppProvider') return { useApp: () => ({ saved: [], reduced: false }) };
+    if (name === './ReactionMenu')
+      return {
+        ReactionMenu: () =>
+          React.createElement(
+            'button',
+            { 'aria-label': 'خيارات لقطة', className: 'reaction-menu-trigger' },
+            '…',
+          ),
+      };
     throw Error(name);
   },
 };
@@ -74,7 +82,9 @@ test('Verified video cards restore the original seconds-only duration badge', ()
     assert.match(html, /class="card-duration mono" dir="ltr" aria-hidden="true">3s<\/span>/);
     assert.doesNotMatch(html, /media-kind-badge|<span>فيديو<\/span>/);
 
-    assert.match(html, /تشغيل الفيديو/);
+    assert.match(html, /عرض التفاصيل/);
+    assert.match(html, /reaction-menu-trigger/);
+    assert.doesNotMatch(html, /save-button|card-caption|card-play/);
     assert.doesNotMatch(html, /card-code|card-tag|category-label/);
   }
 });
@@ -82,8 +92,8 @@ test('Images never inherit video duration or playback from names, posters or sta
   for (const url of ['/photo.jpg', '/photo.png?file=.mp4', '/file', '/clip.mp4']) {
     const html = render(url, 999, image);
     assert.doesNotMatch(html, /card-duration|999s|تشغيل الفيديو/);
-    assert.match(html, /عرض الصورة/);
-    assert.match(html, /card-expand/);
+    assert.match(html, /عرض التفاصيل/);
+    assert.doesNotMatch(html, /<video|card-expand|save-button/);
   }
 });
 test('Missing or invalid video durations do not fabricate a badge or seconds', () => {
@@ -103,6 +113,6 @@ test('Unknown, mismatched and unverified metadata never imply video', () => {
   ]) {
     const html = render('/clip.mp4', 3, metadata);
     assert.match(html, /data-media-type="unknown"/);
-    assert.doesNotMatch(html, /card-duration|تشغيل الفيديو|card-expand/);
+    assert.doesNotMatch(html, /card-duration|<video|card-expand/);
   }
 });

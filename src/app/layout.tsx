@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Cairo, Lalezar, IBM_Plex_Mono } from 'next/font/google';
+import { IBM_Plex_Sans_Arabic, Inter, Lalezar, IBM_Plex_Mono } from 'next/font/google';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AppProvider } from '@/components/AppProvider';
@@ -7,13 +7,20 @@ import { AppOverlays } from '@/components/AppOverlays';
 import { Pwa } from '@/components/Pwa';
 import { listReactions } from '@/server/db';
 import './globals.css';
+import './stage4.css';
 const display = Lalezar({
   weight: '400',
   subsets: ['arabic'],
   variable: '--f-display',
   display: 'swap',
 });
-const body = Cairo({ subsets: ['arabic', 'latin'], variable: '--f-body', display: 'swap' });
+const body = IBM_Plex_Sans_Arabic({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['arabic', 'latin'],
+  variable: '--f-body',
+  display: 'swap',
+});
+const latin = Inter({ subsets: ['latin'], variable: '--f-latin', display: 'swap' });
 const mono = IBM_Plex_Mono({
   weight: ['400', '500'],
   subsets: ['latin'],
@@ -23,8 +30,8 @@ const mono = IBM_Plex_Mono({
 const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(base),
-  title: { default: 'YemReact — الموقف يمني. والردّ جاهز.', template: '%s | يمن رياكت' },
-  description: 'مكتبة رياكشنات يمنية بالموقف. عاين، احفظ، وخذ ردّك معك. خذها. حطها. يمنية.',
+  title: { default: 'YemReact — ردّك في لقطة', template: '%s | يمن رياكت' },
+  description: 'مكتبة رياكشنات يمنية من الصور والفيديوهات. عاين، احفظ، وشارك.',
   applicationName: 'YemReact',
   manifest: '/manifest.webmanifest',
   openGraph: { type: 'website', locale: 'ar_YE', siteName: 'YemReact', images: ['/og.png'] },
@@ -40,7 +47,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       lang="ar"
       dir="rtl"
       suppressHydrationWarning
-      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      className={`${display.variable} ${body.variable} ${latin.variable} ${mono.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: boot }} />

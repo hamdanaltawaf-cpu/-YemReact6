@@ -1,73 +1,108 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 import type { Reaction } from '@/lib/reactions';
+import type { Collection } from '@/lib/collections';
+import { detailRecommendations } from '@/lib/collections';
+import { verifiedMediaType } from '@/lib/media';
 import { useApp } from '@/components/AppProvider';
 import { ClipPlayer, ReactionActions } from '@/components/Clip';
-import { ReactionCard } from '@/components/ReactionCard';
-import { mediaFileExtension } from '@/lib/media';
-export default function Detail({ reaction }: { reaction: Reaction }) {
-  const app = useApp();
-  const related = app.reactions
-    .filter((r) => r.code !== reaction.code)
-    .sort(
-      (a, b) => Number(b.category === reaction.category) - Number(a.category === reaction.category),
-    )
-    .slice(0, 4);
+import { ReactionMasonry } from '@/components/ReactionMasonry';
+import { ReactionMenu } from '@/components/ReactionMenu';
+
+export default function Detail({
+  reaction,
+  collections,
+}: {
+  reaction: Reaction;
+  collections: Collection[];
+}) {
+  const { reactions } = useApp();
+  const router = useRouter();
+  const { related, more } = detailRecommendations(reaction, reactions, collections);
+  function goBack() {
+    const referrer = document.referrer;
+    const sameSite = referrer && new URL(referrer).origin === window.location.origin;
+    if (window.history.state?.idx > 0 || sameSite) router.back();
+    else router.push('/library');
+  }
   return (
-    <section className="container page-section">
-      <nav className="page-breadcrumb" aria-label="مسار الصفحة">
-        <Link href="/">الرئيسية</Link>
-        <span>/</span>
-        <Link href="/library">المكتبة</Link>
-        <span>/</span>
-        <span>{reaction.caption}</span>
-      </nav>
-      <div className="detail-grid">
-        <div className="detail-media">
-          <div className="ambient-glow" />
+    <article className="container detail-page">
+      <div className="detail-main">
+        <div className="detail-media-stage">
+          <button className="detail-back" onClick={goBack} aria-label="رجوع إلى الصفحة السابقة">
+            <ArrowRight size={18} aria-hidden="true" /> رجوع
+          </button>
           <ClipPlayer reaction={reaction} />
         </div>
-        <div className="detail-copy">
-          <h1>{reaction.caption}</h1>
-          <p className="detail-situation">{reaction.situation}</p>
-          <div className="detail-facts">
-            <span>
-              <CheckCircle2 size={16} />
-              {reaction.isDemo ? 'نموذج تجريبي' : 'مضاف للمكتبة'}
-            </span>
-            <span>{mediaFileExtension(reaction.media).slice(1).toUpperCase()}</span>
+        <div className="detail-content">
+          <div className="detail-titlebar">
+            <h1>{reaction.caption}</h1>
+            <div className="detail-controls">
+              <ReactionActions reaction={reaction} />
+              <ReactionMenu reaction={reaction} detail />
+            </div>
           </div>
-          <ReactionActions reaction={reaction} />
-          {reaction.isDemo && (
-            <div className="notice-box">
-              <b>عن هذا النموذج</b>
-              <p>
-                معاينة متحركة بلا صوت، مصنوعة من صورة مولّدة بالذكاء الاصطناعي. ليست لقطة أصلية أو
-                أداءً لشخص حقيقي. التنزيل يعمل للملف التجريبي نفسه.
-              </p>
+          {reaction.characterName && (
+            <div className="detail-meta">
+              <span className="character-chip" title={reaction.characterName}>
+                {reaction.characterName}
+              </span>
+              <span aria-hidden="true" className="detail-meta-separator">
+                ·
+              </span>
+              <span className="detail-meta-description">{reaction.caption}</span>
             </div>
           )}
-          <Link href="/library" className="text-button">
-            <ArrowRight size={16} />
-            العودة للمكتبة
-          </Link>
+          {reaction.situation?.trim() && (
+            <details className="detail-secondary">
+              <summary>
+                الوصف الثنائي <ChevronDown size={17} aria-hidden="true" />
+              </summary>
+              <p>{reaction.situation}</p>
+            </details>
+          )}
+          {collections.length > 0 && (
+            <div className="detail-collections" aria-label="المجموعات">
+              <h2>المجموعات</h2>
+              <div>
+                {collections.map((collection) => (
+                  <Link href={`/collections/${collection.slug}`} key={collection.slug}>
+                    {collection.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {reaction.isDemo && (
+            <p className="detail-demo-note">
+              {verifiedMediaType(reaction) === 'video'
+                ? 'نموذج تجريبي متحرك من صورة مولّدة؛ ليس مشهدًا أو أداءً لشخص حقيقي.'
+                : 'نموذج تجريبي من صورة مولّدة؛ ليس تصويرًا لشخص حقيقي.'}
+            </p>
+          )}
         </div>
       </div>
-      <div className="section-heading related-heading">
-        <div>
-          <span className="eyebrow">يمكن هذا كمان يقول اللي في بالك</span>
-          <h2>ردود قريبة.</h2>
-        </div>
-        <Link href="/library" className="text-button">
-          شوف الكل <ArrowRight size={16} />
-        </Link>
-      </div>
-      <div className="reaction-grid">
-        {related.map((r) => (
-          <ReactionCard reaction={r} key={r.code} />
-        ))}
-      </div>
-    </section>
+      {related.length > 0 && (
+        <section className="detail-recommendations" aria-labelledby="related-title">
+          <div className="home-section-heading">
+            <h2 id="related-title">رياكشنات ذات صلة</h2>
+          </div>
+          <ReactionMasonry items={related} />
+        </section>
+      )}
+      {more.length > 0 && (
+        <section className="detail-recommendations" aria-labelledby="more-title">
+          <div className="home-section-heading">
+            <h2 id="more-title">المزيد من المكتبة</h2>
+            <Link className="text-button" href="/library">
+              المكتبة <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+          <ReactionMasonry items={more} />
+        </section>
+      )}
+    </article>
   );
 }

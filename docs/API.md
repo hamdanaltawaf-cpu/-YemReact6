@@ -4,43 +4,55 @@ All endpoints are same-origin Next route handlers. JSON responses use UTF-8. Aut
 
 Mutations (except provider callbacks validated by state/nonce/browser binding) require an `Origin` host matching the request host/trusted `X-Forwarded-Host`. Behind a proxy, strip untrusted forwarding headers and set them yourself. Browser code only calls relative URLs.
 
-| Method | Endpoint | Access | Body / result |
-|---|---|---|---|
-| GET | `/api/reactions` | public | `{reactions: Reaction[]}` |
-| POST | `/api/reactions` | owner | validated `Reaction`; create or update by `code` |
-| DELETE | `/api/reactions` | owner | `{code}`; deletes record and account bookmarks |
-| GET | `/api/auth` | public | `{user: {id,name,email,role} \| null}` |
-| POST | `/api/auth` | retired | HTTP 410; no password authentication |
-| GET | `/api/auth/oauth/[provider]` | public, limited | starts configured provider authorization; 303 redirect |
-| GET/POST | `/api/auth/oauth/[provider]/callback` | state + browser binding | Google/Microsoft GET, Apple POST; validated OIDC then session |
-| DELETE | `/api/auth` | same-origin | revokes current session, clears cookie |
-| GET | `/api/saved` | signed-in | `{saved: string[]}` |
-| PUT | `/api/saved` | signed-in | `{code,saved:boolean}`; idempotent intent |
-| POST | `/api/events` | public, limited | `{kind:'play'\|'download'\|'share',code}` |
-| GET | `/api/admin` | owner | counts, last 7 days, last 100 users, last 40 audit entries |
-| POST | `/api/upload` | owner, limited | multipart `file`; returns `{url,type,duration?}` (measured duration for videos) |
-| GET | `/api/media/[name]` | public | local file; supports one HTTP byte range |
+| Method              | Endpoint                              | Access                  | Body / result                                                                                                                                   |
+| ------------------- | ------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/reactions`                      | public                  | `{reactions: Reaction[]}`                                                                                                                       |
+| GET                 | `/api/collections`                    | public                  | `{collections: Collection[]}`; active, nonempty only                                                                                            |
+| GET                 | `/api/collections?scope=admin`        | owner                   | includes inactive collections, edit members                                                                                                     |
+| POST / PUT / DELETE | `/api/collections`                    | owner                   | curated collection create/update/delete; `slug`, `kind` (`thematic/person/place`), `title`, `description`, `coverCode`, `memberCodes`, `active` |
+| POST                | `/api/reports`                        | public, limited         | `{code,reason,detail?}`; server-validates and stores report                                                                                     |
+| GET                 | `/api/reports`                        | owner                   | most recent 100 reports                                                                                                                         |
+| POST                | `/api/reactions`                      | owner                   | validated `Reaction`; create or update by `code`                                                                                                |
+| DELETE              | `/api/reactions`                      | owner                   | `{code}`; deletes record and account bookmarks                                                                                                  |
+| GET                 | `/api/auth`                           | public                  | `{user: {id,name,email,role} \| null}`                                                                                                          |
+| POST                | `/api/auth`                           | retired                 | HTTP 410; no password authentication                                                                                                            |
+| GET                 | `/api/auth/oauth/[provider]`          | public, limited         | starts configured provider authorization; 303 redirect                                                                                          |
+| GET/POST            | `/api/auth/oauth/[provider]/callback` | state + browser binding | Google/Microsoft GET, Apple POST; validated OIDC then session                                                                                   |
+| DELETE              | `/api/auth`                           | same-origin             | revokes current session, clears cookie                                                                                                          |
+| GET                 | `/api/saved`                          | signed-in               | `{saved: string[]}`                                                                                                                             |
+| PUT                 | `/api/saved`                          | signed-in               | `{code,saved:boolean}`; idempotent intent                                                                                                       |
+| POST                | `/api/events`                         | public, limited         | `{kind:'play'\|'download'\|'share',code}`                                                                                                       |
+| GET                 | `/api/admin`                          | owner                   | counts, last 7 days, last 100 users, last 40 audit entries                                                                                      |
+| POST                | `/api/upload`                         | owner, limited          | multipart `file`; returns `{url,type,duration?}` (measured duration for videos)                                                                 |
+| GET                 | `/api/media/[name]`                   | public                  | local file; supports one HTTP byte range                                                                                                        |
 
 ## Reaction schema
 
 ```ts
 type Reaction = {
-  code: string;           // YR-[A-Z0-9-]{4,32}
-  caption: string;        // 1..100 characters
-  situation: string;      // 3..250 characters
-  category: CategoryId;   // one of the nine predefined IDs
-  duration: number;       // 2..60 seconds (inclusive)
-  keywords: string[];     // <=12 entries, each <=40 characters
-  publishedAt: string;    // YYYY-MM-DD
-  poster: string;         // allowlisted local image path
-  media: string;          // allowlisted local video path
+  code: string; // YR-[A-Z0-9-]{4,32}
+  caption: string; // required primary title/description, 1..100
+  situation: string; // optional secondary description; empty string if absent
+  characterName?: string; // optional non-interactive detail-only chip
+  category: CategoryId; // legacy storage; collections are the public curation
+  type: 'image' | 'video'; // verified from bytes on publication
+  duration: number | null; // video seconds; null for images
+  mimeType: string;
+  mediaVerified: true;
+  mediaSha256: string;
+  width: number;
+  height: number;
+  keywords: string[];
+  publishedAt: string; // YYYY-MM-DD
+  poster: string; // allowlisted local image path
+  media: string; // allowlisted, file-verified image or video path
   isDemo: boolean;
-  corner: 'tr' | 'tl';
-  gradient: 'linear-gradient(155deg,#392b24,#171211)';
+  corner: 'tr' | 'tl'; // legacy metadata
+  gradient: string; // legacy metadata
 };
 ```
 
-Seed media cannot be relabelled as authentic: a `/media/demo-*.mp4` record must have `isDemo:true`. All user-provided display text is rendered as text, never HTML. There is no arbitrary remote URL fetching.
+Seed media cannot be relabelled as authentic: a `/media/demo-*.mp4` record must have `isDemo:true`. Unverified types or client-supplied durations cannot produce video duration badges. All user-provided display text is rendered as text, never HTML. There is no arbitrary remote URL fetching.
 
 ## Authentication
 
@@ -51,7 +63,7 @@ Seed media cannot be relabelled as authentic: a `/media/demo-*.mp4` record must 
 - Session duration: 7 days. Cookie: HttpOnly, SameSite=Lax, Secure in production.
 - CLI social-owner provisioning or identity migration revokes that account's sessions.
 - OAuth starts: 20 per 15-minute process/IP bucket; uploads: 25; events: 120.
-- Buckets are in-memory and reset at restart; not distributed, not a complete abuse-prevention system.
+- Collection changes: 30 per process/IP bucket; reports: 8. Buckets are in-memory and reset at restart; not distributed, not a complete abuse-prevention system.
 
 ## Uploads
 

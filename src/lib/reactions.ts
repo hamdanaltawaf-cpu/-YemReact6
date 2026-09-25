@@ -2,11 +2,12 @@ import seedMedia from './seed-media.json';
 import { verifiedMediaType } from './media';
 import type { CategoryId } from './categories';
 import { MAX_VIDEO_DURATION } from './video';
-/** A library item. Demo clips are explicitly identified in every viewing surface. */
+/** A library item with server-verified media metadata and optional detail fields. */
 export type Reaction = {
   code: string;
   caption: string;
-  situation: string;
+  situation: string; // Optional secondary description; legacy rows keep their existing text.
+  characterName?: string; // Optional, non-interactive detail chip.
   category: CategoryId;
   duration: number | null;
   type?: 'image' | 'video' | 'unknown';
@@ -44,6 +45,7 @@ export const REACTIONS: Reaction[] = rows.map((r, i) => ({
   caption: r[0],
   situation: r[1],
   category: r[2],
+  ...(i === 0 ? { characterName: 'شخصية افتراضية' } : {}),
   ...seedMedia[`/media/demo-${portraits[i]}.mp4` as keyof typeof seedMedia],
   type: 'video',
   keywords: r[4],

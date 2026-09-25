@@ -1,6 +1,6 @@
 # SQLite schema and operational notes
 
-Location: `${DATA_DIR || './data'}/yemreact.sqlite`. WAL journaling, foreign keys and a 5-second busy timeout are enabled by the application. A fresh database seeds the twelve labelled demo records once using a `meta` marker; clearing all content does not silently recreate it.
+Location: `${DATA_DIR || './data'}/yemreact.sqlite`. WAL journaling, foreign keys and a 5-second busy timeout are enabled by the application. A fresh database seeds twelve demo media records and three curated collections (3 + 3 + 2 memberships), each exactly once using separate `meta` markers; clearing them does not silently recreate them.
 
 ```sql
 users (
@@ -17,6 +17,18 @@ sessions (
   expires INTEGER NOT NULL
 );
 reactions (code TEXT PRIMARY KEY, data TEXT NOT NULL);
+collections (
+  slug TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'thematic',
+  cover_code TEXT REFERENCES reactions(code) ON DELETE SET NULL,
+  active INTEGER NOT NULL, created_at TEXT NOT NULL
+);
+collection_items (
+  slug TEXT REFERENCES collections(slug) ON DELETE CASCADE,
+  code TEXT REFERENCES reactions(code) ON DELETE CASCADE,
+  position INTEGER NOT NULL, PRIMARY KEY(slug, code)
+);
+reports (id INTEGER PRIMARY KEY, code TEXT, reason TEXT, detail TEXT, created_at TEXT);
 saved (
   user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   code TEXT REFERENCES reactions(code) ON DELETE CASCADE,
@@ -27,9 +39,9 @@ audit (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, action TEXT, detail T
 meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 ```
 
-Indexes: `events(created_at)`, `sessions(expires)`, unique email, and primary keys. Actual nullability and DDL are defined in `src/server/db.ts`; the block above is a relationship overview.
+Indexes: `events(created_at)`, `sessions(expires)`, `collection_items(code)`, `reports(created_at)`, unique email, and primary keys. Actual nullability and DDL are defined in `src/server/db.ts`; the block above is a relationship overview.
 
-`reactions.data` is validated JSON, keeping the current catalog simple. The catalog is small enough for client-side normalized search; a larger dataset should gain indexed normalized fields/server-side pagination, not load every item into every layout indefinitely.
+`reactions.data` is validated JSON, keeping the current catalog simple. The catalog is small enough to render as a whole without infinite scrolling; a larger dataset should gain indexed fields and explicit pagination rather than load every item into every layout indefinitely. A reaction may belong to multiple collections independently of its legacy category.
 
 Only public media identifiers are stored in reaction records. Passwords never appear in API responses; plaintext passwords are never stored. Events store no user ID or IP. IP-derived rate-limit keys are transient process memory, not analytics records.
 
@@ -42,8 +54,8 @@ Use SQLite's backup API or stop the process before copying. Do not copy only the
 - Reactions: owner HTTP delete, bookmarks cascade.
 - Accounts: no self-service deletion flow yet; an authorized operator must perform a transaction and clear related sessions/bookmarks.
 - Media: retained until an operator confirms it is unreferenced.
-- Events/audit: no automatic retention job yet; configure one before a public deployment.
-- Future schema changes should introduce numbered migrations; this initial bootstrap uses `CREATE TABLE IF NOT EXISTS`, not a mature migration system.
+- Events/audit/reports: no automatic retention job yet; configure one before a public deployment. Reports deliberately keep a code even if its reaction is deleted, for manual investigation.
+- Existing preview databases add the `collections.kind` column on startup if absent; future schema changes should introduce numbered migrations. The current bootstrap is not a mature migration system.
 
 ## Social-only authentication update
 

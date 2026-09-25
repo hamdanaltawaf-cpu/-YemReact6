@@ -1,69 +1,42 @@
-# Paper & Amber — component library and motion specification
+# YemReact — نظام واجهات Stage 4
 
-## Visual language
+المصدر التنفيذي: `src/app/globals.css` للتوكنات القديمة، و`src/app/stage4.css` لإعادة تنظيم الواجهة، و`src/app/layout.tsx` لتحميل الخطوط. القرارات التفصيلية وحدود المعاينة في [STAGE4-UI.md](STAGE4-UI.md).
 
-A warm editorial Arabic interface: paper ground, restrained ink, amber emphasis, cinematic portrait cards, a torn-paper Qusasa mark and technical micro-labels. Glass is reserved for the sticky header and preview controls; light shadows give depth without applying every visual trend everywhere.
+## الاتجاه والخطوط
 
-The original Qusasa path remains unchanged. Gradient IDs are now unique with `useId`.
+- الصفحة RTL بالكامل؛ العربية دون `letter-spacing`، الأرقام الغربية والكود بخط IBM Plex Mono. العربية IBM Plex Sans Arabic، اللاتينية Inter، وLalezar **للشعار النصي في Header فقط**. الخطوط محزّمة محليًا؛ الخطوة المطلوبة بعد أي تعديل بصري هي اختبار الغليفات الفعلية في المتصفح.
+- H1: `32px/700/1.2`؛ H2: `24px/600`؛ H3: `20px/600`؛ المتن: `16/14/13px` بحسب السياق؛ Captions: `12px`؛ Micro: `11px`. على الهاتف تبقى أهمية H1 عند 32px حتى في التفاصيل.
+- Qusasa عنصر الشعار في Header فقط: لا علامة مائية على الصورة، الفيديو، البطاقة، المعاينة أو التفاصيل.
 
-## Semantic tokens (`src/app/globals.css`)
+## الألوان: مؤقتة
 
-| Token | Light default | Dark default | Role |
-|---|---|---|---|
-| `--bg` | `#f5f1ea` | `#151714` | Canvas |
-| `--surface` | `#fffdf9` | `#20231e` | Dialog/form surfaces |
-| `--ink` | `#20221e` | `#f3eee6` | Primary text |
-| `--muted` | `#595b52` | `#b0b3a7` | Supporting text |
-| `--line` | `#dfded5` | `#383d32` | Dividers |
-| `--soft` | `#ece9e1` | `#292d25` | Secondary fills |
-| `--accent` | `#c1592e` | same | Brand emphasis |
-| `--accent-text` | darkened accent | lightened accent | Legible emphasis text |
-| `--paper` | `#f3eae0` | same | Fixed mark/paper color |
+| التوكن      | نهاري     | ليلي      | الاستخدام          |
+| ----------- | --------- | --------- | ------------------ |
+| `--bg`      | `#f5f1ea` | `#151714` | الخلفية            |
+| `--surface` | `#fffdf9` | `#20231e` | الأسطح             |
+| `--ink`     | `#20221e` | `#f3eee6` | النص الأساسي       |
+| `--line`    | `#dfded5` | `#383d32` | الفصل              |
+| `--accent`  | `#c1592e` | نفسه      | لون التأكيد الحالي |
 
-Other curated accent options are `#367567` and `#6863ac`. A constrained palette is intentional: arbitrary color inputs can destroy contrast. Primary button fills darken the selected accent slightly to maintain legibility. All nine category colors remain fixed semantic identifiers.
+الوضع الفاتح/الداكن وألوان التبديل الحالية باقية **مؤقتًا**. لا تُستنتج منها لوحة PD-I08 النهائية؛ تطبيق اللوحة والحركة الجديدة مؤجل إلى موجز محدّث. راعِ التباين في الوضعين وتقليل الحركة.
 
-Theme choice: system/light/dark, persisted. A small bootstrap script applies stored appearance before paint. Reduced motion combines the OS preference and the explicit in-app setting.
+## المكوّنات العامة
 
-## Components
+| المكوّن                             | القاعدة                                                                                                                                                                                        |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Header`                            | الملاحة والشعار هما الموضع الوحيد لـ Qusasa؛ رابط الاستوديو لا يظهر إلا للمدير                                                                                                                 |
+| `ReactionCard`                      | وسيط 12px radius، مدة `2s` أعلى اليمين للفيديو المتحقق منه فقط (`32×20` حد أدنى)، عنوان بسطر واحد `14px` مع حذف النص الزائد، زر نقاط `34×34`؛ لا تصنيفات، شارات أشخاص أو أزرار حفظ على البطاقة |
+| `ReactionMenu`                      | حفظ، مشاركة، نسخ رابط، إبلاغ؛ قابل للفتح/الإغلاق بلوحة المفاتيح، والقائمة على الهاتف تفتح إلى داخل الشاشة                                                                                      |
+| `ReactionMasonry`                   | أعمدة بنسبة طول أصلية متغيرة؛ مكتبة كاملة في عرض واحد دون تحميل تلقائي                                                                                                                         |
+| `CollectionCard`                    | غلاف من عضو موجود وعنوان وعدد؛ الصفحة الرئيسية سكة أفقية، صفحة المجموعات بطاقات نشطة، وصفحة المجموعة شبكة Masonry                                                                              |
+| `Detail`                            | رجوع فوق الوسيط؛ الصورة ثابتة والفيديو بمشغّل أصلي بلا شارة مدة؛ H1 والحفظ/التنزيل/المشاركة/المزيد في صف واحد                                                                                  |
+| `.character-chip`                   | اختيارية في التفاصيل فقط، مرئية وغير قابلة للنقر/التحويم، لون teal، `22px` ارتفاع، `150px` أقصى عرض، وقطع بـ ellipsis                                                                          |
+| `CollectionStudio` و`ReportsStudio` | تبويبات إدارية مخفية ومحمية من الخادم؛ عضوية متعددة وتنسيق محتوى وقراءة بلاغات                                                                                                                 |
 
-| Level | Component / class | Contract |
-|---|---|---|
-| Atom | `Qusasa` | size, tone, className; decorative SVG |
-| Atom | `.btn`, `.icon-btn` | Native button or link; visible focus, disabled feedback |
-| Atom | `.eyebrow`, `.mono`, `.status-pill` | Supporting hierarchy; not substitutes for headings |
-| Molecule | search form | Native submit, explicit accessible label, optional `/` shortcut |
-| Molecule | category tabs | Buttons with `aria-pressed`, overflow scroll on small screens |
-| Molecule | `ReactionCard` | One media record; separate preview, bookmark and detail controls |
-| Molecule | `ClipPlayer` | Native video controls, fixed aspect ratio, load errors, demo disclosure |
-| Molecule | `ReactionActions` | Real file download, bookmark persistence, OS share/clipboard fallback |
-| Primitive | `Modal` | Native dialog focus trapping, Escape, labelled title, backdrop dismissal |
-| Organism | `Header`, `Footer` | Responsive navigation, skip link, settings and activity tray |
-| Organism | `Preview` | Media lightbox, next/previous buttons, optional horizontal swipe |
-| Organism | `Settings` | Appearance and reduced-motion controls; real install prompt if available |
-| Organism | `AppProvider` | Public catalog, account, collection, appearance, notifications |
-| Template | `Library` | Shared browse/saved template, URL query/category, load-more groups of 8 |
-| Template | `Admin` | Read-only public inventory; authenticated owner workflows |
+الوصف الثانوي اختياري ومطوي افتراضيًا؛ المجموعة والشخصية وأقسام التوصيات لا تُنشأ أصلًا في DOM إن لم توجد بياناتها. يذهب نقر البطاقة مباشرة إلى `/r/[code]`، ولا يفتح Lightbox للزائر. تبقى نافذة `Preview` القديمة لاستخدام الاستوديو فقط.
 
-## Responsive strategy
+## الحركة والوصول
 
-- Container: 1248px default maximum; 1336px at wide desktop.
-- Breakpoints: 1150 / 850 / 650 / 360 CSS px, chosen around content rather than device brands.
-- Gallery: 4 → 3 → 2 columns. Card caption size also uses container units.
-- Mobile: stacked hero, horizontal category navigation, collapsible global nav.
-- Tables: keyboard-focusable scroll regions; no `overflow:hidden` masking missing controls.
-- Media keep aspect ratios before fetch; there is no global horizontal-overflow suppression.
-
-## Motion budget
-
-| Interaction | Duration | Behavior |
-|---|---:|---|
-| Immediate button/selection feedback | 100–150ms | color/background |
-| Modal entrance | 180ms | opacity + 12px translation |
-| Toast | 180ms, visible ~4.2s | opacity + translation; live status |
-| Hero entrance | 550ms | CSS vertical movement, no opacity gate; disabled for reduced motion |
-| Preview contents | 180ms | on-demand Framer Motion opacity/translation |
-| Card image hover | 500ms | scale 1 → 1.055, no layout reflow |
-| Polaroid hover | 250ms | small rotation/translation, pointer only |
-| Word ribbon | 60s per loop | decorative continuous marquee |
-
-CSS disables animation/transitions for reduced motion. Native scrolling and keyboard remain usable. No custom cursor is imposed, no scroll hijacking, no parallax tied to wheel events, no autoplaying audio/video, no heavy particles or shaders.
+- على أجهزة hover فقط: فيديو صامت تلقائي مع ظل خفيف على البطاقة، دون تشغيل صوت أو فرض معاينة modal؛ للمس صورة الغلاف ورابط صفحة التفاصيل.
+- احترم `prefers-reduced-motion` وإعداد تقليل الحركة الداخلي، وأبقِ التنقل ولوحة المفاتيح وأزرار الوسائط الأصلية قابلة للاستخدام.
+- افحص عند `320/375/768/1024/1440/1920` في النهاري والليلي. اختبارات Stage 4 تفحص مواضع مدة الفيديو والقوائم والأزرار، تجاوز الصفحة، وتدقيق axe للواجهات العامة والمحرر الإداري. لقطات المتصفح ونتائج الاختبارات في `verification/stage4/`.

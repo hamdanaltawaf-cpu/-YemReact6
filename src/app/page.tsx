@@ -1,4 +1,5 @@
 import Home from '@/features/Home';
+import { listCollections } from '@/server/collections';
 export const metadata = { alternates: { canonical: '/' } };
 export default function Page() {
   const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -8,7 +9,7 @@ export default function Page() {
     name: 'YemReact — يمن رياكت',
     url,
     inLanguage: 'ar',
-    description: 'مكتبة رياكشنات يمنية بالموقف. النماذج التجريبية معلّمة بوضوح.',
+    description: 'مكتبة رياكشنات يمنية من الصور والفيديوهات؛ النماذج التجريبية موضّحة في التفاصيل.',
     potentialAction: {
       '@type': 'SearchAction',
       target: { '@type': 'EntryPoint', urlTemplate: url + '/library?q={search_term_string}' },
@@ -21,7 +22,7 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, '\\u003c') }}
       />
-      <Home />
+      <Home collections={listCollections()} />
     </>
   );
 }

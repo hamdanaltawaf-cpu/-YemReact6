@@ -102,12 +102,12 @@ test('Saved page contains one name and no search, sorting, duration controls, co
     /<input|<select|<form|مجموعتك|تصدير|library-note|duration-filter|category-tabs/,
   );
 });
-test('Saved loading does not flash the empty state; an empty page offers library navigation', () => {
+test('Saved loading and empty collections do not show an empty-state message', () => {
   const loading = renderSaved(false, []);
   assert.match(loading, /جارٍ تحميل المحفوظات/);
   assert.doesNotMatch(loading, /احتفظ بما يعجبك/);
   const empty = renderSaved(true, []);
-  assert.match(empty, /احتفظ بما يعجبك/);
+  assert.doesNotMatch(empty, /احتفظ بما يعجبك|لا يوجد|saved-empty/);
   assert.match(empty, /href="\/library"/);
 });
 test('Saved footer is absent, including the trailing-slash route; home footer is unchanged', () => {

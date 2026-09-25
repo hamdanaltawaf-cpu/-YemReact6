@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowUpLeft, ShieldCheck, Bookmark, Check, Globe2 } from 'lucide-react';
 import { useApp } from '@/components/AppProvider';
-import { Qusasa } from '@/components/Qusasa';
+
 import { SocialIcon } from '@/components/SocialIcon';
 import { SOCIAL_PROVIDERS, SOCIAL_NAMES, type SocialProvider } from '@/lib/social';
 
@@ -57,7 +57,7 @@ export default function Auth({
   return (
     <section className="container auth-section social-auth" aria-labelledby="social-title">
       <div className="auth-story">
-        <Qusasa size={58} tone="paper" />
+        <Bookmark size={42} aria-hidden="true" />
         <span className="eyebrow">كل ردودك. معك.</span>
         <h1 id="social-title">
           المحفوظات، <br />
