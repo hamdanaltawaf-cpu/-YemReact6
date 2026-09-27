@@ -58,7 +58,7 @@ test('Public card/masonry and logo preserve Stage 4 constraints', () => {
   assert.doesNotMatch(masonry, /IntersectionObserver|PAGE_SIZE|library-sentinel/);
   assert.match(fonts, /IBM_Plex_Sans_Arabic|Inter|Lalezar|IBM_Plex_Mono/);
   for (const file of [
-    'src/features/Home.tsx',
+    'src/features/ContributeHub.tsx',
     'src/features/Admin.tsx',
     'src/features/Auth.tsx',
     'src/features/Detail.tsx',

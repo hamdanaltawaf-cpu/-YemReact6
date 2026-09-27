@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'ردّك في لقطة. مكتبة رياكشنات يمنية.',
     lang: 'ar',
     dir: 'rtl',
-    start_url: '/',
+    start_url: '/library',
     display: 'standalone',
     background_color: '#f5f1ea',
     theme_color: '#c1592e',

@@ -8,19 +8,24 @@ export function Modal({
   title,
   children,
   wide = false,
+  sheet = false,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   wide?: boolean;
+  sheet?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null),
     id = useId();
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
-    if (open && !d.open) d.showModal();
+    if (open && !d.open) {
+      d.showModal();
+      d.querySelector<HTMLElement>('[autofocus]')?.focus();
+    }
     if (!open && d.open) d.close();
     if (open) {
       const original = document.body.style.overflow;
@@ -33,9 +38,13 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={`modal ${wide ? 'modal-wide' : ''}`}
+      className={`modal${wide ? ' modal-wide' : ''}${sheet ? ' modal-sheet' : ''}`}
       aria-labelledby={id}
-      onCancel={onClose}
+      onCancel={(event) => {
+        // A validation dialog can sit inside another dialog. Escape closes only the topmost one.
+        event.stopPropagation();
+        onClose();
+      }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

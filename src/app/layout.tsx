@@ -3,11 +3,15 @@ import { IBM_Plex_Sans_Arabic, Inter, Lalezar, IBM_Plex_Mono } from 'next/font/g
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AppProvider } from '@/components/AppProvider';
+import { ContributionProvider } from '@/components/ContributionProvider';
 import { AppOverlays } from '@/components/AppOverlays';
 import { Pwa } from '@/components/Pwa';
 import { listReactions } from '@/server/db';
 import './globals.css';
 import './stage4.css';
+import './contribution.css';
+import './contribution-entry.css';
+import './navigation.css';
 const display = Lalezar({
   weight: '400',
   subsets: ['arabic'],
@@ -54,11 +58,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body id="top">
         <AppProvider initial={listReactions()}>
-          <Header />
-          <main id="main">{children}</main>
-          <Footer />
-          <AppOverlays />
-          <Pwa />
+          <ContributionProvider>
+            <Header />
+            <main id="main">{children}</main>
+            <Footer />
+            <AppOverlays />
+            <Pwa />
+          </ContributionProvider>
         </AppProvider>
       </body>
     </html>

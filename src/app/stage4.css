@@ -21,7 +21,6 @@ kbd {
 h1,
 h2,
 h3,
-.hero h1,
 .page-heading h1,
 .saved-heading h1,
 .admin-heading h1,
@@ -29,7 +28,6 @@ h3,
 .auth-story h1,
 .social-panel h2,
 .preview-copy h3,
-.section-heading h2,
 .step-card h3,
 .collection-callout h3,
 .saved-empty h2,
@@ -50,7 +48,6 @@ h1,
   line-height: 1.2;
 }
 h2,
-.section-heading h2,
 .social-panel h2,
 .empty-state h2 {
   font-size: 24px;
@@ -108,78 +105,24 @@ h3,
   gap: clamp(16px, 2vw, 30px);
 }
 
-/* Homepage: an editorial entry, followed by real content and curated covers. */
-.home-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 310px);
-  gap: clamp(32px, 6vw, 105px);
-  align-items: center;
-  padding-block: 50px 64px;
-}
-.home-intro-copy h1 {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-top: 16px;
-}
-.home-intro-copy > p {
-  color: var(--muted);
-  font-size: 16px;
-  line-height: 1.5;
-  margin-top: 16px;
-  max-width: 44ch;
-}
-.home-intro-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 24px;
-  margin-top: 25px;
-}
-.home-featured {
-  width: 100%;
-  max-width: 310px;
-  margin-inline: auto;
-}
-.home-featured .card-visual {
-  aspect-ratio: 4 / 4.5;
-}
-.home-collections,
-.home-library {
-  border-top: 1px solid var(--line);
-  padding-block: 33px 72px;
-}
-.home-section-heading {
+/* Shared recommendation headings in reaction details. */
+.detail-section-heading {
   display: flex;
   align-items: end;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 22px;
 }
-.home-section-heading h2 {
+.detail-section-heading h2 {
   font-size: 24px;
   font-weight: 600;
   line-height: 1.3;
   margin-top: 5px;
 }
-.home-section-heading .text-button {
+.detail-section-heading .text-button {
   white-space: nowrap;
 }
 
-/* Curated groups are thematic, never a disguised public category toolbar. */
-.collection-rail {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(220px, calc((100% - 40px) / 3));
-  gap: 20px;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  padding-bottom: 12px;
-  scroll-snap-type: x proximity;
-}
-.collection-rail > * {
-  scroll-snap-align: start;
-}
 .collection-card {
   display: block;
   min-width: 0;
@@ -730,13 +673,6 @@ h3,
 }
 
 @media (max-width: 850px) {
-  .home-intro {
-    grid-template-columns: minmax(0, 1fr) 230px;
-    gap: 20px;
-  }
-  .collection-rail {
-    grid-auto-columns: minmax(220px, calc((100% - 20px) / 2));
-  }
   .collections-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -748,33 +684,11 @@ h3,
   .brand b {
     font-size: 24px;
   }
-  .home-intro {
-    display: block;
-    padding-block: 32px 42px;
-  }
-  .home-intro-copy > p {
-    font-size: 14px;
-  }
-  .home-featured {
-    max-width: 240px;
-    margin: 28px auto 0;
-  }
-  .home-featured .card-visual {
-    aspect-ratio: 4 / 3.6;
-  }
-  .home-collections,
-  .home-library {
-    padding-block: 25px 47px;
-  }
-  .home-section-heading {
+  .detail-section-heading {
     align-items: center;
   }
-  .home-section-heading .text-button {
+  .detail-section-heading .text-button {
     font-size: 11px;
-  }
-  .collection-rail {
-    grid-auto-columns: minmax(210px, 70%);
-    gap: 12px;
   }
   .collections-page,
   .collection-page {
@@ -852,12 +766,6 @@ h3,
   }
 }
 @media (max-width: 375px) {
-  .home-intro-actions {
-    gap: 4px 10px;
-  }
-  .home-intro-actions .btn {
-    padding-inline: 14px;
-  }
   .collections-grid {
     grid-template-columns: 1fr;
   }

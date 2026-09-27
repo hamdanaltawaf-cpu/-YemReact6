@@ -86,7 +86,7 @@ export default function Detail({
       </div>
       {related.length > 0 && (
         <section className="detail-recommendations" aria-labelledby="related-title">
-          <div className="home-section-heading">
+          <div className="detail-section-heading">
             <h2 id="related-title">رياكشنات ذات صلة</h2>
           </div>
           <ReactionMasonry items={related} />
@@ -94,7 +94,7 @@ export default function Detail({
       )}
       {more.length > 0 && (
         <section className="detail-recommendations" aria-labelledby="more-title">
-          <div className="home-section-heading">
+          <div className="detail-section-heading">
             <h2 id="more-title">المزيد من المكتبة</h2>
             <Link className="text-button" href="/library">
               المكتبة <ArrowRight size={16} aria-hidden="true" />

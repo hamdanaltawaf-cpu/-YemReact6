@@ -21,7 +21,7 @@ This is a tested **single-node full-stack preview**, not a claim of audited ente
 
 ```text
 src/app/                 routing, metadata, API route adapters
-src/features/            page-level workflows (Home, Library, Detail, Auth, Admin)
+src/features/            page-level workflows (Library, Collections, Contribution, Detail, Auth, Admin)
 src/components/          shared organisms and molecules
 src/components/ui/       native-dialog primitive
 src/lib/                 domain types, collections, legacy categories, seed records, pure search

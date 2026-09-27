@@ -5,8 +5,7 @@ export const dynamic = 'force-dynamic';
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   return [
-    { url: base, priority: 1 },
-    { url: base + '/library', priority: 0.9 },
+    { url: base + '/library', priority: 1 },
     { url: base + '/collections', priority: 0.7 },
     ...listCollections().map((collection) => ({
       url: base + '/collections/' + collection.slug,

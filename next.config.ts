@@ -8,8 +8,11 @@ const config: NextConfig = {
   experimental: { cpus: 1 },
   images: { unoptimized: true },
   async redirects() {
-    // The browser preserves legacy fragments; /help handles #privacy client-side.
-    return [{ source: '/about', destination: '/help', permanent: true }];
+    // One canonical entry: /library. Legacy /about fragments still resolve through /help.
+    return [
+      { source: '/', destination: '/library', permanent: true },
+      { source: '/about', destination: '/help', permanent: true },
+    ];
   },
   async headers() {
     return [

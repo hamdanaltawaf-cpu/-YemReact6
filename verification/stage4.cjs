@@ -78,15 +78,20 @@ let browser,
       'Three curated groups have correct membership and public counts; admin-only collection and report APIs reject guests.',
     );
 
+    const rootRedirect = await guest.request.get(base + '/', { maxRedirects: 0 });
+    assert.equal(rootRedirect.status(), 308);
+    assert.equal(new URL(rootRedirect.headers().location, base).pathname, '/library');
+    await load(desktop, '/');
+    assert.equal(new URL(desktop.url()).pathname, '/library');
+    assert.equal(await desktop.locator('.brand[href="/library"]').count(), 1);
+    assert.equal(await desktop.getByRole('link', { name: 'الرئيسية' }).count(), 0);
+    report.checks.push(
+      'Root redirects permanently to the canonical library, with no Home navigation.',
+    );
+
     for (const width of [320, 375, 768, 1024, 1440, 1920]) {
       await desktop.setViewportSize({ width, height: 900 });
-      for (const route of [
-        '/',
-        '/library',
-        '/collections',
-        '/collections/students',
-        '/r/YR-0001',
-      ]) {
+      for (const route of ['/library', '/collections', '/collections/students', '/r/YR-0001']) {
         await load(desktop, route);
         assert.equal(
           await desktop.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
@@ -454,7 +459,7 @@ let browser,
     );
 
     for (const [route, theme, page] of [
-      ['/', 'light', desktop],
+      ['/library', 'light', desktop],
       ['/collections', 'light', desktop],
       ['/library', 'dark', desktop],
       ['/r/YR-0001', 'dark', desktop],
@@ -480,7 +485,6 @@ let browser,
     );
     await desktop.setViewportSize({ width: 375, height: 900 });
     for (const [route, filename] of [
-      ['/', 'home-mobile.png'],
       ['/library', 'library-mobile.png'],
       ['/collections', 'collections-mobile.png'],
       ['/r/YR-0001', 'detail-mobile.png'],

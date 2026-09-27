@@ -1,4 +1,4 @@
-> Social-only auth update: historical V4 results below precede this change. New focused UI/browser/axe evidence is in `verification/social/results.json`; OAuth unit tests use signed test tokens and mocked provider exchange, not live accounts. See `SOCIAL-AUTH.md`.
+> Historical V4 results below predate the social-only auth update and removal of the homepage. `/` now redirects permanently to `/library`; older Home screenshots, routes and performance measurements describe the earlier build only. Current library-first navigation, mock contribution and Stage 4 browser evidence is in `verification/navigation/results.json`, `verification/contribution/results.json` and `verification/stage4/results.json` after rerunning their scripts. OAuth unit tests use signed test tokens and mocked provider exchange, not live accounts. See `SOCIAL-AUTH.md`.
 
 # Quality & performance report
 

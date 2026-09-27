@@ -19,7 +19,7 @@ type AppState = {
   user: Account | null;
   authReady: boolean;
   syncUser: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => Promise<boolean>;
   preview: string | null;
   setPreview: (v: string | null) => void;
   theme: string;
@@ -146,14 +146,17 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
     setReactions(items);
     setSaved((old) => old.filter((code) => items.some((item) => item.code === code)));
   }
-  async function logout() {
-    const r = await fetch('/api/auth', { method: 'DELETE' });
-    if (!r.ok) {
+  async function logout(): Promise<boolean> {
+    try {
+      const response = await fetch('/api/auth', { method: 'DELETE' });
+      if (!response.ok) throw new Error('Logout failed');
+      await syncUser();
+      toast('تم تسجيل الخروج');
+      return true;
+    } catch {
       toast('تعذّر تسجيل الخروج');
-      return;
+      return false;
     }
-    await syncUser();
-    toast('تم تسجيل الخروج');
   }
   return (
     <AppContext.Provider

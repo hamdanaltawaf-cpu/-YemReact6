@@ -1,5 +1,5 @@
 /* Public content only. Sessions, private pages, APIs and video files never enter this cache. */
-const CACHE = 'yemreact-public-v4.5-curated-collections';
+const CACHE = 'yemreact-public-v4.8-library-home';
 const MAX_ENTRIES = 160;
 async function store(request, response) {
   const cache = await caches.open(CACHE);
@@ -28,7 +28,12 @@ self.addEventListener('activate', event => event.waitUntil(
 self.addEventListener('fetch', event => {
   const req = event.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
-  const publicPage = ['/', '/library', '/collections', '/help', '/privacy', '/offline'].includes(url.pathname) || url.pathname.startsWith('/collections/') || url.pathname.startsWith('/r/');
+  // The retired home URL redirects online. Do not cache that redirect as a second page.
+  if (req.mode === 'navigate' && url.pathname === '/') {
+    event.respondWith(fetch(req).catch(async () => await caches.match('/library') || await caches.match('/offline')));
+    return;
+  }
+  const publicPage = ['/library', '/collections', '/help', '/privacy', '/offline'].includes(url.pathname) || url.pathname.startsWith('/collections/') || url.pathname.startsWith('/r/');
   const asset = url.pathname.startsWith('/_next/static/') || /^\/media\/.*\.webp$/.test(url.pathname) || url.pathname.startsWith('/icons/');
   if (req.mode === 'navigate' && publicPage) {
     event.respondWith(fetch(req).then(res => {

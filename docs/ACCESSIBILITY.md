@@ -22,7 +22,7 @@ Target: accessible Arabic RTL workflows with native HTML semantics and a practic
 
 ## Test coverage
 
-`verification/a11y.cjs` runs axe A/AA rules, including WCAG 2.1 A and AA tags, on seven routes. `verification/a11y-states.cjs` covers dark homepage, both preview themes with a saved item, and both settings themes. It waits for transition completion so it does not mistake an intermediate opacity frame for steady-state contrast.
+The original V4 `verification/a11y.cjs` and `verification/a11y-states.cjs` reports are historical: they covered seven routes and five states, including the now-retired homepage. The current library-first experience is audited in `verification/navigation/browser.cjs`, `verification/stage4.cjs` and `verification/contribution/browser.cjs`, including the 1023/1024 breakpoint, account popover, bottom sheet, search, motion settings and upload demo. Automated results do not replace manual assistive-technology testing.
 
 The workflow test exercises keyboard Escape, labelled forms and functional actions. Lighthouse provides a separate browser audit. See the quality report and raw JSON for final results and incomplete/manual-review items.
 

@@ -56,19 +56,25 @@ test('Studio renders for an authenticated admin', async () => {
   const { Page, Admin } = pageFor({ role: 'admin' });
   assert.equal((await Page()).type, Admin);
 });
-function navigation(user, mobile = false) {
+function navigation(user, popoverOpen = false) {
   let states = 0;
   const overrides = {
     react: {
       ...React,
-      useState: (initial) => React.useState(states++ === 0 && mobile ? true : initial),
+      useState: (initial) => React.useState(states++ === 0 && popoverOpen ? true : initial),
     },
-    'next/navigation': { usePathname: () => '/' },
+    'next/navigation': {
+      usePathname: () => '/collections',
+      useRouter: () => ({ push: () => {}, replace: () => {} }),
+    },
     'next/link': {
       __esModule: true,
       default: ({ children, ...props }) => React.createElement('a', props, children),
     },
-    './AppProvider': { useApp: () => ({ user, notices: [] }) },
+    './AppProvider': { useApp: () => ({ user, authReady: true }) },
+    './ContributionProvider': {
+      useContribution: () => ({ mockSignedIn: false, endMockSession: () => {} }),
+    },
     './Qusasa': { Qusasa: () => null },
     './ui/Modal': { Modal: () => null },
     'lucide-react': new Proxy({}, { get: () => () => null }),
@@ -80,32 +86,33 @@ function navigation(user, mobile = false) {
     footer: renderToStaticMarkup(React.createElement(Footer)),
   };
 }
-test('Guest and member navigation omit every studio link, including mobile and footer', () => {
+test('Guest and member navigation omit every studio link', () => {
   for (const user of [null, { role: 'member', name: 'Member' }]) {
-    for (const mobile of [false, true]) {
-      const { header, footer } = navigation(user, mobile);
+    for (const open of [false, true]) {
+      const { header, footer } = navigation(user, open);
       assert.doesNotMatch(header + footer, /href="\/admin"|الاستوديو/);
     }
   }
 });
-test('Admin navigation retains studio links on desktop, mobile and footer', () => {
-  for (const mobile of [false, true]) {
-    const { header, footer } = navigation({ role: 'admin', name: 'Admin' }, mobile);
-    assert.equal((header.match(/href="\/admin"/g) || []).length, mobile ? 2 : 1);
+test('Only owners reach the studio through their account page or footer', () => {
+  for (const open of [false, true]) {
+    const { header, footer } = navigation({ role: 'admin', name: 'Admin' }, open);
+    assert.doesNotMatch(header, /href="\/admin"/);
     assert.match(footer, /href="\/admin"/);
   }
+  const account = fs.readFileSync('src/features/Auth.tsx', 'utf8');
+  assert.match(account, /app\.user\.role === 'admin' \? '\/admin' : '\/saved'/);
 });
 
-test('Header avatar opens the account page without a logout action', () => {
+test('Avatar opens an account popover with settings, account, help and signed-in logout', () => {
   for (const role of ['member', 'admin']) {
-    for (const mobile of [false, true]) {
-      const { header } = navigation({ role, name: 'Account' }, mobile);
-      assert.match(
-        header,
-        /<a(?=[^>]*class="account-chip")(?=[^>]*href="\/login")(?=[^>]*aria-label="الحساب")/,
-      );
-      assert.doesNotMatch(header, /تسجيل الخروج/);
-    }
+    const { header } = navigation({ role, name: 'Account' }, true);
+    assert.match(header, /<button[^>]*class="account-avatar"[^>]*aria-haspopup="dialog"/);
+    assert.match(header, /role="dialog" aria-label="قائمة الحساب"/);
+    for (const item of ['الإعدادات', 'الحساب', 'المساعدة', 'تسجيل الخروج'])
+      assert.match(header, new RegExp(item));
+    assert.match(header, /href="\/login"/);
   }
-  assert.doesNotMatch(fs.readFileSync('src/components/Header.tsx', 'utf8'), /app\.logout|LogOut/);
+  assert.doesNotMatch(navigation(null, true).header, /تسجيل الخروج/);
+  assert.match(fs.readFileSync('src/components/Header.tsx', 'utf8'), /await app\.logout\(\)/);
 });

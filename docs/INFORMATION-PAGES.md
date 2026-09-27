@@ -8,7 +8,7 @@ The retired story page was referenced by the desktop/mobile header, homepage sto
 
 - `/help`: concise native-disclosure FAQs about anonymous use, separate guest/account bookmarks, saving versus downloading/sharing, removal, generated content, offline limitations, account logout and admin-only publishing.
 - `/privacy`: identity data, session cookies, browser/server storage, content usage events, content rights, generated media and current account-management limitations.
-- Header primary navigation stays library/saved plus the admin-only studio. On pages without a footer, help is available through a secondary desktop icon or the mobile menu. Other pages use the compact footer instead. Sign-in retains its contextual privacy link.
+- The primary navigation is library/collections/saved, with the separate mock-upload `+` action. Help is secondary in the Avatar popover on desktop and account Bottom Sheet on mobile, including pages without a footer. Admin access lives in the owner's account page or footer only. Sign-in retains its contextual privacy link.
 - Footer consists of a wordmark and utility links (with the existing admin-only studio link). It avoids self-links. No footer is reintroduced on library, saved or sign-in pages.
 - The homepage story block and its CTA are removed, not replaced by another brand narrative. No story page remains.
 

@@ -37,27 +37,33 @@ test('Legacy privacy fragments map only to a fixed internal destination', () => 
   ])
     assert.equal(legacyInformationDestination(hash), null);
 });
-test('Old about page permanently redirects to help, while sitemap lists the new pages only', async () => {
+test('Root and legacy about paths redirect permanently, while sitemap lists canonical pages', async () => {
   const config = load('next.config.ts').default;
   assert.equal(
     JSON.stringify(await config.redirects()),
-    JSON.stringify([{ source: '/about', destination: '/help', permanent: true }]),
+    JSON.stringify([
+      { source: '/', destination: '/library', permanent: true },
+      { source: '/about', destination: '/help', permanent: true },
+    ]),
   );
   const sitemap = fs.readFileSync('src/app/sitemap.ts', 'utf8');
   assert.doesNotMatch(sitemap, /\/about/);
+  assert.match(sitemap, /\/library/);
+  assert.doesNotMatch(sitemap, /url: base, priority/);
   assert.match(sitemap, /\/help/);
   assert.match(sitemap, /\/privacy/);
   assert.equal(fs.existsSync('src/app/about/page.tsx'), false);
 });
-test('Navigation, homepage and sign-in contain no old story links', () => {
+test('Navigation and sign-in have no retired home or story links', () => {
   for (const file of [
     'src/components/Header.tsx',
     'src/components/Footer.tsx',
-    'src/features/Home.tsx',
     'src/features/Auth.tsx',
   ])
     assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /\/about|حكايتنا/);
-  assert.doesNotMatch(fs.readFileSync('src/features/Home.tsx', 'utf8'), /story-section/);
+  assert.equal(fs.existsSync('src/app/page.tsx'), false);
+  assert.equal(fs.existsSync('src/features/Home.tsx'), false);
+  assert.doesNotMatch(fs.readFileSync('src/components/Header.tsx', 'utf8'), /href="\/"|الرئيسية/);
   assert.match(fs.readFileSync('src/features/Auth.tsx', 'utf8'), /href="\/privacy"/);
 });
 const overrides = {
@@ -122,7 +128,7 @@ test('Compact footer avoids self-links and provides a no-JavaScript privacy fall
 });
 test('Service worker changes cache version and includes only the replacement public info routes', () => {
   const sw = fs.readFileSync('public/sw.js', 'utf8');
-  assert.match(sw, /v4\.5-curated-collections/);
+  assert.match(sw, /v4\.8-library-home/);
   assert.doesNotMatch(sw, /\/about/);
   assert.match(sw, /'\/help', '\/privacy'/);
 });

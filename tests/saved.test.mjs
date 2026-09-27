@@ -110,8 +110,8 @@ test('Saved loading and empty collections do not show an empty-state message', (
   assert.doesNotMatch(empty, /احتفظ بما يعجبك|لا يوجد|saved-empty/);
   assert.match(empty, /href="\/library"/);
 });
-test('Saved footer is absent, including the trailing-slash route; home footer is unchanged', () => {
-  for (const pathname of ['/saved', '/saved/', '/']) {
+test('Library and saved hide the footer, while the collections footer remains', () => {
+  for (const pathname of ['/saved', '/saved/', '/library', '/collections']) {
     const { Footer } = load('src/components/Footer.tsx', {
       'next/navigation': { usePathname: () => pathname },
       './AppProvider': { useApp: () => ({ user: null }) },
@@ -122,7 +122,7 @@ test('Saved footer is absent, including the trailing-slash route; home footer is
       },
     });
     const html = renderToStaticMarkup(React.createElement(Footer));
-    if (pathname === '/') assert.match(html, /<footer/);
+    if (pathname === '/collections') assert.match(html, /<footer/);
     else assert.equal(html, '');
   }
 });
