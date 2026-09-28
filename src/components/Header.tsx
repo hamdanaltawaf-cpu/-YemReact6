@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Bookmark,
   CircleHelp,
+  Clapperboard,
   Library,
   Layers3,
   LogOut,
@@ -15,6 +16,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { Qusasa } from './Qusasa';
+import { SocialIcon } from './SocialIcon';
 import { useApp } from './AppProvider';
 import { useContribution } from './ContributionProvider';
 import { Modal } from './ui/Modal';
@@ -53,11 +55,20 @@ function UploadQuickAction({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-function AccountActions({ dismiss }: { dismiss: () => void }) {
+function AccountActions({
+  dismiss,
+  googleAuthOrigin,
+  embedded,
+}: {
+  dismiss: () => void;
+  googleAuthOrigin: string;
+  embedded: boolean;
+}) {
   const app = useApp();
   const contribution = useContribution();
   const router = useRouter();
   const path = usePathname();
+  const googleLogin = `${googleAuthOrigin}/api/auth/oauth/google`;
 
   async function signOut() {
     dismiss();
@@ -74,7 +85,51 @@ function AccountActions({ dismiss }: { dismiss: () => void }) {
 
   return (
     <>
+      <div className="account-popover-heading">
+        {app.user ? (
+          <div className="account-profile">
+            <span className="account-profile-avatar" aria-hidden="true">
+              {app.user.name.trim().slice(0, 1) || <UserRound size={18} />}
+            </span>
+            <div className="account-profile-copy">
+              <strong>{app.user.name}</strong>
+              <span className="account-profile-email" dir="ltr" title={app.user.email}>
+                {app.user.email}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="account-guest-heading">
+            <UserRound size={22} aria-hidden="true" />
+            <div>
+              <strong>أنت زائر</strong>
+              <p>
+                سجّل لحفظ رياكشناتك
+                <br />
+                والوصول من أي جهاز
+              </p>
+            </div>
+          </div>
+        )}
+        {app.user?.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
+      </div>
       <nav className="account-actions-list" aria-label="خيارات الحساب">
+        {!app.user && (
+          <a
+            className="account-google-action"
+            href={googleLogin}
+            target={embedded ? '_blank' : undefined}
+            rel={embedded ? 'noopener noreferrer' : undefined}
+            onClick={dismiss}
+          >
+            <SocialIcon provider="google" /> الدخول بـ Google
+          </a>
+        )}
+        {app.user?.role === 'admin' && (
+          <Link href="/admin" className="account-studio-action" onClick={dismiss}>
+            <Clapperboard size={19} aria-hidden="true" /> الاستوديو
+          </Link>
+        )}
         <button
           type="button"
           onClick={() => {
@@ -84,9 +139,6 @@ function AccountActions({ dismiss }: { dismiss: () => void }) {
         >
           <Settings2 size={19} aria-hidden="true" /> الإعدادات
         </button>
-        <Link href="/login" onClick={dismiss}>
-          <UserRound size={19} aria-hidden="true" /> الحساب
-        </Link>
         <Link href="/help" onClick={dismiss}>
           <CircleHelp size={19} aria-hidden="true" /> المساعدة
         </Link>
@@ -97,14 +149,11 @@ function AccountActions({ dismiss }: { dismiss: () => void }) {
           </button>
         )}
       </nav>
-      {!app.user && !contribution.mockSignedIn && (
-        <p className="account-guest-note">لست مسجّلًا؟ افتح «الحساب» لاختيار خدمة الدخول.</p>
-      )}
     </>
   );
 }
 
-export function Header() {
+export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string }) {
   const path = usePathname();
   const router = useRouter();
   const app = useApp();
@@ -113,9 +162,12 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [hiddenOnScroll, setHiddenOnScroll] = useState(false);
+  const [embedded, setEmbedded] = useState(false);
   const accountArea = useRef<HTMLDivElement>(null);
   const accountTrigger = useRef<HTMLButtonElement>(null);
   const popover = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setEmbedded(window.self !== window.top), []);
 
   useEffect(() => {
     setAccountPopover(false);
@@ -341,11 +393,11 @@ export function Header() {
                   role="dialog"
                   aria-label="قائمة الحساب"
                 >
-                  <div className="account-popover-heading">
-                    <strong>{app.user?.name || 'مساحتك'}</strong>
-                    <span>{app.user ? 'حسابك' : 'تصفّح كزائر'}</span>
-                  </div>
-                  <AccountActions dismiss={() => setAccountPopover(false)} />
+                  <AccountActions
+                    dismiss={() => setAccountPopover(false)}
+                    googleAuthOrigin={googleAuthOrigin}
+                    embedded={embedded}
+                  />
                 </div>
               )}
             </div>
@@ -379,15 +431,11 @@ export function Header() {
       </nav>
 
       <Modal open={accountSheet} onClose={() => setAccountSheet(false)} title="الحساب" sheet>
-        <div className="account-sheet-intro">
-          <strong>{app.user?.name || 'أهلًا بك'}</strong>
-          <p>
-            {app.user
-              ? 'إعداداتك وروابط حسابك في مكان واحد.'
-              : 'تصفّح بحرية، أو افتح الحساب للدخول.'}
-          </p>
-        </div>
-        <AccountActions dismiss={() => setAccountSheet(false)} />
+        <AccountActions
+          dismiss={() => setAccountSheet(false)}
+          googleAuthOrigin={googleAuthOrigin}
+          embedded={embedded}
+        />
       </Modal>
       <Modal open={searchOpen} onClose={() => setSearchOpen(false)} title="البحث" sheet>
         <form
