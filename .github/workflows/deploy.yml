@@ -2,6 +2,9 @@ name: النشر والتحقق في الإنتاج
 
 # يتحقق من الجودة، يحاول النشر على Railway عند توفّر الرمز المميز، ثم يفحص الموقع الحيّ
 # عقد الفحوص في scripts/verify-deployment.mjs ولا يحتاج أي صلاحية على Railway.
+#
+# نسخة pnpm تُقرأ من حقل packageManager في package.json؛ لا تُضِف input باسم version
+# وإلا يفشل pnpm/action-setup برسالة "Multiple versions of pnpm specified".
 on:
   push:
     branches: [main]
@@ -9,6 +12,8 @@ on:
       - '**/*.md'
       - 'docs/**'
       - 'verification/**'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       verify_only:
@@ -17,7 +22,8 @@ on:
         default: false
 
 concurrency:
-  group: production-deploy
+  # طلبات الدمج لا تصطفّ خلف نشر الإنتاج؛ والنشر يبقى أحاديًا دائمًا.
+  group: ${{ github.event_name == 'pull_request' && github.ref || 'production-deploy' }}
   cancel-in-progress: false
 
 permissions:
@@ -36,11 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.28.2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: pnpm
@@ -62,11 +66,12 @@ jobs:
   deploy:
     name: النشر على Railway
     needs: quality
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.verify_only != true }}
+    # لا نشر من طلبات الدمج، ولا من «تحقق فقط».
+    if: ${{ always() && needs.quality.result == 'success' && github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.verify_only != true) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: نشر عبر Railway CLI
         id: railway
         # بلا RAILWAY_TOKEN يُتخطّى النشر؛ إن كان تكامل GitHub مفعّلًا في Railway فالنشر
@@ -96,12 +101,13 @@ jobs:
   verify:
     name: التحقق من الإنتاج
     needs: [quality, deploy]
-    if: ${{ always() && needs.quality.result == 'success' }}
+    # فقط على الدفع/التشغيل اليدوي؛ لا معنى لفحص الإنتاج من طلب دمج.
+    if: ${{ always() && needs.quality.result == 'success' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       - name: انتظار النشرة ثم تنفيذ عقد الفحوص
@@ -115,7 +121,7 @@ jobs:
           node scripts/verify-deployment.mjs "${args[@]}"
       - name: حفظ تقرير التحقق
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: production-verification
           path: verification/deployment/result.json
