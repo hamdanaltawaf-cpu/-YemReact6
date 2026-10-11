@@ -75,6 +75,9 @@ jobs:
     if: ${{ always() && (needs.quality.result == 'success' || needs.quality.result == 'skipped') && github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.verify_only != true) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      # يُبلَّغ عن نتيجة خطوة CLI ليعرف التحقق كم ينتظر (فشل CLI ⇒ انتظار قصير).
+      cli: ${{ steps.railway.outcome }}
     steps:
       - uses: actions/checkout@v7
       - name: نشر عبر Railway CLI
@@ -156,9 +159,13 @@ jobs:
         env:
           # عند «تحقق فقط» لا ننتظر إصدارًا جديدًا، بل نفحص ما هو منشور الآن.
           WAIT_FOR_REVISION: ${{ github.event_name != 'workflow_dispatch' || inputs.verify_only != true }}
+          # فشل CLI يعني أن نشرة جديدة غير مرتقبة قريبًا: انتظار قصير مع رسالة واضحة
+          # خير من خمس عشرة دقيقة بلا فائدة. غيّر الرقم من متغيّر المستودع عند الحاجة.
+          WAIT_SECONDS: ${{ needs.deploy.outputs.cli == 'failure' && (vars.VERIFY_WAIT_AFTER_FAILURE || '300') || '900' }}
         run: |
           set -euo pipefail
-          args=("$PRODUCTION_URL" --wait 900 --poll 15 --json verification/deployment/result.json)
+          echo "مهلة انتظار النشرة: ${WAIT_SECONDS} ثانية"
+          args=("$PRODUCTION_URL" --wait "$WAIT_SECONDS" --poll 15 --json verification/deployment/result.json)
           if [ "$WAIT_FOR_REVISION" = "true" ]; then args+=(--expect-revision "$GITHUB_SHA"); fi
           node scripts/verify-deployment.mjs "${args[@]}"
       - name: حفظ تقرير التحقق
