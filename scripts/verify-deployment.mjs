@@ -179,6 +179,15 @@ await check('catalog-api', 'واجهة الرياكشنات (مسار الفحص
   return `${body.reactions.length} رياكشن`;
 });
 
+/** يميّز بين قيمة منشورة خاطئة وبين استجابة قديمة مخزّنة مؤقتًا. */
+async function explainOriginMismatch(pathname, observed, expected) {
+  const busted = await request(`${origin}${pathname}?cb=${Date.now()}`);
+  const fresh = busted.status === 200 ? await busted.text() : '';
+  if (fresh.includes(expected))
+    return `القيمة المنشورة صحيحة لكن الاستجابة المخزّنة مؤقتًا قديمة (${observed}). أعد النشر أو أفرغ الذاكرة المؤقتة.`;
+  return `${observed} بدل ${expected}`;
+}
+
 await check('sitemap-origin', 'sitemap يشير إلى النطاق العام الصحيح', async () => {
   const res = await request(`${origin}/sitemap.xml`);
   expect(res.status === 200, `الحالة ${res.status}`);
@@ -186,7 +195,10 @@ await check('sitemap-origin', 'sitemap يشير إلى النطاق العام �
   const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
   expect(locations.length > 0, 'لا توجد عناوين في sitemap');
   const foreign = locations.filter((location) => !location.startsWith(origin));
-  expect(!foreign.length, `NEXT_PUBLIC_SITE_URL غير مضبوط وقت البناء: ${foreign[0]} بدل ${origin}`);
+  if (foreign.length)
+    throw new Error(
+      `NEXT_PUBLIC_SITE_URL غير مضبوط وقت البناء أو يحمل شرطة زائدة — ${await explainOriginMismatch('/sitemap.xml', foreign[0], origin)}`,
+    );
   return `${locations.length} عنوانًا على ${origin}`;
 });
 
@@ -194,7 +206,9 @@ await check('robots-origin', 'robots.txt يعلن sitemap الصحيح', async (
   const res = await request(`${origin}/robots.txt`);
   expect(res.status === 200, `الحالة ${res.status}`);
   const text = await res.text();
-  expect(text.includes(`${origin}/sitemap.xml`), 'سطر Sitemap لا يطابق النطاق العام');
+  const declared = (text.match(/^\s*Sitemap:\s*(\S+)\s*$/im) || [])[1] || 'لا سطر Sitemap';
+  if (!text.includes(`${origin}/sitemap.xml`))
+    throw new Error(await explainOriginMismatch('/robots.txt', declared, `${origin}/sitemap.xml`));
   return 'مطابق للنطاق العام';
 });
 

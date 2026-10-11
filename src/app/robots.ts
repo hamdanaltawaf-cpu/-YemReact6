@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { publicOrigin } from '@/lib/site-url';
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: '*', allow: '/', disallow: ['/admin', '/api/', '/login', '/saved'] },
-    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/sitemap.xml`,
+    sitemap: `${publicOrigin()}/sitemap.xml`,
   };
 }
