@@ -235,11 +235,34 @@ test('Animated PNG and WebP cannot masquerade as static image publications', asy
 
 test('A forged WebM DocType embedded in Matroska padding cannot fool verification', async () => {
   const original = await readFile(path.join(root, 'wrong.webm'));
-  assert.ok(original[4] >= 0x80 && original[4] < 0xf0);
+  // Rebuild the EBML header size in the same VINT width it was written with:
+  // ffmpeg releases differ (1-byte vs 8-byte length), the attack must not.
+  let width = 1;
+  while (width <= 8 && !(original[4] & (0x80 >> (width - 1)))) width++;
+  const marker = 0x80 >> (width - 1);
+  assert.ok(width <= 8 && original[4] & marker, 'fixture must open with an EBML header size');
+  let size = original[4] & (marker - 1);
+  for (let i = 1; i < width; i++) size = size * 256 + original[4 + i];
   const padding = Buffer.from([0xec, 0x87, 0x42, 0x82, 0x84, 0x77, 0x65, 0x62, 0x6d]);
-  const header = Buffer.from(original.subarray(0, 5));
-  header[4] += padding.length;
+  const forged = Buffer.concat([
+    original.subarray(0, 4 + width),
+    padding,
+    original.subarray(4 + width),
+  ]);
+  let grown = size + padding.length;
+  assert.ok(grown < 2 ** (7 * width) - 1, 'fixture header size must remain encodable');
+  for (let i = width - 1; i >= 0; i--) {
+    forged[4 + i] = grown & 0xff;
+    grown = Math.floor(grown / 256);
+  }
+  forged[4] |= marker;
+  // A naive byte scan would find this DocType and accept the Matroska file as WebM.
+  assert.ok(forged.includes(Buffer.from('webm')));
+  assert.equal(
+    forged.subarray(4 + width, 4 + width + padding.length).toString('hex'),
+    padding.toString('hex'),
+  );
   const file = path.join(root, 'forged.webm');
-  await writeFile(file, Buffer.concat([header, padding, original.subarray(5)]));
+  await writeFile(file, forged);
   await assert.rejects(inspectMedia(file), { status: 400 });
 });

@@ -59,7 +59,7 @@ ADMIN_USER_ID='<existing-social-user-id>' pnpm admin:create
 - [قرار نقطة دخول المساهمة](docs/CONTRIBUTION-ENTRY.md) · [تفاصيل النموذج التجريبي](docs/CONTRIBUTION-PROTOTYPE.md)
 - [API](docs/API.md) · [قاعدة البيانات](docs/DATABASE.md)
 - [دليل الاستوديو](docs/ADMIN-GUIDE.md)
-- [النشر والإعدادات الأمنية](docs/DEPLOYMENT.md)
+- [النشر والإعدادات الأمنية](docs/DEPLOYMENT.md) · [النشر الآلي والتحقق من الإنتاج](docs/DEPLOYMENT-CI.md)
 - [قائمة الوصول](docs/ACCESSIBILITY.md)
 - [الخطوات التالية](docs/ROADMAP.md)
 

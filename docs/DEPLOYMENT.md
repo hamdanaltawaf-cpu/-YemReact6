@@ -79,3 +79,10 @@ Follow [SOCIAL-AUTH.md](SOCIAL-AUTH.md) for server-only credentials, exact callb
 ## Video duration validation
 
 Install a maintained FFmpeg/FFprobe package in the runtime host/container (Debian/Ubuntu: `apt-get install ffmpeg`), in both build and runtime stages. `ffprobe` must be on PATH, or set server-only `FFPROBE_PATH` to its absolute path. Keep it patched. This is an external executable, not a bundled npm binary. Video uploads/publication fail closed if probing fails or is unavailable; image uploads are decoded with Sharp, and videos also require FFmpeg thumbnail extraction. Startup now runs a versioned, backed-up metadata migration; see VERIFIED-MEDIA.md. The inclusive range is **2–60 seconds**, with no tolerance above/below the bounds or pre-validation rounding. Upload size remains 15MiB. Temp files live under DATA_DIR outside public uploads and are deleted on failures. FFprobe reads metadata/stream structure; this is not a full decode/transcode or malware scan. Back up the existing database and media before rollout.
+
+## Automated deployment and verification
+
+`main` is deployed and verified by `.github/workflows/deploy.yml`: quality gates, an optional
+Railway CLI deploy, then a live contract check via `scripts/verify-deployment.mjs` against
+`/api/health` and the public routes. See [DEPLOYMENT-CI.md](DEPLOYMENT-CI.md) for the required
+GitHub variables/secrets, the Railway service variables and the failure playbook.
