@@ -157,13 +157,16 @@ await check('health-endpoint', 'عقد /api/health وتقييم الإعداد',
   expect(Array.isArray(body.checks) && body.checks.length >= 7, 'قائمة الفحوص ناقصة');
   const problems = body.checks.filter((item) => item.level === 'fail').map((item) => item.id);
   expect(!problems.length, `فحوص فاشلة: ${problems.join(', ')}`);
-  const warnings = body.checks.filter((item) => item.level === 'warn').map((item) => item.id);
+  const warnings = body.checks.filter((item) => item.level === 'warn');
   expect(body.ok !== false, 'الخدمة تُبلّغ عن خلل فادح في الإعداد');
+  // التنبيهات لا تُسقط التشغيل، لكنها تبقى مرئية في الواجهة لا في سجل غير مقروء.
+  if (warnings.length)
+    annotate('warning', 'تنبيهات إعداد الإنتاج', warnings.map((item) => item.detail).join(' · '));
   return [
     `المستوى ${body.level}`,
     body.revision ? `الإصدار ${String(body.revision).slice(0, 7)}` : 'بلا إصدار معلن',
     `رياكشنات ${body.counts?.reactions ?? '؟'}`,
-    warnings.length ? `تنبيهات: ${warnings.join(', ')}` : 'بلا تنبيهات',
+    warnings.length ? `تنبيهات: ${warnings.map((item) => item.id).join(', ')}` : 'بلا تنبيهات',
   ].join(' · ');
 });
 
