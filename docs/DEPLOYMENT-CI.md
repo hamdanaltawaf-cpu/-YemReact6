@@ -31,9 +31,11 @@ Settings → Secrets and variables → Actions.
 | الاسم | من أين | مطلوب |
 |---|---|---|
 | `RAILWAY_TOKEN` | Railway → المشروع → **Settings → Tokens → New Token** ببيئة `production` | اختياري: بدونه لا ينشر CLI، ويُتوقّع أن ينشر تكامل GitHub |
-| `RAILWAY_PROJECT_ID` | `383b7d01-6af9-4305-978c-7cc92ac6335b` | مع الرمز |
-| `RAILWAY_ENVIRONMENT_ID` | معرّف بيئة `production` | مع الرمز |
-| `RAILWAY_SERVICE` | اسم الخدمة، فقط إن كان المشروع بأكثر من خدمة | عند الحاجة |
+| `RAILWAY_SERVICE` | **اسم الخدمة** كما في لوحة Railway | **إلزامي عمليًا** إذا كان المشروع بأكثر من خدمة؛ بدونه يفشل CLI برسالة `Multiple services found` |
+| `RAILWAY_PROJECT_ID` | `383b7d01-6af9-4305-978c-7cc92ac6335b` | اختياري: رمز المشروع يحدّده تلقائيًا |
+| `RAILWAY_ENVIRONMENT_ID` | معرّف بيئة `production` | اختياري للسبب نفسه |
+
+ولضبط مهلة انتظار النشرة بعد فشل CLI أضف **variable** باسم `VERIFY_WAIT_AFTER_FAILURE` (بالثواني، افتراضياً 300)؛ المهلة الكاملة 900 ثانية تبقى للحالات الطبيعية.
 
 > **أمان:** أي رمز مشروع في Railway يمنح حامله قراءة **كل متغيرات بيئة المشروع** (أسرار الدخول الاجتماعي ومفاتيح الجلسة). لا تلصقه في محادثة أو ملف في المستودع أو سجل تشغيل. أنشئه ببيئة واحدة، ودوّره فورًا إن انكشف، واحذفه عند عدم الحاجة.
 
@@ -91,6 +93,10 @@ node scripts/verify-deployment.mjs "$URL" --expect-revision "$(git rev-parse HEA
 | `sitemap … بدل https://…` | `NEXT_PUBLIC_SITE_URL` غير مضبوط أو أُضيف بعد البناء | اضبطه في متغيرات خدمة Railway ثم **أعد البناء** |
 | `فحوص فاشلة: uploads` | القرص الدائم غير مثبّت أو بصلاحيات خاطئة | ثبّت Volume على `/app/data`؛ المدخل يصلح الملكية تلقائيًا |
 | `فحوص فاشلة: ffprobe` | FFmpeg غير مثبّت في صورة النشر | Dockerfile يثبّته؛ تأكد من استخدام `Dockerfile` كباني |
+| تنبيه `فشل Railway CLI` نصّه `Multiple services found` | المشروع يحوي أكثر من خدمة، وCLI يسأل تفاعليًا فقط على الطرفية، فيفشل في CI | أضف السر `RAILWAY_SERVICE` باسم الخدمة (يقبل الاسم لا المعرّف فقط). سيعرض التنبيه الأسماء المرشّحة تلقائيًا من `railway status --json` |
+| تنبيه `فشل Railway CLI` نصّه `Unauthorized` أو `login` | الرمز المميز غير صالح أو أُبطل أو من بيئة أخرى | أنشئ رمزًا جديدًا من Settings → Tokens ببيئة `production`، أضفه في `RAILWAY_TOKEN`، ثم أعد التشغيل |
+| تنبيه `فشل Railway CLI` يحوي فشل `postinstall` أو `tar.gz` | ثنائي CLI يُنزَّل من إصدارات GitHub وقت التثبيت | أعد التشغيل؛ إن تكرّر فثبّت CLI بطريقة أخرى (`npm i -g @railway/cli`) أو استخدم تكامل GitHub في Railway |
+| تخطّي النشر برسالة `لا يوجد RAILWAY_TOKEN` | لا سر مضبوط | أضف `RAILWAY_TOKEN`، أو فعّل تكامل GitHub في Railway ليتولى النشر من `main` |
 | `فحوص فاشلة: site-url` | النطاق العام `http` أو `localhost` (يحدث أيضًا عند تشغيل بناء إنتاج محليًا بلا ضبط المتغير) | استخدم نطاق HTTPS العام؛ ولبناء محلي شغّل `pnpm dev` أو اضبط المتغير قبل `pnpm build` |
 | `Failed to fetch … from Google Fonts` أثناء البناء | `next/font/google` في `src/app/layout.tsx` يجلب الخطوط الأربعة **وقت البناء** | بيئات البناء تحتاج `fonts.googleapis.com`؛ إن كانت محجوبة اسمح بها أو انقل الخطوط لاستضافة ذاتية (`next/font/local`) |
 | تحذيرات فقط (`warn`) | إعداد ناقص غير مُعطِّل: لا مزوّد دخول، لا حساب مالك، `DATA_DIR` نسبي | أكمل الإعداد؛ التحذير لا يُسقط التشغيل |
