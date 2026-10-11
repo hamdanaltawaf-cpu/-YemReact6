@@ -112,6 +112,18 @@ jobs:
               detail="$(printf '%s\n' "$clean" | tail -n 5 | tr '\n\r' '  ' | tail -c 1500)"
             fi
             echo "::error title=فشل Railway CLI::${detail:-خرج CLI بفشل دون رسالة}"
+            # المشروع قد يحوي أكثر من خدمة؛ نستخرج الأسماء المرشّحة من نفس الرمز المميز
+            # ليعرف المشغّل ما يضعه في السر RAILWAY_SERVICE دون تخمين.
+            if printf '%s' "$clean" | grep -qi 'multiple services'; then
+              candidates="$(npx --yes @railway/cli@latest status --json 2>/dev/null |
+                jq -r 'def items(x): ((x | if type == "object" and has("edges") then .edges else . end) // []) | map(.node // .); [items(.services)[] | select(.name) | .name] | unique | join(" · ")' 2>/dev/null |
+                head -c 300)"
+              if [ -n "${candidates// /}" ]; then
+                echo "::warning title=حدّد الخدمة::المشروع يحوي أكثر من خدمة. المرشّحون: $candidates — أضف الاسم الصحيح في السر RAILWAY_SERVICE ثم أعد التشغيل."
+              else
+                echo "::warning title=حدّد الخدمة::المشروع يحوي أكثر من خدمة وتعذّر سرد الأسماء بالرمز الحالي. افتح لوحة Railway واقرأ اسم الخدمة ثم أضفه في السر RAILWAY_SERVICE."
+              fi
+            fi
             exit 1
           fi
       - name: تنبيه عند فشل النشر عبر CLI
