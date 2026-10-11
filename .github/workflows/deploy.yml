@@ -1,0 +1,123 @@
+name: النشر والتحقق في الإنتاج
+
+# يتحقق من الجودة، يحاول النشر على Railway عند توفّر الرمز المميز، ثم يفحص الموقع الحيّ
+# عقد الفحوص في scripts/verify-deployment.mjs ولا يحتاج أي صلاحية على Railway.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'verification/**'
+  workflow_dispatch:
+    inputs:
+      verify_only:
+        description: 'تحقق من الإنتاج الحالي دون محاولة نشر'
+        type: boolean
+        default: false
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # NEXT_PUBLIC_SITE_URL تُدمج وقت البناء؛ البديل الافتراضي هو نطاق الإنتاج الحالي.
+  NEXT_PUBLIC_SITE_URL: ${{ vars.PRODUCTION_URL || 'https://yemreact-production.up.railway.app' }}
+  PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://yemreact-production.up.railway.app' }}
+  FFPROBE_PATH: /usr/bin/ffprobe
+  FFMPEG_PATH: /usr/bin/ffmpeg
+
+jobs:
+  quality:
+    name: فحوص الجودة والبناء
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: تثبيت FFmpeg (التحقق من الوسائط وبناء الغلاف)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: تثبيت الاعتماديات
+        run: pnpm install --frozen-lockfile
+      - name: فحص TypeScript
+        run: pnpm typecheck
+      - name: تنسيق الكود
+        run: pnpm format:check
+      - name: اختبارات المنطق
+        run: pnpm test
+      - name: بناء الإنتاج بنفس أمر الحاوية
+        run: pnpm build
+
+  deploy:
+    name: النشر على Railway
+    needs: quality
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.verify_only != true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: نشر عبر Railway CLI
+        id: railway
+        # بلا RAILWAY_TOKEN يُتخطّى النشر؛ إن كان تكامل GitHub مفعّلًا في Railway فالنشر
+        # يتم تلقائيًا، ووظيفة التحقق التالية هي الحكم النهائي.
+        continue-on-error: true
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+          RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RAILWAY_TOKEN:-}" ]; then
+            echo "::notice title=تخطّي نشر CLI::لا يوجد RAILWAY_TOKEN في أسرار المستودع. إن كان تكامل GitHub مفعّلًا في Railway فالنشر يتم تلقائيًا من الفرع main، وستتحقق الوظيفة التالية من النتيجة."
+            exit 0
+          fi
+          args=(up --ci)
+          if [ -n "${RAILWAY_PROJECT_ID:-}" ]; then args+=(--project "$RAILWAY_PROJECT_ID"); fi
+          if [ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]; then args+=(--environment "$RAILWAY_ENVIRONMENT_ID"); fi
+          if [ -n "${RAILWAY_SERVICE:-}" ]; then args+=(--service "$RAILWAY_SERVICE"); fi
+          echo "تشغيل: railway ${args[*]}"
+          npx --yes @railway/cli@latest "${args[@]}"
+      - name: تنبيه عند فشل النشر عبر CLI
+        if: ${{ steps.railway.outcome == 'failure' }}
+        run: echo "::warning title=فشل نشر CLI::لم يكتمل النشر عبر Railway CLI؛ ستحدد وظيفة «التحقق من الإنتاج» إن كان الإصدار قد وصل للإنتاج بطريقة أخرى."
+
+  verify:
+    name: التحقق من الإنتاج
+    needs: [quality, deploy]
+    if: ${{ always() && needs.quality.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: انتظار النشرة ثم تنفيذ عقد الفحوص
+        env:
+          # عند «تحقق فقط» لا ننتظر إصدارًا جديدًا، بل نفحص ما هو منشور الآن.
+          WAIT_FOR_REVISION: ${{ github.event_name != 'workflow_dispatch' || inputs.verify_only != true }}
+        run: |
+          set -euo pipefail
+          args=("$PRODUCTION_URL" --wait 900 --poll 15 --json verification/deployment/result.json)
+          if [ "$WAIT_FOR_REVISION" = "true" ]; then args+=(--expect-revision "$GITHUB_SHA"); fi
+          node scripts/verify-deployment.mjs "${args[@]}"
+      - name: حفظ تقرير التحقق
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-verification
+          path: verification/deployment/result.json
+          if-no-files-found: ignore
+          retention-days: 30
