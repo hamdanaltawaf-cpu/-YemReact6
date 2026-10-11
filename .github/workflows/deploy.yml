@@ -20,6 +20,10 @@ on:
         description: 'تحقق من الإنتاج الحالي دون محاولة نشر'
         type: boolean
         default: false
+      deploy_only:
+        description: 'نشر فقط (تخطّي بوابة الجودة والتحقق) لأغراض تشخيصية أو إعادة نشر طارئة'
+        type: boolean
+        default: false
 
 concurrency:
   # طلبات الدمج لا تصطفّ خلف نشر الإنتاج؛ والنشر يبقى أحاديًا دائمًا.
@@ -41,6 +45,7 @@ jobs:
     name: فحوص الجودة والبناء
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: ${{ github.event_name != 'workflow_dispatch' || (inputs.verify_only != true && inputs.deploy_only != true) }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -66,8 +71,8 @@ jobs:
   deploy:
     name: النشر على Railway
     needs: quality
-    # لا نشر من طلبات الدمج، ولا من «تحقق فقط».
-    if: ${{ always() && needs.quality.result == 'success' && github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.verify_only != true) }}
+    # لا نشر من طلبات الدمج، ولا من «تحقق فقط». بوابة الجودة تتخطّاها «نشر فقط» فقط.
+    if: ${{ always() && (needs.quality.result == 'success' || needs.quality.result == 'skipped') && github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.verify_only != true) }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -83,7 +88,7 @@ jobs:
           RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
           RAILWAY_SERVICE: ${{ secrets.RAILWAY_SERVICE }}
         run: |
-          set -euo pipefail
+          set -uo pipefail
           if [ -z "${RAILWAY_TOKEN:-}" ]; then
             echo "::notice title=تخطّي نشر CLI::لا يوجد RAILWAY_TOKEN في أسرار المستودع. إن كان تكامل GitHub مفعّلًا في Railway فالنشر يتم تلقائيًا من الفرع main، وستتحقق الوظيفة التالية من النتيجة."
             exit 0
@@ -92,17 +97,42 @@ jobs:
           if [ -n "${RAILWAY_PROJECT_ID:-}" ]; then args+=(--project "$RAILWAY_PROJECT_ID"); fi
           if [ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]; then args+=(--environment "$RAILWAY_ENVIRONMENT_ID"); fi
           if [ -n "${RAILWAY_SERVICE:-}" ]; then args+=(--service "$RAILWAY_SERVICE"); fi
-          echo "تشغيل: railway ${args[*]}"
-          npx --yes @railway/cli@latest "${args[@]}"
+          echo "تشغيل: npx --yes @railway/cli@latest ${args[*]}"
+          # نلتقط الخرج في ملف: سجل GitHub Actions هنا غير قابل للقراءة عبر الواجهة،
+          # فيُصدر الفشل كتنبيه (annotation) يقرأه المشغّل وأداة المتابعة مباشرة.
+          out="$(mktemp)"
+          if npx --yes @railway/cli@latest "${args[@]}" 2>&1 | tee "$out"; then
+            echo "::notice title=نشر CLI::أُرسلت النشرة عبر Railway CLI"
+          else
+            # سجل هذه الوظيفة غير قابل للقراءة من خارج الواجهة، فيُصدر السبب كتنبيه:
+            # نجرّد أكواد ANSI، ثم نفضّل الأسطر التي تحمل خطأً حقيقيًا على ضجيج npm.
+            clean="$(sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' -e 's/\r/\n/g' "$out")"
+            detail="$(printf '%s\n' "$clean" | grep -iE 'error|unauthor|forbidden|invalid|denied|not found|missing|fail|link|service|project|token|401|403|404' | tail -n 6 | tr '\n\r' '  ' | tail -c 1500)"
+            if [ -z "${detail// /}" ]; then
+              detail="$(printf '%s\n' "$clean" | tail -n 5 | tr '\n\r' '  ' | tail -c 1500)"
+            fi
+            echo "::error title=فشل Railway CLI::${detail:-خرج CLI بفشل دون رسالة}"
+            exit 1
+          fi
       - name: تنبيه عند فشل النشر عبر CLI
         if: ${{ steps.railway.outcome == 'failure' }}
-        run: echo "::warning title=فشل نشر CLI::لم يكتمل النشر عبر Railway CLI؛ ستحدد وظيفة «التحقق من الإنتاج» إن كان الإصدار قد وصل للإنتاج بطريقة أخرى."
+        run: |
+          {
+            echo "### فشل النشر عبر Railway CLI"
+            echo ""
+            echo "الأسباب الشائعة بالترتيب:"
+            echo "1. الرمز المميز مشروع لكن من بيئة أخرى، أو أُبطل أو دوّر."
+            echo "2. الرمز غير صالح كرمز مشروع (Personal token لا يعمل مع up --ci بنفس الطريقة) — أنشئ الرمز من Settings → Tokens ببيئة production."
+            echo "3. الخدمة غير مرتبطة: أضف RAILWAY_SERVICE باسم الخدمة، وRAILWAY_PROJECT_ID وRAILWAY_ENVIRONMENT_ID."
+            echo ""
+            echo "اقرأ سبب CLI الحقيقي في تنبيه (annotation) الخطوة السابقة، أو شغّل هذا السير العمل بمدخل «نشر فقط» لتشخيص أسرع."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   verify:
     name: التحقق من الإنتاج
     needs: [quality, deploy]
     # فقط على الدفع/التشغيل اليدوي؛ لا معنى لفحص الإنتاج من طلب دمج.
-    if: ${{ always() && needs.quality.result == 'success' && github.event_name != 'pull_request' }}
+    if: ${{ always() && needs.quality.result == 'success' && github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.deploy_only != true) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
