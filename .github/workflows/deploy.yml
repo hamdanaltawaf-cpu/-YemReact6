@@ -78,6 +78,8 @@ jobs:
     outputs:
       # يُبلَّغ عن نتيجة خطوة CLI ليعرف التحقق كم ينتظر (فشل CLI ⇒ انتظار قصير).
       cli: ${{ steps.railway.outcome }}
+      # مرجعية زمنية: نشرة رُفعت بـCLI لا تحمل التزامًا، فيُقاس تجدّدها من هذا الوقت.
+      deployed_at: ${{ steps.railway.outputs.deployed_at }}
     steps:
       - uses: actions/checkout@v7
       - name: نشر عبر Railway CLI
@@ -119,6 +121,9 @@ jobs:
           echo "تشغيل: npx --yes @railway/cli@latest ${args[*]}"
           # نلتقط الخرج في ملف: سجل GitHub Actions هنا غير قابل للقراءة عبر الواجهة،
           # فيُصدر الفشل كتنبيه (annotation) يقرأه المشغّل وأداة المتابعة مباشرة.
+          # مرجعية زمنية تُمرَّر لوظيفة التحقق: النشرة المرفوعة لا تحمل التزامًا،
+          # فيُتحقق من أن الحاوية بدأت بعد هذا الوقت (مع هامش للبناء والبدء).
+          echo "deployed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
           out="$(mktemp)"
           if npx --yes @railway/cli@latest "${args[@]}" 2>&1 | tee "$out"; then
             echo "::notice title=نشر CLI::أُرسلت النشرة عبر Railway CLI"
@@ -182,7 +187,12 @@ jobs:
           set -euo pipefail
           echo "مهلة انتظار النشرة: ${WAIT_SECONDS} ثانية"
           args=("$PRODUCTION_URL" --wait "$WAIT_SECONDS" --poll 15 --json verification/deployment/result.json)
-          if [ "$WAIT_FOR_REVISION" = "true" ]; then args+=(--expect-revision "$GITHUB_SHA"); fi
+          if [ "$WAIT_FOR_REVISION" = "true" ]; then
+            args+=(--expect-revision "$GITHUB_SHA")
+            if [ -n "${{ needs.deploy.outputs.deployed_at }}" ]; then
+              args+=(--deployed-at "${{ needs.deploy.outputs.deployed_at }}")
+            fi
+          fi
           node scripts/verify-deployment.mjs "${args[@]}"
       - name: حفظ تقرير التحقق
         if: ${{ always() }}

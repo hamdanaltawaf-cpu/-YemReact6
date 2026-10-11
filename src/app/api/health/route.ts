@@ -85,6 +85,8 @@ export async function GET() {
       ok: level !== 'fail',
       level,
       revision: deployedRevision(),
+      // CLI uploads carry no commit; the process start time proves freshness instead.
+      startedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
       nodeEnv: facts.nodeEnv,
       node: process.version,
       siteUrl: facts.siteUrl || null,
