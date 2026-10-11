@@ -96,10 +96,26 @@ jobs:
             echo "::notice title=تخطّي نشر CLI::لا يوجد RAILWAY_TOKEN في أسرار المستودع. إن كان تكامل GitHub مفعّلًا في Railway فالنشر يتم تلقائيًا من الفرع main، وستتحقق الوظيفة التالية من النتيجة."
             exit 0
           fi
+          # اسم الخدمة: من السر إن وُجد، وإلا نستنتجه من نفس الرمز المميز — نستعمله فقط
+          # إذا كانت الخدمة وحيدة بلا لبس، وإلا نتوقف برسالة تسمّي المرشّحين.
+          service="${RAILWAY_SERVICE:-}"
+          if [ -z "$service" ]; then
+            svc_list="$(npx --yes @railway/cli@latest status --json 2>/dev/null |
+              jq -r 'def items(x): ((x | if type == "object" and has("edges") then .edges else . end) // []) | map(.node // .); items(.services)[] | select(.name) | .name' 2>/dev/null |
+              sed '/^[[:space:]]*$/d' | sort -u | head -10)"
+            svc_count="$(printf '%s\n' "$svc_list" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')"
+            if [ "$svc_count" = "1" ]; then
+              service="$(printf '%s\n' "$svc_list" | sed '/^[[:space:]]*$/d' | head -1)"
+              echo "::notice title=خدمة مستنتجة::لم يُضبط RAILWAY_SERVICE؛ استُنتجت الخدمة الوحيدة في المشروع: $service"
+            elif [ "$svc_count" -gt 1 ]; then
+              echo "::error title=حدّد الخدمة::المشروع يحوي عدة خدمات: $(printf '%s' "$svc_list" | tr '\n' ' ') — أضف الاسم الصحيح في السر RAILWAY_SERVICE ثم أعد التشغيل."
+              exit 1
+            fi
+          fi
           args=(up --ci)
           if [ -n "${RAILWAY_PROJECT_ID:-}" ]; then args+=(--project "$RAILWAY_PROJECT_ID"); fi
           if [ -n "${RAILWAY_ENVIRONMENT_ID:-}" ]; then args+=(--environment "$RAILWAY_ENVIRONMENT_ID"); fi
-          if [ -n "${RAILWAY_SERVICE:-}" ]; then args+=(--service "$RAILWAY_SERVICE"); fi
+          if [ -n "$service" ]; then args+=(--service "$service"); fi
           echo "تشغيل: npx --yes @railway/cli@latest ${args[*]}"
           # نلتقط الخرج في ملف: سجل GitHub Actions هنا غير قابل للقراءة عبر الواجهة،
           # فيُصدر الفشل كتنبيه (annotation) يقرأه المشغّل وأداة المتابعة مباشرة.
