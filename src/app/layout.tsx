@@ -6,6 +6,7 @@ import { AppProvider } from '@/components/AppProvider';
 import { ContributionProvider } from '@/components/ContributionProvider';
 import { AppOverlays } from '@/components/AppOverlays';
 import { Pwa } from '@/components/Pwa';
+import { publicOrigin } from '@/lib/site-url';
 import { listReactions } from '@/server/db';
 import { oauthConfig } from '@/server/oauth-config';
 import './globals.css';
@@ -32,7 +33,7 @@ const mono = IBM_Plex_Mono({
   variable: '--f-mono',
   display: 'swap',
 });
-const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const base = publicOrigin();
 export const metadata: Metadata = {
   metadataBase: new URL(base),
   title: { default: 'YemReact — ردّك في لقطة', template: '%s | يمن رياكت' },
