@@ -105,9 +105,11 @@ async function waitForRevision() {
   return { ready: false, note };
 }
 
+let revisionNote = '';
 if (expectRevision) {
   console.log(`⏳ انتظار نشر الإصدار ${expectRevision.slice(0, 7)} على ${origin} …`);
   const waited = await waitForRevision();
+  revisionNote = waited.note;
   if (!waited.ready) {
     results.push({
       id: 'deployment-ready',
@@ -278,6 +280,18 @@ const summary = [
 ].join('\n');
 console.log('\n' + summary.replace(/\n/g, '\n'));
 console.log(`\nالنتيجة: ${results.length - failures.length}/${results.length} ناجحة على ${origin}`);
+
+// خلاصة النتيجة تُنشر أيضًا كتنبيه مرئي: الأثر والسجلات قد لا يكونان مقروءين من
+// أدوات المتابعة، بينما صفحة التشغيل وواجهتها البرمجية تعرضان التنبيهات دائمًا.
+annotate(
+  failures.length ? 'warning' : 'notice',
+  failures.length ? 'فشل تحقق الإنتاج' : 'نجح تحقق الإنتاج',
+  failures.length
+    ? `${results.length - failures.length}/${results.length} على ${origin}: ${failures.map((item) => item.label).join(' · ')}${revisionNote ? ` — ${revisionNote}` : ''}`
+    : `${results.length}/${results.length} فحصًا ناجحًا على ${origin}${
+        expectRevision ? ` عند المراجعة ${expectRevision.slice(0, 7)}` : ''
+      }${revisionNote ? ` — ${revisionNote}` : ''}`,
+);
 
 if (process.env.GITHUB_STEP_SUMMARY) {
   await writeFile(
