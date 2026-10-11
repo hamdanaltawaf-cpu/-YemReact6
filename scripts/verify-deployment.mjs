@@ -11,6 +11,7 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { deploymentReady } from './deployment-wait.mjs';
 
 const args = process.argv.slice(2);
 function option(name, fallback) {
@@ -27,6 +28,7 @@ if (!baseUrl) {
   process.exit(2);
 }
 const expectRevision = option('expect-revision', '');
+const deployedAt = option('deployed-at', '');
 const waitSeconds = Number(option('wait', 900));
 const pollSeconds = Number(option('poll', 15));
 const requestTimeout = Number(
@@ -39,6 +41,13 @@ const sleep = (seconds) => new Promise((resolve) => setTimeout(resolve, seconds 
 
 function expect(condition, message) {
   if (!condition) throw new Error(message);
+}
+/** Job logs are not readable from outside the UI, so failures also become annotations. */
+function annotate(level, title, message) {
+  if (!process.env.GITHUB_ACTIONS) return;
+  const escape = (text) =>
+    String(text).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A').slice(0, 1500);
+  console.log(`::${level} title=${escape(title)}::${escape(message)}`);
 }
 async function request(url, init = {}) {
   return fetch(url, {
@@ -56,39 +65,42 @@ async function check(id, label, run) {
   } catch (e) {
     results.push({ id, label, ok: false, detail: e.message || String(e) });
     console.log(`❌ ${label} — ${e.message || e}`);
+    annotate('error', label, e.message || String(e));
   }
 }
 
-/** Railway rebuilds asynchronously, so wait until this commit is the one serving. */
+/** Railway rebuilds asynchronously, so wait until this run's build is the one serving. */
 async function waitForRevision() {
   const deadline = Date.now() + waitSeconds * 1000;
   let note = 'لم تبدأ المحاولة بعد';
-  while (Date.now() < deadline) {
+  const maxAttempts = Math.max(1, Math.ceil(waitSeconds / Math.max(1, pollSeconds)) + 1);
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let verdict;
     try {
       const res = await request(`${origin}/api/health`);
+      let body = {};
       if (res.status === 200) {
-        const body = await res.json();
-        const revision = String(body.revision || '');
-        if (
-          revision &&
-          (revision.startsWith(expectRevision) || expectRevision.startsWith(revision))
-        )
-          return { ready: true, revision };
-        note = revision
-          ? `الإصدار المنشور ${revision.slice(0, 7)} لم يصل إلى ${expectRevision.slice(0, 7)} بعد`
-          : 'الخدمة لا تُبلّغ عن إصدار (RAILWAY_GIT_COMMIT_SHA غير متاح في بيئة Railway)';
-      } else if (res.status === 404) {
-        note = 'النشرة الحالية لا تتضمن /api/health بعد (بناء أقدم من هذا التغيير)';
-      } else {
-        note = `حالة /api/health: ${res.status}`;
+        try {
+          body = await res.json();
+        } catch {
+          body = {};
+        }
       }
+      verdict = deploymentReady({
+        status: res.status,
+        revision: String(body.revision || ''),
+        startedAt: String(body.startedAt || ''),
+        expectRevision,
+        deployedAt,
+      });
     } catch (e) {
-      note = `تعذّر الوصول إلى الخدمة: ${e.message}`;
+      verdict = { ready: false, note: `تعذّر الوصول إلى الخدمة: ${e.message}` };
     }
-    if (Date.now() + pollSeconds * 1000 < deadline) {
-      console.log(`⏳ ${note} — إعادة الفحص خلال ${pollSeconds} ثانية`);
-      await sleep(pollSeconds);
-    } else break;
+    if (verdict.ready) return { ready: true, note: verdict.note };
+    note = verdict.note;
+    if (Date.now() + pollSeconds * 1000 >= deadline) break;
+    console.log(`⏳ ${note} — إعادة الفحص خلال ${pollSeconds} ثانية`);
+    await sleep(pollSeconds);
   }
   return { ready: false, note };
 }
@@ -104,14 +116,15 @@ if (expectRevision) {
       detail: `انتهت مهلة الانتظار (${waitSeconds} ثانية): ${waited.note}. تأكد أن Railway أنشأ نشرة من هذا الالتزام (تكامل GitHub أو الرمز المميز)، ثم أعد التشغيل.`,
     });
     console.log(`❌ وصول الإصدار الجديد إلى الإنتاج — ${waited.note}`);
+    annotate('error', 'وصول الإصدار الجديد إلى الإنتاج', waited.note);
   } else {
     results.push({
       id: 'deployment-ready',
       label: 'وصول الإصدار الجديد إلى الإنتاج',
       ok: true,
-      detail: `الإصدار المنشور: ${waited.revision.slice(0, 7)}`,
+      detail: waited.note,
     });
-    console.log(`✅ وصول الإصدار الجديد إلى الإنتاج — ${waited.revision.slice(0, 7)}`);
+    console.log(`✅ وصول الإصدار الجديد إلى الإنتاج — ${waited.note}`);
   }
 }
 
