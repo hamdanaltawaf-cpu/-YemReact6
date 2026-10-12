@@ -235,9 +235,7 @@
   border-top: 1px solid var(--line);
   border-radius: 0 0 9px 9px;
 }
-.mobile-bottom-nav {
-  display: none;
-}
+
 .mobile-library-search label {
   display: block;
   margin-bottom: 10px;
@@ -304,82 +302,8 @@
     transform: translateY(-110%);
     pointer-events: none;
   }
-  body {
-    padding-bottom: calc(76px + env(safe-area-inset-bottom));
-  }
-  .mobile-bottom-nav {
-    position: fixed;
-    z-index: 70;
-    inset-inline: 0;
-    bottom: 0;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    align-items: end;
-    gap: 2px;
-    min-height: calc(76px + env(safe-area-inset-bottom));
-    padding: 6px 8px calc(5px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--line);
-    background: var(--surface);
-    box-shadow: 0 -6px 24px #0000000b;
-  }
-  .mobile-bottom-nav > a,
-  .mobile-bottom-nav > button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
-    min-height: 60px;
-    padding: 7px 2px 4px;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 500;
-    line-height: 1.25;
-    text-align: center;
-    white-space: nowrap;
-    transition:
-      background var(--motion-micro) var(--ease-standard),
-      color var(--motion-micro) var(--ease-standard);
-  }
-  .mobile-bottom-nav > a:hover,
-  .mobile-bottom-nav > button:hover,
-  .mobile-bottom-nav > a[aria-current='page'],
-  .mobile-account-tab[aria-expanded='true'] {
-    background: var(--soft);
-    color: var(--ink);
-  }
-  .mobile-bottom-nav > a[aria-current='page'] svg {
-    color: var(--accent-text);
-  }
-  .mobile-bottom-nav > .mobile-quick-action {
-    gap: 3px;
-    min-height: 74px;
-    margin-top: -17px;
-    padding: 0 0 4px;
-    color: var(--accent-text);
-    font-weight: 700;
-  }
-  .mobile-bottom-nav > .mobile-quick-action:hover {
-    background: none;
-    color: var(--accent-text);
-  }
-  .mobile-upload-symbol {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border: 3px solid var(--surface);
-    border-radius: 15px;
-    background: var(--accent-text);
-    color: white;
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 26%, transparent);
-  }
-  .mobile-bottom-nav .mobile-quick-action:hover .mobile-upload-symbol {
-    background: color-mix(in srgb, var(--accent-text) 87%, black);
-  }
+  /* حشوة أسفل الصفحة للشريط الزجاجي تأتي من src/components/glass-nav/glass-nav.css */
+
   .modal.modal-sheet {
     inset: auto 0 0;
     width: 100%;
@@ -408,14 +332,6 @@
   }
 }
 @media (max-width: 374px) {
-  .mobile-bottom-nav {
-    padding-inline: 5px;
-    gap: 0;
-  }
-  .mobile-bottom-nav > a,
-  .mobile-bottom-nav > button {
-    font-size: 9px;
-  }
   .site-header .brand {
     gap: 6px;
   }
@@ -429,17 +345,9 @@
     transform: none;
     animation: none;
   }
-  .mobile-bottom-nav > a,
-  .mobile-bottom-nav > button {
-    transition: none;
-  }
 }
 :root[data-motion='reduce'] .site-header.header-hidden,
 :root[data-motion='reduce'] .modal-sheet[open] {
   transform: none;
   animation: none;
-}
-:root[data-motion='reduce'] .mobile-bottom-nav > a,
-:root[data-motion='reduce'] .mobile-bottom-nav > button {
-  transition: none;
 }

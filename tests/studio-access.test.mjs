@@ -81,6 +81,23 @@ function navigation(
     './ContributionProvider': {
       useContribution: () => ({ mockSignedIn, endMockSession: () => {} }),
     },
+    './glass-nav/GlassNav': {
+      // الشريط الزجاجي مكوّن عميل مستقل — يكفي الاختبار بديل مبسّط يحفظ زر «الحساب»
+      GlassNav: ({ onSelect }) =>
+        React.createElement(
+          'nav',
+          { className: 'glass-nav', 'aria-label': 'التنقل الرئيسي' },
+          React.createElement(
+            'button',
+            {
+              type: 'button',
+              className: 'mobile-account-tab',
+              onClick: () => onSelect?.('account'),
+            },
+            'الحساب',
+          ),
+        ),
+    },
     './Qusasa': { Qusasa: () => null },
     './SocialIcon': { SocialIcon: () => null },
     './ui/Modal': {

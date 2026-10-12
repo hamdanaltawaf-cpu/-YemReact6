@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Qusasa } from './Qusasa';
 import { SocialIcon } from './SocialIcon';
+import { GlassNav } from './glass-nav/GlassNav';
 import { useApp } from './AppProvider';
 import { useContribution } from './ContributionProvider';
 import { Modal } from './ui/Modal';
@@ -405,30 +406,8 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
         </div>
       </header>
 
-      <nav className="mobile-bottom-nav" aria-label="التنقل الأساسي للهاتف">
-        {primaryLinks.slice(0, 2).map(({ href, label, Icon }) => (
-          <Link key={href} href={href} aria-current={isCurrent(path, href) ? 'page' : undefined}>
-            <Icon size={20} strokeWidth={1.9} aria-hidden="true" />
-            <span>{label}</span>
-          </Link>
-        ))}
-        <UploadQuickAction mobile />
-        <Link href="/saved" aria-current={isCurrent(path, '/saved') ? 'page' : undefined}>
-          <Bookmark size={20} strokeWidth={1.9} aria-hidden="true" />
-          <span>المحفوظات</span>
-        </Link>
-        <button
-          type="button"
-          className="mobile-account-tab"
-          aria-label="الحساب"
-          aria-haspopup="dialog"
-          aria-expanded={accountSheet}
-          onClick={openAccount}
-        >
-          <UserRound size={20} strokeWidth={1.9} aria-hidden="true" />
-          <span>الحساب</span>
-        </button>
-      </nav>
+      {/* الشريط الزجاجي العائم: المسارات الأربعة روابط، و«الحساب» يفتح قائمة الحساب */}
+      <GlassNav onSelect={(key) => key === 'account' && openAccount()} />
 
       <Modal open={accountSheet} onClose={() => setAccountSheet(false)} title="الحساب" sheet>
         <AccountActions

@@ -61,7 +61,16 @@ test('Three primary destinations stay separate from the active mock-upload quick
   assert.match(header, /href="\/contribute"/);
   assert.match(header, /aria-label="رفع رياكشن — تجربة محلية"/);
   assert.match(header, /mobile-quick-action/);
-  assert.match(header, /mobile-account-tab/);
+  // الشريط السفلي صار مكوّن GlassNav الزجاجي: خمسة تبويبات بترتيب RTL وبصيغة المستخدم
+  assert.match(header, /<GlassNav onSelect=/);
+  const glassNav = fs.readFileSync('src/components/glass-nav/GlassNav.tsx', 'utf8');
+  assert.deepEqual(
+    [...glassNav.matchAll(/key: '(library|groups|add|saved|account)'/g)].map((match) => match[1]),
+    ['library', 'groups', 'add', 'saved', 'account'],
+  );
+  for (const label of ['المكتبة', 'المجموعات', 'اضافة', 'المحفوظات', 'الحساب']) {
+    assert.ok(glassNav.includes(`label: '${label}'`), `التبويب «${label}» مفقود`);
+  }
   assert.match(header, /desktop-library-search/);
   assert.match(header, /mobile-search-trigger/);
   assert.doesNotMatch(header, /nav-contribute|contribute-trigger|mobile-menu/);
@@ -107,11 +116,13 @@ test('Accepted motion avoids fake progress and keeps the mobile bar fixed with r
   assert.match(form, /جارٍ فحص المدة وحواف الفيديو/);
   assert.match(global, /--motion-micro: 120ms/);
   assert.match(global, /--motion-medium: 240ms/);
+  const glassNavCSS = fs.readFileSync('src/components/glass-nav/glass-nav.css', 'utf8');
   assert.match(navigationCSS, /max-width: 1023px/);
-  assert.match(navigationCSS, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(navigationCSS, /position: fixed/);
-  assert.match(navigationCSS, /prefers-reduced-motion: reduce/);
-  assert.match(navigationCSS, /data-motion='reduce'/);
+  // الشريط الزجاجي: خمس مناطق تفاعلية متساوية + تثبيت أسفل الشاشة + دعم تقليل الحركة
+  assert.match(glassNavCSS, /flex: 1 1 0/);
+  assert.match(glassNavCSS, /position: fixed/);
+  assert.match(glassNavCSS, /prefers-reduced-motion: reduce/);
+  assert.match(glassNavCSS, /data-motion='reduce'/);
   assert.match(formCSS, /contribution-shimmer/);
   assert.doesNotMatch(formCSS, /progress::/);
 });

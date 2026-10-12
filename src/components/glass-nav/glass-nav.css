@@ -1,0 +1,258 @@
+/*!
+ * GlassNav — شريط التنقل الزجاجي (كبسولة عائمة، RTL)
+ * ---------------------------------------------------------------------
+ * مقاسات الشريط كلها مشتقّة من متغيّر واحد: --gnav-h
+ *   --gnav-h        ارتفاع الشريط        (96px على الشاشات الواسعة، يتقلّص للموبايل)
+ *   --gnav-w        أقصى عرض للكبسولة
+ *   --gnav-icon     حجم الأيقونة         (h × .24 — نسبة التصميم الأصلية)
+ *   --gnav-font     حجم النص
+ * الألوان تُقرأ من متغيّرات المشروع (--surface / --ink / --line) مع قيم أساسية
+ * مستقلة حتى يعمل المكوّن خارج المشروع أيضاً.
+ */
+
+:root {
+  --gnav-h: clamp(74px, 8.5vw, 96px);
+  --gnav-w: min(520px, calc(100vw - 24px));
+  --gnav-icon: calc(var(--gnav-h) * 0.24);
+  --gnav-font: clamp(10px, calc(var(--gnav-h) * 0.12), 11.5px);
+  --gnav-gap: 6px;
+  --gnav-ease: var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  --gnav-spring: var(--ease-seal, cubic-bezier(0.34, 1.56, 0.64, 1));
+  --gnav-inc: #959595;
+  --gnav-inc-lab: #6a6a6a;
+  --gnav-act: #2c2c2c;
+  --gnav-font-family: var(--f-body, 'IBM Plex Sans Arabic'), 'Segoe UI', Tahoma, sans-serif;
+  /* تدرّج الأيقونة النشطة — الوضع الفاتح (نفس قيم التصميم المعتمد) */
+  --gnav-g1: #1b1b1b;
+  --gnav-g2: #2b2b2b;
+  --gnav-g3: #484848;
+  --gnav-g4: #535353;
+  --gnav-g5: #4c4c4c;
+  --gnav-g6: #414141;
+  --gnav-vg: #050505;
+}
+
+:root[data-theme='dark'] {
+  --gnav-inc: #8f938a;
+  --gnav-inc-lab: #b0b3a7;
+  --gnav-act: #f3eee6;
+  /* في الوضع الداكن يقلب التدرّج ليقرأ النصّ/الأيقونة على الزجاج الداكن */
+  --gnav-g1: #fffdf9;
+  --gnav-g2: #efeade;
+  --gnav-g3: #d9d3c6;
+  --gnav-g4: #c9c3b6;
+  --gnav-g5: #bdb7ab;
+  --gnav-g6: #cfc9bd;
+  --gnav-vg: #6b665c;
+}
+
+/* ============================== الكبسولة ============================== */
+.glass-nav {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: var(--gnav-w);
+  height: var(--gnav-h);
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  direction: rtl; /* ترتيب DOM = المكتبة → الحساب (يمين → يسار) */
+  padding: 0 calc(var(--gnav-h) * 0.17);
+
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.46));
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 18px 40px rgba(12, 20, 35, 0.16),
+    0 3px 8px rgba(12, 20, 35, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* لمعة الحافة العليا كما في الموك-أب */
+.glass-nav::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 46%);
+}
+
+:root[data-theme='dark'] .glass-nav {
+  background: linear-gradient(180deg, rgba(41, 45, 37, 0.82), rgba(28, 31, 26, 0.62));
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    0 3px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+:root[data-theme='dark'] .glass-nav::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 46%);
+}
+
+/* لا يغطّي الشريط آخر المحتوى */
+body:has(> .glass-nav),
+body:has(> * > .glass-nav) {
+  padding-bottom: calc(var(--gnav-h) + 42px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ============================== التبويبات ============================== */
+.glass-nav .gnav-tab {
+  position: relative;
+  flex: 1 1 0; /* خمس مناطق تفاعلية متساوية */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gnav-gap);
+  margin: 0;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--gnav-inc);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.24s var(--gnav-ease);
+}
+.glass-nav .gnav-tab:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent, #2f6bff) 45%, transparent);
+  outline-offset: 3px;
+  border-radius: 16px;
+}
+
+/* الأيقونة: طبقتان متراكبتان — مخطط + ممتلئ بتدرّج، تتقاطعان بتلاشٍ ناعم */
+.glass-nav .gnav-ico {
+  position: relative;
+  display: block;
+  width: var(--gnav-icon);
+  height: var(--gnav-icon);
+  transition: transform 0.3s var(--gnav-spring);
+}
+.glass-nav .gnav-ico svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+}
+.glass-nav .gnav-ico svg .s-o {
+  transition: opacity 0.24s var(--gnav-ease);
+}
+.glass-nav .gnav-ico svg .s-f {
+  transition: opacity 0.24s var(--gnav-ease);
+  opacity: 0;
+}
+
+.glass-nav .gnav-tab[data-active='true'] {
+  color: var(--gnav-act);
+}
+.glass-nav .gnav-tab[data-active='true'] .gnav-ico svg .s-o {
+  opacity: 0;
+}
+.glass-nav .gnav-tab[data-active='true'] .gnav-ico svg .s-f {
+  opacity: 1;
+}
+
+/* النص */
+.glass-nav .gnav-lab {
+  font-family: var(--gnav-font-family);
+  font-size: var(--gnav-font);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--gnav-inc-lab);
+  white-space: nowrap;
+  transition: color 0.24s var(--gnav-ease);
+}
+.glass-nav .gnav-tab[data-active='true'] .gnav-lab {
+  color: var(--gnav-act);
+  font-weight: 700;
+}
+
+/* استجابة اللمس */
+.glass-nav .gnav-tab:active .gnav-ico {
+  transform: scale(0.93);
+  transition-duration: 0.12s;
+}
+
+/* ====================== زر الإضافة المركزي (اضافة) ====================== */
+.glass-nav .gnav-tab[data-key='add'] .gnav-ico::before {
+  content: '';
+  position: absolute;
+  inset: -42%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(125, 125, 125, 0.3), rgba(125, 125, 125, 0) 70%);
+  opacity: 0;
+  transition: opacity 0.3s var(--gnav-ease);
+}
+.glass-nav .gnav-tab[data-key='add'][data-active='true'] .gnav-ico {
+  transform: scale(1.16);
+}
+.glass-nav .gnav-tab[data-key='add'][data-active='true'] .gnav-ico::before {
+  opacity: 1;
+}
+.glass-nav .gnav-tab.is-pulsing .gnav-ico {
+  animation: gnav-pop 0.42s var(--gnav-spring);
+}
+@keyframes gnav-pop {
+  0% {
+    transform: scale(0.86);
+  }
+  60% {
+    transform: scale(1.24);
+  }
+  100% {
+    transform: scale(1.16);
+  }
+}
+
+/* ============================== a11y / الحركة ============================== */
+@media (prefers-reduced-motion: reduce) {
+  .glass-nav .gnav-tab,
+  .glass-nav .gnav-ico,
+  .glass-nav .gnav-lab,
+  .glass-nav .gnav-ico svg .s-o,
+  .glass-nav .gnav-ico svg .s-f {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+/* مفتاح تقليل الحركة داخل المشروع: data-motion="reduce" على <html> */
+:root[data-motion='reduce'] .glass-nav .gnav-tab,
+:root[data-motion='reduce'] .glass-nav .gnav-ico,
+:root[data-motion='reduce'] .glass-nav .gnav-lab,
+:root[data-motion='reduce'] .glass-nav .gnav-ico svg .s-o,
+:root[data-motion='reduce'] .glass-nav .gnav-ico svg .s-f {
+  transition: none !important;
+  animation: none !important;
+}
+@media (prefers-contrast: more) {
+  .glass-nav {
+    background: var(--surface, #fff);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--line, #cfd6e0);
+  }
+  .glass-nav .gnav-tab {
+    color: #6f6f6f;
+  }
+  .glass-nav .gnav-tab[data-active='true'],
+  .glass-nav .gnav-tab[data-active='true'] .gnav-lab {
+    color: var(--ink, #000);
+  }
+}
+/* طباعة */
+@media print {
+  .glass-nav {
+    display: none;
+  }
+}
