@@ -76,6 +76,10 @@ test('Three primary destinations stay separate from the active mock-upload quick
   assert.match(header, /mobile-library-search/);
   assert.match(header, /header-search-row/);
   assert.doesNotMatch(header, /mobile-search-trigger/);
+  // زر الحساب في الهيدر مقصور على الحاسوب — على الجوال الحساب من تبويب الشريط الزجاجي
+  const navCss = fs.readFileSync('src/app/navigation.css', 'utf8');
+  const mobileCss = navCss.split('@media (max-width: 1023px)')[1] ?? '';
+  assert.match(mobileCss, /\.site-header \.header-account \{[^}]*display: none/);
   assert.doesNotMatch(header, /nav-contribute|contribute-trigger|mobile-menu/);
   assert.equal(fs.existsSync('src/features/Home.tsx'), false);
   assert.equal(fs.existsSync('src/app/page.tsx'), false);

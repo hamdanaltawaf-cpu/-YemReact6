@@ -297,6 +297,10 @@
   .site-header .header-actions {
     gap: 5px;
   }
+  /* على الجوال لا حاجة لزر الحساب في الهيدر — الحساب يُفتح من تبويب «الحساب» في الشريط الزجاجي */
+  .site-header .header-account {
+    display: none;
+  }
   .site-header .header-search-row {
     display: block;
     padding-bottom: 11px;
