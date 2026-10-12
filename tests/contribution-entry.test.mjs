@@ -72,7 +72,10 @@ test('Three primary destinations stay separate from the active mock-upload quick
     assert.ok(glassNav.includes(`label: '${label}'`), `التبويب «${label}» مفقود`);
   }
   assert.match(header, /desktop-library-search/);
-  assert.match(header, /mobile-search-trigger/);
+  // DECISION-I10: الحقل كاملًا في الهيدر على الجوال — بلا زر مُطلق ولا نافذة بحث
+  assert.match(header, /mobile-library-search/);
+  assert.match(header, /header-search-row/);
+  assert.doesNotMatch(header, /mobile-search-trigger/);
   assert.doesNotMatch(header, /nav-contribute|contribute-trigger|mobile-menu/);
   assert.equal(fs.existsSync('src/features/Home.tsx'), false);
   assert.equal(fs.existsSync('src/app/page.tsx'), false);

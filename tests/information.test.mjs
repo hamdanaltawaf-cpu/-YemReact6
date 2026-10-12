@@ -44,6 +44,8 @@ test('Root and legacy about paths redirect permanently, while sitemap lists cano
     JSON.stringify([
       { source: '/', destination: '/library', permanent: true },
       { source: '/about', destination: '/help', permanent: true },
+      // DECISION-5.1: /search قديم يوجّه إلى سطح المكتبة مع الحفاظ على q
+      { source: '/search', destination: '/library', permanent: true },
     ]),
   );
   const sitemap = fs.readFileSync('src/app/sitemap.ts', 'utf8');

@@ -80,7 +80,10 @@ export function filterReactions(
         (!cat || r.category === cat) &&
         (verifiedMediaType(r) !== 'video' || r.duration == null || r.duration <= maxDuration) &&
         words.every((w) =>
-          normalizeArabic([r.caption, r.situation, r.code, ...r.keywords].join(' ')).includes(w),
+          // P-14: الاسم · الجملة · وصف المشهد · اسم الشخص · الكلام المضمن (الكلمات المفتاحية)
+          normalizeArabic(
+            [r.caption, r.situation, r.code, r.characterName ?? '', ...r.keywords].join(' '),
+          ).includes(w),
         ),
     )
     .sort((a, b) =>

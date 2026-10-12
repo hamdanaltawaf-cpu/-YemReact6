@@ -9,9 +9,11 @@ const config: NextConfig = {
   images: { unoptimized: true },
   async redirects() {
     // One canonical entry: /library. Legacy /about fragments still resolve through /help.
+    // DECISION-5.1: البحث حالة من المكتبة (?q=) — مسار /search قديم يوجّه إليها ويحافظ على q.
     return [
       { source: '/', destination: '/library', permanent: true },
       { source: '/about', destination: '/help', permanent: true },
+      { source: '/search', destination: '/library', permanent: true },
     ];
   },
   async headers() {

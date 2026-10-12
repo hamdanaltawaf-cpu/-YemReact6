@@ -95,8 +95,8 @@
   "shadows": [
     {
       "where": "mobile-light",
-      "mean": 159.4,
-      "darkPct": 46.7
+      "mean": 147.9,
+      "darkPct": 46.9
     },
     {
       "where": "mobile-saved",

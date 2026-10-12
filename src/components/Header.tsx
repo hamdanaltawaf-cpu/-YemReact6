@@ -160,7 +160,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
   const app = useApp();
   const [accountPopover, setAccountPopover] = useState(false);
   const [accountSheet, setAccountSheet] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchFocus, setSearchFocus] = useState(false);
   const [query, setQuery] = useState('');
   const [hiddenOnScroll, setHiddenOnScroll] = useState(false);
   const [embedded, setEmbedded] = useState(false);
@@ -173,7 +173,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
   useEffect(() => {
     setAccountPopover(false);
     setAccountSheet(false);
-    setSearchOpen(false);
+    setSearchFocus(false);
     setHiddenOnScroll(false);
     const syncQuery = () =>
       setQuery(
@@ -212,7 +212,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
     const closeOnResize = () => {
       setAccountPopover(false);
       setAccountSheet(false);
-      setSearchOpen(false);
+      setSearchFocus(false);
       setHiddenOnScroll(false);
     };
     breakpoint.addEventListener('change', closeOnResize);
@@ -231,8 +231,11 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
       if (breakpoint.matches)
         document.querySelector<HTMLInputElement>('#desktop-library-search')?.focus();
       else {
+        // الحقل نفسه داخل الهيدر على الجوال: نُظهر الهيدر إن كان مخفيًا ثم نركّز فيه.
         setHiddenOnScroll(false);
-        setSearchOpen(true);
+        requestAnimationFrame(() =>
+          document.querySelector<HTMLInputElement>('#mobile-library-search')?.focus(),
+        );
       }
     };
     window.addEventListener('keydown', shortcut);
@@ -255,7 +258,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
           window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
           app.reduced ||
           accountSheet ||
-          searchOpen ||
+          searchFocus ||
           document.querySelector('dialog[open]')
         ) {
           previous = y;
@@ -276,11 +279,10 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
       window.removeEventListener('scroll', onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [app.reduced, accountSheet, searchOpen]);
+  }, [app.reduced, accountSheet, searchFocus]);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSearchOpen(false);
     const term = query.trim();
     router.push(term ? `/library?q=${encodeURIComponent(term)}` : '/library');
   }
@@ -334,7 +336,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
               onSubmit={submitSearch}
             >
               <label className="sr-only" htmlFor="desktop-library-search">
-                ابحث في المكتبة
+                ابحث عن رياكشن أو موقف
               </label>
               <input
                 id="desktop-library-search"
@@ -342,26 +344,13 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
                 name="q"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="ابحث في المكتبة"
+                placeholder="ابحث عن رياكشن أو موقف..."
                 autoComplete="off"
               />
-              <button type="submit" aria-label="تنفيذ البحث" title="ابحث في المكتبة">
+              <button type="submit" aria-label="تنفيذ البحث" title="ابحث عن رياكشن أو موقف">
                 <Search size={18} aria-hidden="true" />
               </button>
             </form>
-            <button
-              type="button"
-              className="icon-btn mobile-search-trigger"
-              aria-label="البحث"
-              aria-haspopup="dialog"
-              aria-expanded={searchOpen}
-              onClick={() => {
-                setHiddenOnScroll(false);
-                setSearchOpen(true);
-              }}
-            >
-              <Search size={21} aria-hidden="true" />
-            </button>
             <UploadQuickAction />
             <div
               className="header-account"
@@ -404,6 +393,34 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
             </div>
           </div>
         </div>
+        {/* DECISION-I10: على الجوال الحقل كاملًا داخل الهيدر — بلا نافذة ولا زر مُطلق */}
+        <div className="container header-search-row">
+          <form
+            className="mobile-library-search"
+            role="search"
+            aria-label="بحث في المكتبة"
+            onSubmit={submitSearch}
+          >
+            <label className="sr-only" htmlFor="mobile-library-search">
+              ابحث عن رياكشن أو موقف
+            </label>
+            <Search size={19} aria-hidden="true" />
+            <input
+              id="mobile-library-search"
+              type="search"
+              name="q"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onFocus={() => setSearchFocus(true)}
+              onBlur={() => setSearchFocus(false)}
+              placeholder="ابحث عن رياكشن أو موقف..."
+              autoComplete="off"
+            />
+            <button type="submit" aria-label="تنفيذ البحث">
+              <ArrowLeft size={17} aria-hidden="true" />
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* الشريط الزجاجي العائم: المسارات الأربعة روابط، و«الحساب» يفتح قائمة الحساب */}
@@ -415,32 +432,6 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
           googleAuthOrigin={googleAuthOrigin}
           embedded={embedded}
         />
-      </Modal>
-      <Modal open={searchOpen} onClose={() => setSearchOpen(false)} title="البحث" sheet>
-        <form
-          className="mobile-library-search"
-          role="search"
-          aria-label="بحث في المكتبة"
-          onSubmit={submitSearch}
-        >
-          <label htmlFor="mobile-library-search">ابحث في المكتبة</label>
-          <div>
-            <Search size={19} aria-hidden="true" />
-            <input
-              id="mobile-library-search"
-              type="search"
-              name="q"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="اكتب كلمة أو عبارة"
-              autoComplete="off"
-              autoFocus
-            />
-            <button type="submit" className="btn btn-primary">
-              بحث <ArrowLeft size={17} aria-hidden="true" />
-            </button>
-          </div>
-        </form>
       </Modal>
     </>
   );

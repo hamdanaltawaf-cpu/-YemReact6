@@ -47,6 +47,11 @@ test('all nine categories have seed content', () =>
   assert.equal(new Set(REACTIONS.map((r) => r.category)).size, 9));
 test('search uses all normalized query words', () =>
   assert.equal(filterReactions(REACTIONS, 'خبر صادم').length, 1));
+test('search covers person names too (P-14)', () => {
+  const hits = filterReactions(REACTIONS, 'شخصية افتراضية');
+  assert.equal(hits.length, 1);
+  assert.equal(hits[0].code, 'YR-0001');
+});
 test('category filtering is exact', () =>
   assert.equal(filterReactions(REACTIONS, '', 'reject').length, 2));
 test('duration and sorting are composed', () => {

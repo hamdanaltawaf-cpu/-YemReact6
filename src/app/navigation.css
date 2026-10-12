@@ -26,8 +26,9 @@
 .desktop-library-search {
   display: flex;
   align-items: center;
-  height: 42px;
-  width: clamp(170px, 18vw, 248px);
+  /* DECISION-I10: ارتفاع 44px وعرض 420–480px */
+  height: 44px;
+  width: clamp(420px, 30vw, 480px);
   min-width: 0;
   padding-inline: 12px 4px;
   background: var(--surface);
@@ -86,7 +87,8 @@
   background: color-mix(in srgb, var(--accent-text) 87%, black);
   box-shadow: 0 5px 15px color-mix(in srgb, var(--accent) 22%, transparent);
 }
-.mobile-search-trigger {
+/* DECISION-I10: حقل كامل في الهيدر على الجوال — يظهر ضمن الهيدر لا في نافذة */
+.header-search-row {
   display: none;
 }
 .header-account {
@@ -236,27 +238,28 @@
   border-radius: 0 0 9px 9px;
 }
 
-.mobile-library-search label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.mobile-library-search > div {
+/* DECISION-I10: الحقل كامل العرض داخل الهيدر على الجوال */
+.mobile-library-search {
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 53px;
-  padding: 5px 12px 5px 5px;
+  height: 44px;
+  width: 100%;
+  padding-inline: 12px 5px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--bg);
+  background: var(--surface);
+  transition:
+    border-color var(--motion-micro) var(--ease-standard),
+    box-shadow var(--motion-micro) var(--ease-standard);
 }
-.mobile-library-search > div:focus-within {
+.mobile-library-search:focus-within {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
-.mobile-library-search > div > svg {
+.mobile-library-search > svg {
   color: var(--muted);
+  flex: none;
 }
 .mobile-library-search input {
   flex: 1;
@@ -267,10 +270,15 @@
   font-size: 14px;
   outline: none;
 }
-.mobile-library-search .btn {
-  min-height: 42px;
-  padding: 8px 12px;
-  font-size: 12px;
+.mobile-library-search button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 7px;
+  background: var(--soft);
+  color: var(--ink);
 }
 @media (max-width: 1023px) {
   .site-header .desktop-nav,
@@ -289,11 +297,9 @@
   .site-header .header-actions {
     gap: 5px;
   }
-  .site-header .mobile-search-trigger {
-    display: inline-grid;
-    width: 44px;
-    height: 44px;
-    place-items: center;
+  .site-header .header-search-row {
+    display: block;
+    padding-bottom: 11px;
   }
   .site-header {
     transition: transform 250ms var(--ease-standard);
