@@ -96,10 +96,20 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 46%);
 }
 
-/* لا يغطّي الشريط آخر المحتوى */
-body:has(> .glass-nav),
-body:has(> * > .glass-nav) {
-  padding-bottom: calc(var(--gnav-h) + 42px + env(safe-area-inset-bottom, 0px));
+/* الشريط للجوال وحده: لا يظهر ولا يحجز حشوة من 640px فصاعدًا (حدّ القرار 5.2.12) */
+@media (min-width: 640px) {
+  .glass-nav {
+    display: none;
+  }
+}
+
+/* لا يغطّي الشريط آخر المحتوى — الحشوة محجوزة على الجوال فقط (<640px)،
+   ولا حشوة سفلية على الحاسوب حيث الكبسولة مخفية */
+@media (max-width: 639px) {
+  body:has(> .glass-nav),
+  body:has(> * > .glass-nav) {
+    padding-bottom: calc(var(--gnav-h) + 42px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ============================== التبويبات ============================== */

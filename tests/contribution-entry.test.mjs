@@ -71,10 +71,10 @@ test('Three primary destinations stay separate from the active mock-upload quick
   for (const label of ['المكتبة', 'المجموعات', 'اضافة', 'المحفوظات', 'الحساب']) {
     assert.ok(glassNav.includes(`label: '${label}'`), `التبويب «${label}» مفقود`);
   }
-  assert.match(header, /desktop-library-search/);
-  // DECISION-I10: الحقل كاملًا في الهيدر على الجوال — بلا زر مُطلق ولا نافذة بحث
-  assert.match(header, /mobile-library-search/);
-  assert.match(header, /header-search-row/);
+  // صفّ رأس واحد: نموذج بحث واحد بمعرّف واحد داخل الصفّ، ولا أثر للبنية القديمة (صفّ البحث المنفصل والحقلان)
+  assert.match(header, /className="library-search"/);
+  assert.match(header, /id="library-search"/);
+  assert.doesNotMatch(header, /desktop-library-search|mobile-library-search|header-search-row/);
   assert.doesNotMatch(header, /mobile-search-trigger/);
   // زر الحساب في الهيدر مقصور على الحاسوب — على الجوال الحساب من تبويب الشريط الزجاجي
   const navCss = fs.readFileSync('src/app/navigation.css', 'utf8');
@@ -141,4 +141,60 @@ test('Mock entry routes opt out of indexing and public offline HTML caching', ()
   assert.match(hubPage, /index: false/);
   assert.match(submissions, /index: false/);
   assert.doesNotMatch(sw, /'\/contribute'|'\/account\/submissions'/);
+});
+
+test('Single header row locks: one search field, glass-nav mobile-only, hide-on-scroll, 374px ladder', () => {
+  const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
+  const navCss = fs.readFileSync('src/app/navigation.css', 'utf8');
+  const glassCss = fs.readFileSync('src/components/glass-nav/glass-nav.css', 'utf8');
+  const globalCss = fs.readFileSync('src/app/globals.css', 'utf8');
+  // الصفّ flex والحقل واحد يملأ الوسط
+  assert.match(navCss, /\.site-header \.header-row \{[^}]*display: flex/);
+  assert.doesNotMatch(navCss, /\.site-header \.header-row \{[^}]*grid-template-columns/);
+  assert.match(navCss, /\.library-search \{[^}]*flex: 1 1 auto/);
+  assert.match(navCss, /\.library-search \{[^}]*min-width: 0/);
+  assert.equal(header.match(/role="search"/g)?.length, 1, 'نموذج بحث واحد فقط');
+  assert.equal(header.match(/id="library-search"/g)?.length, 1, 'معرّف بحث واحد فقط');
+  assert.match(header, /onFocus=\{\(\) => setSearchFocus\(true\)\}/);
+  // كتلة الرأس: 78px حاسوبًا و60px جوالًا — الشبكة تبدأ مباشرة بلا صفّ ثانٍ
+  assert.match(navCss, /\.site-header \.header-row \{[^}]*height: 78px/);
+  const mobileBlock = navCss.split('@media (max-width: 1023px)')[1] ?? '';
+  assert.match(mobileBlock, /\.site-header \.header-row \{[^}]*height: 60px/);
+  assert.match(mobileBlock, /\.library-search \{[^}]*height: 42px/);
+  // الكبسولة مخفية من 640px
+  assert.match(glassCss, /@media \(min-width: 640px\)\s*\{\s*\.glass-nav \{\s*display: none/);
+  // الحشوة السفلية <640px فقط، وبلا قاعدة غير مشروطة
+  const paddingAt = glassCss.indexOf('body:has(> .glass-nav)');
+  const media639 = glassCss.indexOf('@media (max-width: 639px)');
+  assert.ok(media639 !== -1, 'حوشة body السفلية يجب أن تقع داخل @media (max-width: 639px)');
+  assert.ok(paddingAt > media639, 'لا قاعدة body:has خارج ميديا 639px');
+  assert.match(glassCss, /padding-bottom: calc\(var\(--gnav-h\) \+ 42px/);
+  assert.equal(glassCss.match(/body:has\(> \.glass-nav\)/g)?.length, 1);
+  // نطاق 640–1023 يعيد التنقّل والحساب، و768 يعيد زر الرفع
+  const mid = navCss.split('@media (min-width: 640px) and (max-width: 1023px)')[1] ?? '';
+  assert.match(mid, /\.site-header \.desktop-nav \{[^}]*display: flex/);
+  assert.match(mid, /\.site-header \.header-account \{[^}]*display: block/);
+  const mid768 = navCss.split('@media (min-width: 768px) and (max-width: 1023px)')[1] ?? '';
+  assert.match(mid768, /\.desktop-quick-action \{[^}]*display: grid/);
+  // translateY(-110%) + pointer-events:none داخل ≤1023 فقط
+  assert.match(mobileBlock, /\.site-header\.header-hidden \{[^}]*transform: translateY\(-110%\)/);
+  assert.match(mobileBlock, /\.site-header\.header-hidden \{[^}]*pointer-events: none/);
+  assert.equal(navCss.match(/translateY\(-110%\)/g)?.length, 1, 'إظهارٌ/إخفاءٌ في موضع واحد');
+  const preMedia = navCss.slice(0, navCss.indexOf('@media (max-width: 1023px)'));
+  assert.doesNotMatch(preMedia, /translateY\(-110%\)/, 'لا إخفاء على الحاسوب');
+  // --header-offset يقود الإزاحات: 110px افتراضيًا و74px جوالًا
+  assert.match(globalCss, /--header-offset: 110px/);
+  assert.match(globalCss, /scroll-padding-top: var\(--header-offset\)/);
+  assert.match(mobileBlock, /--header-offset: 74px/);
+  assert.equal(globalCss.match(/scroll-margin-top: var\(--header-offset\)/g)?.length, 2);
+  assert.doesNotMatch(globalCss, /scroll-((padding)|(margin))-top: 110px/);
+  // سلّم ≤374px يمنع أي تجاوز أفقي على 320px
+  const ladder = navCss.split('@media (max-width: 374px)')[1] ?? '';
+  assert.match(ladder, /\.site-header \.brand > svg \{[^}]*width: 30px/);
+  assert.match(ladder, /\.site-header \.brand b \{[^}]*font-size: 20px/);
+  assert.match(ladder, /\.library-search \{[^}]*padding-inline: 10px 4px/);
+  assert.match(ladder, /\.library-search button \{[^}]*width: 30px/);
+  // الهيدر يُقصى من شجرة الوصول عند الاختفاء (inert + aria-hidden)
+  assert.match(header, /inert=\{hiddenOnScroll\}/);
+  assert.match(header, /aria-hidden=\{hiddenOnScroll \? true : undefined\}/);
 });

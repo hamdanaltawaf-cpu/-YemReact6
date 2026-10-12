@@ -24,6 +24,8 @@
   --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
   --ease-seal: cubic-bezier(0.34, 1.56, 0.64, 1);
   --font-body: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  /* ارتفاع الرأس الثابت — يقود scroll-padding ومواضع الإزاحة؛ navigation.css يبدّله إلى 74px ≤1023 */
+  --header-offset: 110px;
   color-scheme: light;
 }
 :root[data-theme='dark'] {
@@ -48,7 +50,7 @@
 }
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 110px;
+  scroll-padding-top: var(--header-offset);
 }
 body {
   margin: 0;
@@ -299,13 +301,6 @@ kbd {
   background: color-mix(in srgb, var(--bg) 91%, transparent);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--line);
-}
-.header-row {
-  height: 86px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 22px;
 }
 .brand {
   display: inline-flex;
@@ -1769,10 +1764,6 @@ kbd {
   .container {
     width: calc(100% - 36px);
   }
-  .header-row {
-    height: 72px;
-    gap: 10px;
-  }
   .desktop-nav {
     display: none;
   }
@@ -2198,9 +2189,6 @@ kbd {
   }
   .brand > svg {
     width: 28px;
-  }
-  .header-row {
-    gap: 5px;
   }
   .header-actions .icon-btn {
     width: 32px;
@@ -2810,7 +2798,7 @@ kbd {
 }
 .information-faq {
   border-top: 1px solid var(--line);
-  scroll-margin-top: 110px;
+  scroll-margin-top: var(--header-offset);
 }
 .information-faq details {
   border-bottom: 1px solid var(--line);
@@ -2849,7 +2837,7 @@ kbd {
 .policy-page > section {
   padding-block: 25px;
   border-top: 1px solid var(--line);
-  scroll-margin-top: 110px;
+  scroll-margin-top: var(--header-offset);
 }
 .policy-page > section h2 {
   font-size: 19px;
