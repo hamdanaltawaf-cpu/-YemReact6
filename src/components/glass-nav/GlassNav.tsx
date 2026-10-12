@@ -286,7 +286,15 @@ export function GlassNav({
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {
       const order = tabs.map((t) => t.key);
-      const index = active ? order.indexOf(active) : 0;
+      // تُحسب الخطوة من التبويب المُركَّز عليه حاليًا لا من النشط،
+      // حتى يعود السهم المقابل إلى التبويب السابق بدل القفز من موضع التحديد.
+      const focusedKey = (event.currentTarget.ownerDocument.activeElement as HTMLElement | null)
+        ?.dataset?.key;
+      const from: GlassTabKey | undefined =
+        focusedKey && order.includes(focusedKey as GlassTabKey)
+          ? (focusedKey as GlassTabKey)
+          : active;
+      const index = from ? order.indexOf(from) : 0;
       if (index < 0) return;
       const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
       let step = 0;
