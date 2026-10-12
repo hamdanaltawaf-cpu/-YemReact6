@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   useCallback,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -268,19 +269,35 @@ export function GlassNav({
   const uid = `gnav${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const [pulse, setPulse] = useState<string | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
+  const pulseTimer = useRef<number | null>(null);
 
   const derived = tabs.find((t) => t.isCurrent?.(pathname))?.key;
   const active = activeKey ?? derived ?? tabs[0]?.key;
 
+  // نبضة «اضافة» مؤقّتة: نُبقي مُعرّف المؤقّت في ref حتى
+  // (١) لا يُلغي اللمس الثاني نبضة الأول بخطأ، (٢) لا يبقى مؤقّت معلّق بعد مغادرة الصفحة.
+  const stopPulse = useCallback(() => {
+    if (pulseTimer.current !== null) {
+      window.clearTimeout(pulseTimer.current);
+      pulseTimer.current = null;
+    }
+  }, []);
+
+  useEffect(() => stopPulse, [stopPulse]);
+
   const activate = useCallback(
-    (tab: GlassTab, node?: HTMLElement | null) => {
+    (tab: GlassTab) => {
       if (tab.key === 'add') {
-        setPulse(tab.key);
-        window.setTimeout(() => setPulse((p) => (p === tab.key ? null : p)), 460);
+        stopPulse();
+        setPulse('add');
+        pulseTimer.current = window.setTimeout(() => {
+          pulseTimer.current = null;
+          setPulse(null);
+        }, 460);
       }
       onSelect?.(tab.key, tab);
     },
-    [onSelect],
+    [onSelect, stopPulse],
   );
 
   const onKeyDown = useCallback(
@@ -341,18 +358,13 @@ export function GlassNav({
             key={tab.key}
             href={tab.href}
             aria-current={isActive ? 'page' : undefined}
-            onClick={(event) => activate(tab, event.currentTarget)}
+            onClick={() => activate(tab)}
             {...shared}
           >
             {inner}
           </Link>
         ) : (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={(event) => activate(tab, event.currentTarget)}
-            {...shared}
-          >
+          <button key={tab.key} type="button" onClick={() => activate(tab)} {...shared}>
             {inner}
           </button>
         );
