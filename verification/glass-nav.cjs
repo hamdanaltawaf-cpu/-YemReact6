@@ -6,8 +6,11 @@
  *
  * يغطّي: الترتيب RTL، تساوي مناطق اللمس، تمركز زر اضافة، التنقّل الحقيقي،
  * امتلاء الأيقونة النشطة فعليًا (فحص بكسلات لا خصائص CSS)، ورقة/منبثق الحساب،
- * أسهم لوحة المفاتيح بوعي RTL، تقليل الحركة، الوضع الداكن، axe للشريط،
+ * أسهم لوحة المفاتيح بوعي RTL، تقليل الحركة، الوضع الداكن، axe للشريط وللرأس،
  * وغياب الانزياح الأفقي من 320px إلى 1920px.
+ * حدّ 5.2.12: الشريط للجوال وحده (<640px) — على ≥640px يُتحقق من اختفائه،
+ * ومن صِفريّة الحشوة السفلية، ومن انتقال التنقّل والحساب إلى الرأس (الرفع من 768px)،
+ * مع حشوة محجوزة ما دُمنا عند 639px فأقل.
  */
 const { chromium } = require('./tools/node_modules/playwright');
 const AxeBuilder = require('./tools/node_modules/@axe-core/playwright').default;
@@ -181,6 +184,48 @@ function check(name, fn) {
       await page.keyboard.press('Escape');
     });
 
+    await check('الجوال <640px: body يحجز حشوة سفلية بمقدار --gnav-h + 42px', async () => {
+      const { padding, gnavH } = await page.evaluate(() => {
+        const style = getComputedStyle(document.body);
+        return {
+          padding: parseFloat(style.paddingBottom),
+          gnavH: parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue('--gnav-h'),
+          ),
+        };
+      });
+      assert.ok(
+        Math.abs(padding - (gnavH + 42)) <= 1,
+        `الحشوة ${padding}px مقابل ${gnavH + 42}px المتوقع`,
+      );
+    });
+
+    await check('أسهم لوحة المفاتيح تتبع اتجاه RTL مع تركيز متحرّك', async () => {
+      const focused = () => page.evaluate(() => document.activeElement?.dataset?.key);
+      // التبويب النشط في /library هو المكتبة؛ الأسهم تحرّك التركيز وحده بلا تنقّل
+      await page.focus(tab('library'));
+      await page.keyboard.press('ArrowLeft'); // في RTL: التالي بصريًا
+      await page.waitForTimeout(150);
+      assert.equal(await focused(), 'groups', 'ArrowLeft لم ينقل التركيز إلى المجموعات');
+      await page.keyboard.press('ArrowRight');
+      await page.waitForTimeout(150);
+      assert.equal(await focused(), 'library', 'ArrowRight لم يُعد التركيز إلى المكتبة');
+      await page.keyboard.press('End');
+      await page.waitForTimeout(150);
+      assert.equal(await focused(), 'account');
+      await page.keyboard.press('Home');
+      await page.waitForTimeout(150);
+      assert.equal(await focused(), 'library');
+      assert.equal((await geometry(page)).active, 'library', 'التركيز وحده غيّر التبويب النشط');
+    });
+
+    await check('axe: لا انتهاكات جدّية داخل الشريط على الجوال', async () => {
+      const results = await new AxeBuilder({ page }).include(NAV).analyze();
+      const serious = results.violations.filter((v) => ['serious', 'critical'].includes(v.impact));
+      report.axe = results.violations.map((v) => ({ id: v.id, impact: v.impact }));
+      assert.deepEqual(serious, [], serious.map((v) => v.id).join(', '));
+    });
+
     await check('لا انزياح أفقي من 320px إلى 1920px', async () => {
       for (const width of [320, 375, 414, 768, 1024, 1440, 1920]) {
         await page.setViewportSize({ width, height: 900 });
@@ -256,38 +301,31 @@ function check(name, fn) {
       path: `${outDir}/glass-nav-desktop.png`,
       animations: 'disabled',
     });
-    const wide = await geometry(desktopPage);
-
-    await check('الحاسوب: الكبسولة في الوسط بلا تمدد مفرط', () => {
-      assert.ok(Math.abs(wide.rect.cx - 720) <= 2, `مركز ${wide.rect.cx}`);
-      assert.ok(wide.rect.w <= 540, `عرض ${wide.rect.w}`);
-    });
-
-    await check('أسهم لوحة المفاتيح تتبع اتجاه RTL مع تركيز متحرّك', async () => {
-      const focused = () => desktopPage.evaluate(() => document.activeElement?.dataset?.key);
-      // التبويب النشط في /library هو المكتبة؛ الأسهم تحرّك التركيز وحده بلا تنقّل
-      await desktopPage.focus(tab('library'));
-      await desktopPage.keyboard.press('ArrowLeft'); // في RTL: التالي بصريًا
-      await desktopPage.waitForTimeout(150);
-      assert.equal(await focused(), 'groups', 'ArrowLeft لم ينقل التركيز إلى المجموعات');
-      await desktopPage.keyboard.press('ArrowRight');
-      await desktopPage.waitForTimeout(150);
-      assert.equal(await focused(), 'library', 'ArrowRight لم يُعد التركيز إلى المكتبة');
-      await desktopPage.keyboard.press('End');
-      await desktopPage.waitForTimeout(150);
-      assert.equal(await focused(), 'account');
-      await desktopPage.keyboard.press('Home');
-      await desktopPage.waitForTimeout(150);
-      assert.equal(await focused(), 'library');
-      assert.equal(
-        (await geometry(desktopPage)).active,
-        'library',
-        'التركيز وحده غيّر التبويب النشط',
+    await check('الحاسوب (1440): الكبسولة مخفية تمامًا ولا تحجز حشوة سفلية', async () => {
+      assert.equal(await desktopPage.locator(NAV).isVisible(), false, 'الكبسولة ظاهرة ≥640px');
+      const padding = await desktopPage.evaluate(
+        () => getComputedStyle(document.body).paddingBottom,
       );
+      assert.equal(padding, '0px', `حشوة سفلية محجوزة على الحاسوب: ${padding}`);
     });
 
-    await check('الحاسوب: تبويب الحساب يفتح المنبثق لا الورقة', async () => {
-      await desktopPage.click(tab('account'));
+    await check(
+      'الحاسوب: الرأس يحمل الشعار وحقلًا واحدًا والروابط الثلاثة والرفع والحساب',
+      async () => {
+        assert.equal(await desktopPage.locator('form[role="search"]').count(), 1, 'نموذج واحد');
+        assert.ok(await desktopPage.locator('.library-search').isVisible(), 'حقل الرأس غير ظاهر');
+        for (const href of ['/library', '/collections', '/saved'])
+          assert.ok(
+            await desktopPage.locator(`.desktop-nav a[href="${href}"]`).isVisible(),
+            href,
+          );
+        assert.ok(await desktopPage.locator('.desktop-quick-action').isVisible(), 'زر الرفع مفقود');
+        assert.ok(await desktopPage.locator('.account-avatar').isVisible(), 'زر الحساب مفقود');
+      },
+    );
+
+    await check('الحاسوب: Avatar الرأس يفتح المنبثق لا الورقة', async () => {
+      await desktopPage.click('.account-avatar');
       await desktopPage.waitForTimeout(500);
       assert.equal(await desktopPage.locator('#desktop-account-popover').count(), 1);
       assert.equal(
@@ -298,11 +336,53 @@ function check(name, fn) {
       );
     });
 
-    await check('axe: لا انتهاكات جدّية داخل الشريط', async () => {
-      const results = await new AxeBuilder({ page: desktopPage }).include(NAV).analyze();
+    await check('axe: لا انتهاكات جدّية داخل رأس الحاسوب', async () => {
+      const results = await new AxeBuilder({ page: desktopPage })
+        .include('header.site-header')
+        .analyze();
       const serious = results.violations.filter((v) => ['serious', 'critical'].includes(v.impact));
-      report.axe = results.violations.map((v) => ({ id: v.id, impact: v.impact }));
       assert.deepEqual(serious, [], serious.map((v) => v.id).join(', '));
+    });
+
+    await check('نطاق 640–1023: الكبسولة مخفية والتنقّل والحساب في الرأس (الرفع من 768)', async () => {
+      for (const width of [640, 768, 1023]) {
+        await desktopPage.setViewportSize({ width, height: 900 });
+        await desktopPage.waitForTimeout(250);
+        assert.equal(
+          await desktopPage.locator(NAV).isVisible(),
+          false,
+          `الكبسولة ظاهرة عند ${width}px`,
+        );
+        assert.equal(
+          await desktopPage.evaluate(() => getComputedStyle(document.body).paddingBottom),
+          '0px',
+          `حشوة محجوزة عند ${width}px`,
+        );
+        assert.ok(
+          await desktopPage.locator('.desktop-nav').isVisible(),
+          `التنقّل مختفٍ عند ${width}px`,
+        );
+        assert.ok(
+          await desktopPage.locator('.account-avatar').isVisible(),
+          `زر الحساب مختفٍ عند ${width}px`,
+        );
+        assert.equal(
+          await desktopPage.locator('.desktop-quick-action').isVisible(),
+          width >= 768,
+          `زر الرفع عند ${width}px`,
+        );
+      }
+    });
+
+    await check('حدّ 639px: الكبسولة ظاهرة ما دُمنا دون 640 والحشوة محجوزة', async () => {
+      await desktopPage.setViewportSize({ width: 639, height: 900 });
+      await desktopPage.waitForTimeout(250);
+      assert.ok(await desktopPage.locator(NAV).isVisible(), 'الكبسولة يجب أن تظهر عند 639px');
+      const padding = await desktopPage.evaluate(() =>
+        parseFloat(getComputedStyle(document.body).paddingBottom),
+      );
+      assert.ok(padding > 100, `الحشوة عند 639px: ${padding}px`);
+      await desktopPage.setViewportSize({ width: 1440, height: 900 });
     });
     await desktop.close();
 

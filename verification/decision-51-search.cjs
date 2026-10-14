@@ -5,9 +5,11 @@
  *   node verification/decision-51-search.cjs
  *
  * يغطّي: توجيه /search إلى /library مع الحفاظ على q، noindex,follow لنتائج البحث،
- * مواصفات حقل DECISION-I10 (44px · 420–480px · الحقل كاملًا في هيدر الجوال)،
+ * حقل البحث الواحد في صفّ الرأس (44px حاسوبًا بعرض ≤560 · 42px على الجوال داخل كتلة 60px)،
  * نصّ placeholder المطلوب، نطاق البحث P-14 (يشمل اسم الشخص)، غياب الانزياح الأفقي،
- * وسلامة الشريط الزجاجي بعد التغييرات.
+ * اختفاء الرأس على الجوال بالتمرير (translateY(-110%) + pointer-events:none + inert + aria-hidden،
+ * ولا يختفي أثناء التركيز، و«/» يُظهره ويركّز)،
+ * واختفاء الشريط الزجاجي من 640px فصاعدًا بلا حشوة سفلية على الحاسوب.
  */
 const { chromium } = require('./tools/node_modules/playwright');
 const fs = require('node:fs');
@@ -61,19 +63,19 @@ const ok = (name) => report.checks.push(name);
   assert.equal(plainRobots, 0, 'المكتبة بدون q يجب ألا تحمل noindex');
   ok('الفهرسة: q → noindex,follow · بلا q → قابل للفهرسة');
 
-  // 5) مواصفات حقل الحاسوب: 44px ارتفاعًا و420–480px عرضًا (DECISION-I10)
-  const box = await page.locator('.desktop-library-search').boundingBox();
-  assert.ok(box, 'حقل الحاسوب غير ظاهر');
+  // 5) حقل واحد في صفّ الرأس على الحاسوب: 44px ارتفاعًا وعرض ≤560px (flex الوسط)
+  const box = await page.locator('.library-search').boundingBox();
+  assert.ok(box, 'حقل الرأس غير ظاهر');
   assert.equal(Math.round(box.height), 44, `الارتفاع ${box.height}`);
-  assert.ok(box.width >= 420 && box.width <= 480, `العرض ${box.width}`);
-  ok(`حقل الحاسوب ${Math.round(box.width)}×${Math.round(box.height)}px (420–480 × 44)`);
+  assert.ok(box.width > 300 && box.width <= 560, `العرض ${box.width}`);
+  assert.equal(await page.locator('form[role="search"]').count(), 1, 'نموذج بحث واحد فقط');
+  ok(`حقل الرأس الواحد ${Math.round(box.width)}×${Math.round(box.height)}px (≤560 × 44، نموذج واحد)`);
 
-  // 6) placeholder المطلوب في الحقلين
+  // 6) placeholder المطلوب في الحقل الواحد
   const placeholder = 'ابحث عن رياكشن أو موقف...';
-  for (const id of ['#desktop-library-search', '#mobile-library-search']) {
-    assert.equal(await page.locator(id).getAttribute('placeholder'), placeholder, id);
-  }
-  ok(`placeholder «${placeholder}» في الحقلين`);
+  assert.equal(await page.locator('#library-search').getAttribute('placeholder'), placeholder);
+  assert.equal((await page.content()).match(/id="library-search"/g)?.length ?? 0, 1, 'id واحد');
+  ok(`placeholder «${placeholder}» في الحقل الواحد (#library-search × 1)`);
 
   // 7) P-14: اسم الشخص ضمن نطاق البحث — على أسماء موجودة في البيانات فعليًا
   const names = await page.evaluate(async () => {
@@ -100,9 +102,12 @@ const ok = (name) => report.checks.push(name);
     ok('P-14: اسم الشخص مفهرس (البيانات بلا أسماء بعد — التغطية الوحدوية قائمة)');
   }
 
-  // 8) الشريط الزجاجي سليم بعد التغييرات (5 تبويبات)
-  assert.equal(await page.locator('.gnav-tab').count(), 5);
-  ok('الشريط الزجاجي: 5 تبويبات دون تأثر');
+  // 8) الحاسوب ≥640px: الشريط الزجاجي مخفي وبلا حشوة سفلية محجوزة
+  assert.equal(await page.locator('.gnav-tab').count(), 5, 'التبويبات الخمس في DOM');
+  assert.equal(await page.locator('.glass-nav').isVisible(), false, 'الكبسولة يجب أن تختفي ≥640px');
+  const bodyPad = await page.evaluate(() => getComputedStyle(document.body).paddingBottom);
+  assert.equal(bodyPad, '0px', `حشوة سفلية محجوزة على الحاسوب: ${bodyPad}`);
+  ok('الحاسوب: glass-nav مخفي ≥640px والحشوة السفلية 0');
 
   // 9) لا انزياح أفقي عند 1024 / 1440 / 1920 (حقل الحاسوب الجديد أوسع)
   for (const width of [1024, 1440, 1920]) {
@@ -124,22 +129,77 @@ const ok = (name) => report.checks.push(name);
   });
   const mpage = await mobile.newPage();
   await mpage.goto(`${base}/library`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await mpage.waitForSelector('.mobile-library-search', { timeout: 60000 });
+  await mpage.waitForSelector('.library-search', { timeout: 60000 });
   assert.equal(await mpage.locator('.mobile-search-trigger').count(), 0, 'لا يجوز إبقاء الزر المُطلق');
-  assert.equal(
-    await mpage.locator('.header-search-row').isVisible(),
-    true,
-    'صفّ الحقل يجب أن يكون ظاهرًا في الهيدر',
+  assert.equal(await mpage.locator('.header-search-row').count(), 0, 'صفّ البحث المنفصل أُزيل');
+  assert.equal(await mpage.locator('form[role="search"]').count(), 1, 'نموذج واحد على الجوال أيضًا');
+  const headerBox = await mpage.locator('header.site-header').boundingBox();
+  const mobileForm = await mpage.locator('.library-search').boundingBox();
+  assert.ok(mobileForm && headerBox, 'حقل الجوال غير ظاهر');
+  assert.equal(Math.round(headerBox.height), 60, `ارتفاع كتلة الرأس ${headerBox.height}`);
+  assert.equal(Math.round(mobileForm.height), 42, `ارتفاع حقل الجوال ${mobileForm.height}`);
+  assert.ok(
+    mobileForm.y >= headerBox.y && mobileForm.y + mobileForm.height <= headerBox.y + headerBox.height,
+    'الحقل خارج حدود الرأس',
   );
-  const formBox = await mpage.locator('.mobile-library-search').boundingBox();
-  const rowBox = await mpage.locator('.header-search-row').boundingBox();
-  assert.ok(formBox && rowBox && formBox.width >= rowBox.width - 2, 'الحقل ليس كامل العرض');
-  assert.equal(Math.round(formBox.height), 44, `ارتفاع حقل الجوال ${formBox.height}`);
-  ok(`حقل الجوال داخل الهيدر كامل العرض (${Math.round(formBox.width)}px)`);
+  ok(`كتلة الرأس 60px والحقل داخلها بارتفاع 42px (بلا صفّ ثانٍ)`);
 
-  // 11) الإرسال من حقل الجوال ينقل إلى المكتبة بالنتائج
-  await mpage.fill('#mobile-library-search', 'قوية');
-  await mpage.locator('.mobile-library-search button[type="submit"]').click();
+  // 11) الرأس يختفي بالتمرير للأسفل ويعود بأول حركة لأعلى، ولا يختفي أثناء الكتابة
+  const hiddenState = () =>
+    mpage.evaluate(() => {
+      const header = document.querySelector('header.site-header');
+      const style = getComputedStyle(header);
+      return {
+        cls: header.className,
+        inert: header.inert,
+        aria: header.getAttribute('aria-hidden'),
+        transform: style.transform,
+        pointer: style.pointerEvents,
+      };
+    });
+  await mpage.evaluate(() => window.scrollTo(0, 0));
+  await mpage.waitForTimeout(300);
+  await mpage.evaluate(() => window.scrollTo(0, 600));
+  await mpage.waitForTimeout(400);
+  let state = await hiddenState();
+  assert.match(state.cls, /header-hidden/, 'الرأس لم يختفِ بالنزول');
+  assert.equal(state.inert, true, 'inert غير مفعّل عند الاختفاء');
+  assert.equal(state.aria, 'true', 'aria-hidden غير مضبوط عند الاختفاء');
+  assert.notEqual(state.transform, 'none', 'لا translateY عند الاختفاء');
+  assert.equal(state.pointer, 'none', 'pointer-events يجب أن تتعطّل');
+  ok('النزول >80px: الرأس يختفي بـ translateY(-110%) + pointer-events:none + inert + aria-hidden');
+
+  await mpage.evaluate(() => window.scrollTo(0, 560));
+  await mpage.waitForTimeout(400);
+  state = await hiddenState();
+  assert.doesNotMatch(state.cls, /header-hidden/, 'الرأس لم يعد بأول حركة لأعلى');
+  ok('أول حركة لأعلى تعيد الرأس');
+
+  await mpage.focus('#library-search');
+  await mpage.evaluate(() => window.scrollTo(0, 800));
+  await mpage.waitForTimeout(400);
+  state = await hiddenState();
+  assert.doesNotMatch(state.cls, /header-hidden/, 'الرأس اختفى أثناء التركيز في الحقل');
+  ok('أثناء التركيز في الحقل (searchFocus) لا يختفي الرأس');
+
+  await mpage.evaluate(() => document.activeElement?.blur());
+  await mpage.evaluate(() => window.scrollTo(0, 1000));
+  await mpage.waitForTimeout(400);
+  assert.match((await hiddenState()).cls, /header-hidden/);
+  await mpage.keyboard.press('/');
+  await mpage.waitForTimeout(400);
+  state = await hiddenState();
+  assert.doesNotMatch(state.cls, /header-hidden/, 'اختصار «/» لم يُظهر الرأس');
+  assert.equal(
+    await mpage.evaluate(() => document.activeElement?.id),
+    'library-search',
+    'اختصار «/» لم يركّز في #library-search',
+  );
+  ok('اختصار «/» يُظهر الرأس ثم يركّز في #library-search');
+
+  // 12) الإرسال من حقل الجوال ينقل إلى المكتبة بالنتائج
+  await mpage.fill('#library-search', 'قوية');
+  await mpage.locator('.library-search button[type="submit"]').click();
   await mpage.waitForURL('**/library?q=*', { timeout: 60000 });
   await mpage.waitForSelector('.reaction-card', { timeout: 60000 });
   assert.equal(await mpage.locator('.reaction-card').count(), 2);
