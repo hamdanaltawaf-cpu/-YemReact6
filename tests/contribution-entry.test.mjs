@@ -82,7 +82,7 @@ test('Three primary destinations stay separate from the active mock-upload quick
   assert.match(mobileCss, /\.site-header \.header-account \{[^}]*display: none/);
   assert.doesNotMatch(header, /nav-contribute|contribute-trigger|mobile-menu/);
   assert.equal(fs.existsSync('src/features/Home.tsx'), false);
-  assert.equal(fs.existsSync('src/app/page.tsx'), false);
+  assert.equal(fs.existsSync('src/app/page.tsx'), true); // بوّابة الدخول على الجذر
   assert.match(header, /className="brand" aria-label="يمن رياكت\. YEMREACT — المكتبة"/);
   assert.doesNotMatch(header, /href="\/"|الرئيسية/);
 });

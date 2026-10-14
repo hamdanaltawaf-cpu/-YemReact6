@@ -28,7 +28,7 @@ self.addEventListener('activate', event => event.waitUntil(
 self.addEventListener('fetch', event => {
   const req = event.request, url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
-  // The retired home URL redirects online. Do not cache that redirect as a second page.
+  // الجذر صار بوّابة الدخول (تُجيب بحسب الجلسة): من الشبكة دائمًا وبلا تخزين نسختي الزائر/المسجَّل.
   if (req.mode === 'navigate' && url.pathname === '/') {
     event.respondWith(fetch(req).catch(async () => await caches.match('/library') || await caches.match('/offline')));
     return;

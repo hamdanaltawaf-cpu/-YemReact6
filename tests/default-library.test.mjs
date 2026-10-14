@@ -13,15 +13,15 @@ function transpile(file) {
   return exports;
 }
 
-test('Only library is the public default, with a permanent root redirect', async () => {
+test('Only library is the public default; the root is now the login gateway page', async () => {
   const config = transpile('next.config.ts').default;
   const redirects = await config.redirects();
-  assert.deepEqual(JSON.parse(JSON.stringify(redirects.find((rule) => rule.source === '/'))), {
-    source: '/',
-    destination: '/library',
-    permanent: true,
-  });
-  assert.equal(fs.existsSync('src/app/page.tsx'), false);
+  // الجذر لم يعد إحالة إلى /library — صفحته بوّابة الدخول (src/app/page.tsx)
+  assert.equal(
+    redirects.find((rule) => rule.source === '/'),
+    undefined,
+  );
+  assert.equal(fs.existsSync('src/app/page.tsx'), true);
   assert.equal(fs.existsSync('src/features/Home.tsx'), false);
   for (const file of [
     'src/app/globals.css',
@@ -47,6 +47,6 @@ test('Brand, responsive navigation, PWA start and sitemap no longer advertise Ho
   assert.doesNotMatch(sitemap, /\{ url: base, priority: 1 \}/);
   assert.match(sitemap, /base \+ '\/library', priority: 1/);
   const worker = fs.readFileSync('public/sw.js', 'utf8');
-  assert.match(worker, /retired home URL redirects online/);
+  assert.match(worker, /الجذر صار بوّابة الدخول/);
   assert.doesNotMatch(worker, /\['\/', '\/library'/);
 });

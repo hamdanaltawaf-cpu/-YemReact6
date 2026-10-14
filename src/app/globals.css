@@ -2359,6 +2359,40 @@ kbd {
   outline: 3px solid var(--accent-text);
   outline-offset: 4px;
 }
+/* بطاقة غير جاهزة: بلا رابط، وبهوية البطاقة نفسها مع تهدئة البصمة. */
+.social-provider.social-provider-pending,
+.social-provider.social-provider-pending:hover {
+  border-style: dashed;
+  border-color: var(--line);
+  background: var(--soft);
+  color: var(--muted);
+  cursor: default;
+  box-shadow: none;
+}
+.social-provider-pending span small {
+  display: block;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.social-provider-badge {
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+.social-pending-note {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+}
 .social-error {
   margin-top: 16px;
   color: var(--ink);
@@ -2395,14 +2429,50 @@ kbd {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.social-guest {
-  border-top: 1px solid var(--line);
-  margin-top: 24px;
-  padding-top: 18px;
-  text-align: center;
+/* بطاقة الزائر: قرار واضح ومتكافئ بصريًا مع بطاقات الدخول، تكتب كوكي جلسة قبل الانتقال. */
+.social-guest-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 58px;
+  margin-top: 14px;
+  padding: 13px 18px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--soft);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: start;
+  transition:
+    border-color 160ms,
+    box-shadow 160ms;
 }
-.social-guest .text-button {
-  min-height: 44px;
+.social-guest-card > svg {
+  flex-shrink: 0;
+  color: var(--accent-text);
+}
+.social-guest-card > span {
+  flex: 1;
+}
+.social-guest-card span small {
+  display: block;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.social-guest-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 3px 12px #00000012;
+}
+.social-guest-card:active {
+  transform: translateY(1px);
+}
+.social-guest-card:focus-visible {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 4px;
 }
 @media (max-width: 767px) {
   .social-auth {

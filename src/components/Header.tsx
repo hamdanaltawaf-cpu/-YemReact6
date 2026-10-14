@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Qusasa } from './Qusasa';
 import { SocialIcon } from './SocialIcon';
+import type { SocialProvider } from '@/lib/social';
 import { GlassNav } from './glass-nav/GlassNav';
 import { useApp } from './AppProvider';
 import { useContribution } from './ContributionProvider';
@@ -60,10 +61,13 @@ function AccountActions({
   dismiss,
   googleAuthOrigin,
   embedded,
+  readyProviders = [],
 }: {
   dismiss: () => void;
   googleAuthOrigin: string;
   embedded: boolean;
+  /** خدمات الدخول الجاهزة بالمفاتيح — يحدّدها الخادم حصرًا. */
+  readyProviders?: readonly SocialProvider[];
 }) {
   const app = useApp();
   const contribution = useContribution();
@@ -115,17 +119,27 @@ function AccountActions({
         {app.user?.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
       </div>
       <nav className="account-actions-list" aria-label="خيارات الحساب">
-        {!app.user && (
-          <a
-            className="account-google-action"
-            href={googleLogin}
-            target={embedded ? '_blank' : undefined}
-            rel={embedded ? 'noopener noreferrer' : undefined}
-            onClick={dismiss}
-          >
-            <SocialIcon provider="google" /> الدخول بـ Google
-          </a>
-        )}
+        {!app.user &&
+          (readyProviders.includes('google') ? (
+            <a
+              className="account-google-action"
+              href={googleLogin}
+              target={embedded ? '_blank' : undefined}
+              rel={embedded ? 'noopener noreferrer' : undefined}
+              onClick={dismiss}
+            >
+              <SocialIcon provider="google" /> الدخول بـ Google
+            </a>
+          ) : (
+            <Link
+              href="/login"
+              className="account-google-action account-google-pending"
+              onClick={dismiss}
+            >
+              <SocialIcon provider="google" /> الدخول بالحساب{' '}
+              <span className="account-pending-chip">قيد التجهيز</span>
+            </Link>
+          ))}
         {app.user?.role === 'admin' && (
           <Link href="/admin" className="account-studio-action" onClick={dismiss}>
             <Clapperboard size={19} aria-hidden="true" /> الاستوديو
@@ -154,7 +168,14 @@ function AccountActions({
   );
 }
 
-export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string }) {
+export function Header({
+  googleAuthOrigin = '',
+  readyProviders = [],
+}: {
+  googleAuthOrigin?: string;
+  /** خدمات الدخول الجاهزة بالمفاتيح — يحدّدها الخادم حصرًا. */
+  readyProviders?: readonly SocialProvider[];
+}) {
   const path = usePathname();
   const router = useRouter();
   const app = useApp();
@@ -391,6 +412,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
                     dismiss={() => setAccountPopover(false)}
                     googleAuthOrigin={googleAuthOrigin}
                     embedded={embedded}
+                    readyProviders={readyProviders}
                   />
                 </div>
               )}
@@ -407,6 +429,7 @@ export function Header({ googleAuthOrigin = '' }: { googleAuthOrigin?: string })
           dismiss={() => setAccountSheet(false)}
           googleAuthOrigin={googleAuthOrigin}
           embedded={embedded}
+          readyProviders={readyProviders}
         />
       </Modal>
     </>

@@ -37,12 +37,12 @@ test('Legacy privacy fragments map only to a fixed internal destination', () => 
   ])
     assert.equal(legacyInformationDestination(hash), null);
 });
-test('Root and legacy about paths redirect permanently, while sitemap lists canonical pages', async () => {
+test('Legacy about and search paths redirect permanently, while sitemap lists canonical pages', async () => {
   const config = load('next.config.ts').default;
   assert.equal(
     JSON.stringify(await config.redirects()),
     JSON.stringify([
-      { source: '/', destination: '/library', permanent: true },
+      // الجذر صار بوّابة الدخول (src/app/page.tsx) — بلا إحالة ثابتة هنا
       { source: '/about', destination: '/help', permanent: true },
       // DECISION-5.1: /search قديم يوجّه إلى سطح المكتبة مع الحفاظ على q
       { source: '/search', destination: '/library', permanent: true },
@@ -63,7 +63,7 @@ test('Navigation and sign-in have no retired home or story links', () => {
     'src/features/Auth.tsx',
   ])
     assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /\/about|حكايتنا/);
-  assert.equal(fs.existsSync('src/app/page.tsx'), false);
+  assert.equal(fs.existsSync('src/app/page.tsx'), true); // بوّابة الدخول على الجذر
   assert.equal(fs.existsSync('src/features/Home.tsx'), false);
   assert.doesNotMatch(fs.readFileSync('src/components/Header.tsx', 'utf8'), /href="\/"|الرئيسية/);
   assert.match(fs.readFileSync('src/features/Auth.tsx', 'utf8'), /href="\/privacy"/);
