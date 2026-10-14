@@ -130,12 +130,14 @@ if (expectRevision) {
   }
 }
 
-await check('root-redirect', 'إحالة الجذر / إلى /library', async () => {
-  const res = await request(`${origin}/`);
-  expect([301, 302, 307, 308].includes(res.status), `الحالة ${res.status} بدل إحالة دائمة`);
-  const location = res.headers.get('location') || '';
-  expect(new URL(location, origin).pathname === '/library', `وجهة غير متوقعة: ${location}`);
-  return `${res.status} → ${location}`;
+await check('root-gateway', 'الجذر / بوّابة دخول تُجيب HTML مباشرة', async () => {
+  // كان الجذر إحالة دائمة إلى /library؛ صار صفحة بوّابة تعرض الدخول للزائر
+  // وتُحيل المسجَّل فورًا إلى المكتبة (قرار «بوّابة الدخول» مرحلة ١).
+  const res = await request(`${origin}/`, { headers: { Accept: 'text/html' } });
+  expect(res.status === 200, `الحالة ${res.status} بدل 200`);
+  const body = await res.text();
+  expect(body.includes('dir="rtl"'), 'الردّ ليس HTML عربي RTL');
+  return `${res.status} · HTML`;
 });
 
 await check('library-page', 'صفحة المكتبة عربية RTL وتُقدَّم كHTML', async () => {

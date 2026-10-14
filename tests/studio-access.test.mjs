@@ -58,7 +58,13 @@ test('Studio renders for an authenticated admin', async () => {
 });
 function navigation(
   user,
-  { popoverOpen = false, sheetOpen = false, mockSignedIn = false, googleAuthOrigin = '' } = {},
+  {
+    popoverOpen = false,
+    sheetOpen = false,
+    mockSignedIn = false,
+    googleAuthOrigin = '',
+    readyProviders = [],
+  } = {},
 ) {
   let states = 0;
   const overrides = {
@@ -109,7 +115,7 @@ function navigation(
   const { Header } = load('src/components/Header.tsx', overrides);
   const { Footer } = load('src/components/Footer.tsx', overrides);
   return {
-    header: renderToStaticMarkup(React.createElement(Header, { googleAuthOrigin })),
+    header: renderToStaticMarkup(React.createElement(Header, { googleAuthOrigin, readyProviders })),
     footer: renderToStaticMarkup(React.createElement(Footer)),
   };
 }
@@ -125,6 +131,7 @@ test('Guest shows real Google entry, settings and help without a signed-in ident
   const { header, footer } = navigation(null, {
     popoverOpen: true,
     googleAuthOrigin: 'https://example.test',
+    readyProviders: ['google'],
   });
   assert.match(header, /سجّل لحفظ رياكشناتك/);
   assert.match(header, /والوصول من أي جهاز/);
@@ -135,6 +142,14 @@ test('Guest shows real Google entry, settings and help without a signed-in ident
   for (const item of ['الإعدادات', 'المساعدة']) assert.match(header, new RegExp(item));
   assert.doesNotMatch(header + footer, /href="\/admin"|الاستوديو|تسجيل الخروج|ADMIN/);
   assert.doesNotMatch(header, /href="\/login"|account-profile-email/);
+});
+test('Keyless guest sees a pending sign-in entry that goes to /login, never a dead OAuth URL', () => {
+  for (const mode of [{ popoverOpen: true }, { sheetOpen: true }]) {
+    const { header } = navigation(null, mode);
+    assert.match(header, /href="\/login"[^>]*class="account-google-action account-google-pending"/);
+    assert.match(header, /account-pending-chip">قيد التجهيز/);
+    assert.doesNotMatch(header, /href="[^"]*\/api\/auth\/oauth\/google"/);
+  }
 });
 test('Real member shows avatar, name, email, settings, help and logout only', () => {
   const user = { role: 'member', name: 'عضو تجريبي', email: 'member@example.test' };
@@ -164,7 +179,11 @@ test('Only real admins see the Studio entry and ADMIN badge in their account men
   assert.match(account, /app\.user\.role === 'admin' \? '\/admin' : '\/saved'/);
 });
 test('Mock contribution sign-in remains a guest, with its own session-end action', () => {
-  const { header, footer } = navigation(null, { popoverOpen: true, mockSignedIn: true });
+  const { header, footer } = navigation(null, {
+    popoverOpen: true,
+    mockSignedIn: true,
+    readyProviders: ['google'],
+  });
   assert.match(header, /أنت زائر/);
   assert.match(header, /إنهاء جلسة التجربة/);
   assert.match(header, /href="\/api\/auth\/oauth\/google"/);

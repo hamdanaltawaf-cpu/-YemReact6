@@ -7,6 +7,7 @@ import { ContributionProvider } from '@/components/ContributionProvider';
 import { AppOverlays } from '@/components/AppOverlays';
 import { Pwa } from '@/components/Pwa';
 import { publicOrigin } from '@/lib/site-url';
+import { SOCIAL_PROVIDERS } from '@/lib/social';
 import { listReactions } from '@/server/db';
 import { oauthConfig } from '@/server/oauth-config';
 import './globals.css';
@@ -61,7 +62,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <body id="top">
         <AppProvider initial={listReactions()}>
           <ContributionProvider>
-            <Header googleAuthOrigin={oauthConfig('google')?.origin || ''} />
+            <Header
+              googleAuthOrigin={oauthConfig('google')?.origin || ''}
+              readyProviders={SOCIAL_PROVIDERS.filter((provider) => oauthConfig(provider) !== null)}
+            />
             <main id="main">{children}</main>
             <Footer />
             <AppOverlays />

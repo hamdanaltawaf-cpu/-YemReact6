@@ -230,6 +230,22 @@
   width: 19px;
   height: 19px;
 }
+/* دخول بلا مفاتيح من قائمة الحساب: يوجّه إلى /login بدل رابط OAuth ميت. */
+.account-actions-list .account-google-pending svg {
+  color: var(--muted);
+}
+.account-pending-chip {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
 .account-actions-list .account-studio-action svg {
   color: var(--accent-text);
 }
