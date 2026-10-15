@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Qusasa } from './Qusasa';
 import { SocialIcon } from './SocialIcon';
+import { isGatewayPath } from '@/lib/chrome';
 import type { SocialProvider } from '@/lib/social';
 import { GlassNav } from './glass-nav/GlassNav';
 import { useApp } from './AppProvider';
@@ -248,15 +249,16 @@ export function Header({
         document.querySelector('dialog[open]')
       )
         return;
+      // الاختصار يستهدف حقل البحث الموجود فقط: بلا حقل (مثل بوّابة الدخول) لا يبتلع المفتاح.
+      const field = document.querySelector<HTMLInputElement>('#library-search');
+      if (!field) return;
       event.preventDefault();
       if (breakpoint.matches) {
-        document.querySelector<HTMLInputElement>('#library-search')?.focus();
+        field.focus();
       } else {
         // حقل واحد داخل الهيدر على الجوال: نُظهر الهيدر إن كان مخفيًا ثم نركّز فيه.
         setHiddenOnScroll(false);
-        requestAnimationFrame(() =>
-          document.querySelector<HTMLInputElement>('#library-search')?.focus(),
-        );
+        requestAnimationFrame(() => field.focus());
       }
     };
     window.addEventListener('keydown', shortcut);
@@ -315,6 +317,10 @@ export function Header({
       setAccountSheet(true);
     }
   }
+
+  // سطح بوّابة الدخول قائم بذاته: يُخفى رأس الموقع كاملًا (الشعار والبحث والتنقّل وزرّ الحساب)
+  // والشريط السفلي داخل العود نفسه. الحارس بعد الـhooks حتى يبقى ترتيبها ثابتًا بين العروض.
+  if (isGatewayPath(path)) return null;
 
   return (
     <>

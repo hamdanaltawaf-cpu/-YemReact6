@@ -116,6 +116,8 @@ test('Library and saved hide the footer, while the collections footer remains', 
       'next/navigation': { usePathname: () => pathname },
       './AppProvider': { useApp: () => ({ user: null }) },
       './Qusasa': { Qusasa: () => null },
+      // بديل مطابق لعقد src/lib/chrome.ts (مسارا البوّابة فقط)
+      '@/lib/chrome': { isGatewayPath: (p) => p === '/' || p === '/login' },
       'next/link': {
         __esModule: true,
         default: ({ children, ...props }) => React.createElement('a', props, children),

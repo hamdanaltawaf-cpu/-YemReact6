@@ -1,12 +1,13 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { isGatewayPath } from '@/lib/chrome';
 import { useApp } from './AppProvider';
 export function Footer() {
   const pathname = usePathname();
   const { user } = useApp();
   const path = pathname.replace(/\/$/, '') || '/';
-  if (['/library', '/login', '/saved'].includes(path)) return null;
+  if (isGatewayPath(path) || ['/library', '/saved'].includes(path)) return null;
   return (
     <footer className="site-footer">
       <div className="container compact-footer-row">
