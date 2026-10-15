@@ -106,6 +106,8 @@ function navigation(
     },
     './Qusasa': { Qusasa: () => null },
     './SocialIcon': { SocialIcon: () => null },
+    // بديل مطابق لعقد src/lib/chrome.ts (مسارا البوّابة فقط)
+    '@/lib/chrome': { isGatewayPath: (p) => p === '/' || p === '/login' },
     './ui/Modal': {
       Modal: ({ open, title, children }) =>
         open ? React.createElement('div', { role: 'dialog', 'aria-label': title }, children) : null,

@@ -113,13 +113,18 @@ test('Privacy covers identity, storage, usage events, content rights and account
   assert.doesNotMatch(html, /النسخة المحلية|نسخة تجريبية •/);
 });
 test('Compact footer avoids self-links and provides a no-JavaScript privacy fallback on help', () => {
-  for (const path of ['/', '/help', '/privacy']) {
+  const footerAt = (path) => {
     const { Footer } = load('src/components/Footer.tsx', {
       ...overrides,
+      // بديل مطابق لعقد src/lib/chrome.ts (مسارا البوّابة فقط)
+      '@/lib/chrome': { isGatewayPath: (p) => p === '/' || p === '/login' },
       'next/navigation': { usePathname: () => path },
       './AppProvider': { useApp: () => ({ user: null }) },
     });
-    const html = renderToStaticMarkup(React.createElement(Footer));
+    return renderToStaticMarkup(React.createElement(Footer));
+  };
+  for (const path of ['/help', '/privacy']) {
+    const html = footerAt(path);
     assert.doesNotMatch(html, /footer-top|footer-note|حكايتنا|نسخة تجريبية|أسئلة تتكرر/);
     if (path === '/help') {
       assert.match(html, /id="privacy"/);
@@ -127,6 +132,8 @@ test('Compact footer avoids self-links and provides a no-JavaScript privacy fall
     }
     if (path === '/privacy') assert.doesNotMatch(html, /href="\/privacy"/);
   }
+  // بوّابة الدخول (الجذر و/login — بما فيها next) صارت بلا فوتر مع الرأس والشريط السفلي — تأكيد مقصود بعد «إخفاء الرأس في البوّابة»
+  for (const path of ['/', '/login']) assert.equal(footerAt(path), '', path);
 });
 test('Service worker changes cache version and includes only the replacement public info routes', () => {
   const sw = fs.readFileSync('public/sw.js', 'utf8');

@@ -17,6 +17,7 @@
  */
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { isGatewayPath } from '@/lib/chrome';
 import {
   useCallback,
   useEffect,
@@ -327,6 +328,9 @@ export function GlassNav({
     },
     [tabs, active],
   );
+
+  // سطح بوّابة الدخول قائم بذاته: لا شريط تنقّل سفلي فيه (مع الرأس والفوتر)
+  if (isGatewayPath(pathname)) return null;
 
   return (
     <nav
