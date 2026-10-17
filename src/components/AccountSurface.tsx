@@ -20,23 +20,24 @@ import { savedReactions } from '@/lib/saved';
 import type { SocialProvider } from '@/lib/social';
 
 /**
- * سطح الحساب في ورقة الهاتف — الترتيب من الأعلى للأسفل:
- * الهوية ← ملخّص النشاط (لصاحب الحساب فقط) ← زرّا «إرسال رياكشن»/«الإعدادات» مباشرة
- * ← مبدّل واحد (المحفوظات / مساهماتي). الزائر بلا عدّادات ولا ملخّص، ولا يُعرَض
- * له بريد Google أو هوية حساب. لا ملفات عامة ولا إحصاءات اجتماعية — مكتبة لا شبكة.
+ * صفحة الحساب كاملة (يفتحها تبويب «الحساب» من الشريط السفلي على الهاتف) — الترتيب
+ * من الأعلى للأسفل: الهوية ← ملخّص النشاط (لصاحب الحساب فقط) ← زرّا
+ * «إرسال رياكشن»/«الإعدادات» مباشرة ← مبدّل واحد (المحفوظات / مساهماتي).
+ * بريد Google لا يُعرض هنا إطلاقًا — لا للزائر ولا لصاحب الحساب. لا ملفات عامة
+ * ولا إحصاءات اجتماعية — مكتبة لا شبكة.
  */
 const STATUS_TEXT = { pending: 'قيد المراجعة', approved: 'مقبولة', rejected: 'مرفوضة' } as const;
 
 export function AccountSurface({
   googleAuthOrigin = '',
   readyProviders = [],
-  onNavigate,
+  onNavigate = () => {},
 }: {
   /** يقررا على الخادم حصرًا — كما في قائمة الحساب على الحاسوب. */
   googleAuthOrigin?: string;
   readyProviders?: readonly SocialProvider[];
-  /** يُغلق الورقة قبل الانتقال أو فتح إقفال آخر (إعدادات/معاينة). */
-  onNavigate: () => void;
+  /** اختياري: انتقال داخلي إضافي قبل المتابعة (يتوفر مسبقًا كـ() => {}). */
+  onNavigate?: () => void;
 }) {
   const app = useApp();
   const contribution = useContribution();
@@ -48,9 +49,9 @@ export function AccountSurface({
   const [error, setError] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
   const savedItems = savedReactions(app.reactions, app.saved);
-  const publishedCount = contribution.records.filter(
-    (record) => record.status === 'approved',
-  ).length;
+  /* دورة حالة مساهمات المستخدمين اليوم محلية/تجريبية بلا مسار نشرٍ فعلي إلى
+     المكتبة؛ «مقبولة» لا تثبت «منشورة». لذلك تعرض البطاقة إجمالي مساهماته
+     الصادق مع تفصيل الحالات داخل القسم — لا رقمًا باسم «المساهمات المنشورة». */
 
   function selectTab(next: 'saved' | 'contributions') {
     setTab(next);
@@ -172,9 +173,7 @@ export function AccountSurface({
             </span>
             <div className="account-identity-copy">
               <strong>{app.user.name}</strong>
-              <span className="account-profile-email" dir="ltr" title={app.user.email}>
-                {app.user.email}
-              </span>
+              <small>حسابك على يمن رياكت؛ لا يُعرض بريدُك هنا.</small>
             </div>
             {app.user.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
             <button
@@ -217,27 +216,20 @@ export function AccountSurface({
             data-active={tab === 'contributions'}
             onClick={() => selectTab('contributions')}
           >
-            <b>{publishedCount}</b>
-            <span>المساهمات المنشورة</span>
+            <b>{contribution.records.length}</b>
+            <span>مساهماتي</span>
           </button>
         </div>
       )}
 
-      {/* ٣ — الإجراءات المباشرة: الورقة نفسها سطح هاتف، فالزرّان يظهران مباشرة هنا فقط */}
+      {/* ٣ — الإجراءان المباشران على الهاتف: نشرٌ وإعدادات بلا قوائم وسيطة */}
       <div className="account-actions-row">
         <Link className="btn btn-dark" href="/contribute" onClick={onNavigate}>
           <Send size={16} aria-hidden="true" /> إرسال رياكشن
         </Link>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => {
-            onNavigate();
-            app.setSettings(true);
-          }}
-        >
+        <Link className="btn" href="/settings" onClick={onNavigate}>
           <Settings2 size={16} aria-hidden="true" /> الإعدادات
-        </button>
+        </Link>
       </div>
 
       {/* ٤ — مبدّل واحد بقسمين، وتحته محتوى المختار */}

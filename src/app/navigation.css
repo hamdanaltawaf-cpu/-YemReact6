@@ -311,7 +311,37 @@
   }
 }
 /* من 640 إلى 1023px: التنقّل وقائمة الحساب في الرأس (الشريط الزجاجي مخفي هناك) */
-/* ==== سطح الحساب في ورقة الهاتف: هوية ← ملخّص ← إجراءان مباشران ← مبدّل واحد ==== */
+/* ==== غلاف صفحتي الحساب والإعدادات (صفحتان كاملتان لصاحبهما أو لزائر) ==== */
+.account-page,
+.settings-page {
+  max-width: 560px;
+  padding-block: 18px 44px;
+}
+.page-head {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 18px;
+}
+.page-head h1 {
+  margin: 0;
+  font-size: 26px;
+}
+.page-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.settings-page .settings-group {
+  margin: 14px 0;
+}
+.settings-page .toggle-row {
+  margin: 12px 0;
+}
+.settings-page > .text-button {
+  margin-top: 10px;
+}
+/* ==== سطح الحساب داخل صفحته: هوية ← ملخّص ← إجراءان مباشران ← مبدّل واحد ==== */
 .account-surface {
   display: grid;
   gap: 14px;
