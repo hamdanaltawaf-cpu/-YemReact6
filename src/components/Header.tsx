@@ -20,10 +20,8 @@ import { SocialIcon } from './SocialIcon';
 import { isGatewayPath } from '@/lib/chrome';
 import type { SocialProvider } from '@/lib/social';
 import { GlassNav } from './glass-nav/GlassNav';
-import { AccountSurface } from './AccountSurface';
 import { useApp } from './AppProvider';
 import { useContribution } from './ContributionProvider';
-import { Modal } from './ui/Modal';
 
 // The upload action and account controls are deliberately not primary tabs.
 const primaryLinks = [
@@ -147,15 +145,10 @@ function AccountActions({
             <Clapperboard size={19} aria-hidden="true" /> الاستوديو
           </Link>
         )}
-        <button
-          type="button"
-          onClick={() => {
-            dismiss();
-            app.setSettings(true);
-          }}
-        >
+        {/* زر الإعدادات يفتح صفحة /settings مباشرة هنا أيضًا (توجيه عام، لا نافذة) */}
+        <Link href="/settings" onClick={dismiss}>
           <Settings2 size={19} aria-hidden="true" /> الإعدادات
-        </button>
+        </Link>
         <Link href="/help" onClick={dismiss}>
           <CircleHelp size={19} aria-hidden="true" /> المساعدة
         </Link>
@@ -182,7 +175,6 @@ export function Header({
   const router = useRouter();
   const app = useApp();
   const [accountPopover, setAccountPopover] = useState(false);
-  const [accountSheet, setAccountSheet] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [query, setQuery] = useState('');
   const [hiddenOnScroll, setHiddenOnScroll] = useState(false);
@@ -195,7 +187,6 @@ export function Header({
 
   useEffect(() => {
     setAccountPopover(false);
-    setAccountSheet(false);
     setSearchFocus(false);
     setHiddenOnScroll(false);
     const syncQuery = () =>
@@ -234,7 +225,6 @@ export function Header({
     const breakpoint = window.matchMedia('(min-width: 1024px)');
     const closeOnResize = () => {
       setAccountPopover(false);
-      setAccountSheet(false);
       setSearchFocus(false);
       setHiddenOnScroll(false);
     };
@@ -281,7 +271,6 @@ export function Header({
           !window.matchMedia('(max-width: 1023px)').matches ||
           window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
           app.reduced ||
-          accountSheet ||
           searchFocus ||
           document.querySelector('dialog[open]')
         ) {
@@ -303,7 +292,7 @@ export function Header({
       window.removeEventListener('scroll', onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [app.reduced, accountSheet, searchFocus]);
+  }, [app.reduced, searchFocus]);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -312,10 +301,12 @@ export function Header({
   }
 
   function openAccount() {
-    if (window.matchMedia('(min-width: 1024px)').matches) setAccountPopover((open) => !open);
-    else {
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      setAccountPopover((open) => !open);
+    } else {
+      /* الهاتف: الحساب صفحة كاملة - نفس وجهة تبويب الشريط السفلي بلا ورقة. */
       setHiddenOnScroll(false);
-      setAccountSheet(true);
+      router.push('/account');
     }
   }
 
@@ -397,7 +388,7 @@ export function Header({
                 className="account-avatar"
                 aria-label="فتح قائمة الحساب"
                 aria-haspopup="dialog"
-                aria-expanded={accountPopover || accountSheet}
+                aria-expanded={accountPopover}
                 aria-controls={accountPopover ? 'desktop-account-popover' : undefined}
                 onClick={openAccount}
               >
@@ -430,14 +421,6 @@ export function Header({
 
       {/* الشريط الزجاجي العائم: المسارات الأربعة روابط، و«الحساب» يفتح قائمة الحساب */}
       <GlassNav onSelect={(key) => key === 'account' && openAccount()} />
-
-      <Modal open={accountSheet} onClose={() => setAccountSheet(false)} title="الحساب" sheet>
-        <AccountSurface
-          googleAuthOrigin={googleAuthOrigin}
-          readyProviders={readyProviders}
-          onNavigate={() => setAccountSheet(false)}
-        />
-      </Modal>
     </>
   );
 }

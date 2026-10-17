@@ -231,12 +231,44 @@ await check('security-headers', 'ترويسات الأمان الأساسية', 
 });
 
 await check('detail-route', 'صفحة التفاصيل تعمل والرمز المجهول يُرجع 404', async () => {
-  const known = await request(`${origin}/r/YR-0001`);
-  expect(known.status === 200, `رمز موجود أعاد ${known.status}`);
+  // رمز ثابت (مثل YR-0001) افتراض محلي فقط؛ الإنتاج يستحق رمزًا موجودًا فعلًا:
+  const catalog = await (await request(`${origin}/api/reactions`)).json();
+  const realCode = catalog.reactions?.[0]?.code;
+  expect(realCode, 'كتالوج الإنتاج بلا رياكشنات يمكن فحص تفاصيلها');
+  const known = await request(`${origin}/r/${realCode}`);
+  expect(known.status === 200, `رمز موجود فعلًا (${realCode}) أعاد ${known.status}`);
   const missing = await request(`${origin}/r/NOPE-9999`);
   expect(missing.status === 404, `رمز مجهول أعاد ${missing.status} بدل 404`);
-  return '200 · 404';
+  return `${realCode} · 200 · 404`;
 });
+
+// زائر بلا كوكي «استمرار كزائر» تتوقع له البوابة إحالة إلى /login مع next محفوظ،
+// والزائر المختار (yr_guest=1) يصل المحتوى نفسه — هذا عقد الدخول المتفق عليه.
+const BROWSER_UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 YemReactDeployCheck/1.0';
+await check(
+  'guest-gate-contract',
+  'الزائر غير المختار يُحال للبوابة، والزائر المختار يصل المحتوى',
+  async () => {
+    const gatedPath = '/saved';
+    const anonymous = await request(`${origin}${gatedPath}`, {
+      headers: { 'user-agent': BROWSER_UA, Accept: 'text/html' },
+    });
+    const location = anonymous.headers.get('location') || '';
+    expect(
+      [301, 302, 303, 307, 308].includes(anonymous.status) &&
+        location.includes('/login') &&
+        decodeURIComponent(location).includes(`next=${gatedPath}`),
+      `زائر بلا كوكي على ${gatedPath}: ${anonymous.status} → ${location || 'بلا وجهة'}`,
+    );
+    const chosen = await request(`${origin}${gatedPath}`, {
+      headers: { 'user-agent': BROWSER_UA, cookie: 'yr_guest=1' },
+    });
+    expect(chosen.status === 200, `الزائر المختار أعاد ${chosen.status} بدل 200`);
+    const html = await chosen.text();
+    expect(/<html[^>]+dir="rtl"/.test(html), 'تفضيلات الزائر المختار بلا HTML عربي');
+    return `${anonymous.status} → 200`;
+  },
+);
 
 await check('media-delivery', 'تسليم الوسائط من القرص الدائم', async () => {
   const catalog = await (await request(`${origin}/api/reactions`)).json();

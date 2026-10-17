@@ -192,22 +192,25 @@ test('Guest cannot be shown contribution records; مساهماتي explains the 
   assert.doesNotMatch(html, /account-status/);
 });
 
-test('Owner summary shows exactly two cards: visible saves and published-only contributions', () => {
+test('Owner summary is exactly two cards — labels and counts he can trust, never a claimed-published figure', () => {
   const html = renderSurface({ user: MEMBER, saved: ['YR-0012', 'YR-0007'], records: RECORDS });
   assert.match(
     html,
     /"account-summary-card"[^>]*data-active="true"[^>]*><b>2<\/b><span>المحفوظات<\/span>/,
   );
-  assert.match(html, /<b>1<\/b><span>المساهمات المنشورة<\/span>/);
-  assert.doesNotMatch(html, /<b>3<\/b>/); // قيد المراجعة والمرفوضة لا تُحتسب في العدّاد
+  /* «مقبولة» لا تثبت «منشورة»: العدّاد الصادق = إجمالي سجلّاته بلا زرع دلالة */
+  assert.match(html, /<b>3<\/b><span>مساهماتي<\/span>/);
+  assert.doesNotMatch(html, /المساهمات المنشورة/);
+  assert.doesNotMatch(html, /<b>1<\/b>/);
 });
 
-test('Owner identity shows avatar initial, name and email with an inline edit entry', () => {
+test('Owner identity shows avatar initial and name with an inline edit entry — no Google email anywhere', () => {
   const html = renderSurface({ user: MEMBER });
   assert.match(html, /class="account-profile-avatar"[^>]*>ع</);
   assert.match(html, /<strong>عضو المكتبة<\/strong>/);
-  assert.match(html, /member@site\.test/);
   assert.match(html, /تحرير الهوية/);
+  assert.doesNotMatch(html, /member@site\.test/);
+  assert.doesNotMatch(html, /account-profile-email/);
 });
 
 test('Owner contributions tab lists each item with its visible status chip', () => {
@@ -263,32 +266,122 @@ test('Saving the display name PATCHes the session endpoint then resyncs the user
 test('Trial contributor is an owner of his own surface without touching a real identity', () => {
   const html = renderSurface({ mockSignedIn: true, records: [RECORDS[0]], saved: ['YR-0007'] });
   assert.match(html, /account-summary/);
-  assert.match(html, /<b>0<\/b><span>المساهمات المنشورة<\/span>/);
+  assert.match(html, /<b>1<\/b><span>مساهماتي<\/span>/);
   assert.match(html, /إنهاء جلسة التجربة/);
-  assert.doesNotMatch(html, /تحرير الهوية|تسجيل الخروج/);
+  assert.doesNotMatch(html, /تحرير الهوية|تسجيل الخروج|member@site\.test/);
 });
 
-test('Header keeps the public top bar clean and opens the account surface only inside the phone sheet', () => {
+test('Header keeps the public top bar clean; the phone account button now routes to the full /account page', () => {
   const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
-  // الرأس العام نفسه بلا زرّي «إرسال رياكشن»/«الإعدادات» — هما ابنا الورقة الحصرية في ملف السطح
+  // الرأس العام نفسه بلا زرّي «إرسال رياكشن»/«الإعدادات» — وحصة إعدادات القائمة تبقى الصفحة
   assert.doesNotMatch(header, /إرسال رياكشن/);
-  assert.match(header, /<AccountSurface/);
-  const sheetBlock = header.slice(header.indexOf('<Modal open={accountSheet}'));
-  assert.match(sheetBlock, /title="الحساب"/);
-  assert.match(sheetBlock, /<AccountSurface/);
-  assert.doesNotMatch(sheetBlock, /<AccountActions/);
-  // قائمة الحاسوب تبقى كما هي داخل عنصر الرأس (before the sheet)
-  const beforeSheet = header.slice(0, header.indexOf('<Modal'));
-  assert.match(beforeSheet, /<AccountActions/);
-  // سلوك زر «الحساب» في الشريط الزجاجي ما زال يفتح الورقة ذاتها
-  assert.match(header, /setAccountSheet\(true\)/);
+  // لا ورقة حساب بعد الآن: لا مكوّن سطح داخل الرأس، ولا حالة ورقة أساسًا
+  assert.doesNotMatch(header, /AccountSurface/);
+  assert.doesNotMatch(header, /accountSheet/);
+  // الشريط الزجاجي + أزرار الحساب على الهاتف (أقل من 1024px) يقودان للصفحة الكاملة
+  assert.match(header, /router\.push\('\/account'\)/);
+  assert.match(header, /matchMedia\('\(min-width: 1024px\)'\)/);
+  assert.match(header, /aria-expanded=\{accountPopover\}/);
+  // قائمة الحاسوب تُحفظ جزءًا من الرأس كما كانت
+  assert.match(header, /<AccountActions/);
 });
 
-test('Settings destination stays the existing modal; publish destination stays /contribute', () => {
+test('Settings destination in every UI entry point is the /settings page; publish destination stays /contribute', () => {
   const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
-  assert.match(surface, /app\.setSettings\(true\)/);
+  const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
+  assert.match(surface, /href="\/settings"/);
   assert.match(surface, /href="\/contribute"/);
-  assert.doesNotMatch(surface, /router\.push|href="\/settings"/);
+  assert.doesNotMatch(surface, /setSettings|router\.push/s);
+  assert.match(header, /<Link href="\/settings" onClick=\{dismiss\}>/);
+  assert.doesNotMatch(header, /app\.setSettings\(true\)/);
+  // صفحتا /account و/settings موجودتان فعلًا على نظام الملفات وتحملان العنوانين الصحيحين
+  assert.ok(fs.existsSync('src/app/account/page.tsx'), 'صفحة /account غائبة');
+  assert.ok(fs.existsSync('src/app/settings/page.tsx'), 'صفحة /settings غائبة');
+  assert.match(fs.readFileSync('src/app/account/page.tsx', 'utf8'), /title: 'حسابك'/);
+  assert.match(fs.readFileSync('src/app/settings/page.tsx', 'utf8'), /title: 'الإعدادات'/);
+});
+
+test('Account page renders its head and hands the surface the same server-decided Google props as the header did', () => {
+  let seenProps = null;
+  const page = load('src/app/account/page.tsx', {
+    'next/navigation': {},
+    '@/components/AccountSurface': {
+      AccountSurface: (props) => {
+        seenProps = props;
+        return React.createElement('div', { 'data-stub': 'surface' }, props.googleAuthOrigin);
+      },
+    },
+    '@/server/oauth-config': {
+      oauthConfig: (provider) =>
+        provider === 'google' ? { origin: 'https://identity.test' } : null,
+    },
+    '@/lib/social': { SOCIAL_PROVIDERS: ['google', 'github'] },
+  });
+  const html = renderToStaticMarkup(React.createElement(page.default));
+  assert.match(html, /<h1 id="account-title">حسابك<\/h1>/);
+  assert.match(html, /aria-labelledby="account-title"/);
+  assert.match(html, /data-stub="surface">https:\/\/identity\.test/);
+  assert.equal(seenProps.googleAuthOrigin, 'https://identity.test');
+  assert.deepEqual(seenProps.readyProviders, ['google']);
+});
+
+test('Settings page renders its head and the shared panel as-is', () => {
+  const page = load('src/app/settings/page.tsx', {
+    '@/components/Settings': {
+      SettingsPanel: () => React.createElement('div', { 'data-stub': 'panel' }),
+    },
+  });
+  const html = renderToStaticMarkup(React.createElement(page.default));
+  assert.match(html, /<h1 id="settings-title">الإعدادات<\/h1>/);
+  assert.match(html, /aria-labelledby="settings-title"/);
+  assert.match(html, /data-stub="panel"/);
+});
+
+test('SettingsPanel keeps all five sections working on the page; the legacy modal wrapper is untouched internally', () => {
+  const overrides = {
+    './AppProvider': {
+      useApp: () => ({
+        theme: 'system',
+        setTheme: () => {},
+        accent: '#c1592e',
+        setAccent: () => {},
+        reduced: false,
+        setReduced: () => {},
+        settings: true,
+        setSettings: () => {},
+        toast: () => {},
+      }),
+    },
+    './ui/Modal': {
+      Modal: ({ open, title, children }) =>
+        open ? React.createElement('div', { role: 'dialog', 'aria-label': title }, children) : null,
+    },
+    'next/navigation': {},
+    'lucide-react': new Proxy({}, { get: () => () => null }),
+  };
+  const mod = load('src/components/Settings.tsx', overrides, { window: undefined });
+  // المحتوى نفسه حي في مستويي العرض: الصفحة (SettingsPanel) والنافذة المحفوظة (Settings)
+  const panel = renderToStaticMarkup(React.createElement(mod.SettingsPanel));
+  for (const section of [
+    /المظهر/,
+    /لونك المفضّل/,
+    /تخفيف الحركة/,
+    /المكتبة معك/,
+    /استعادة الإعدادات/,
+  ])
+    assert.match(panel, section);
+  const modal = renderToStaticMarkup(React.createElement(mod.Settings));
+  assert.match(modal, /role="dialog" aria-label="على ذوقك"/);
+  assert.match(modal, /المظهر/);
+  assert.match(modal, /استعادة الإعدادات/);
+
+  const source = fs.readFileSync('src/components/Settings.tsx', 'utf8');
+  assert.match(source, /export function SettingsPanel\(\)/);
+  assert.match(source, /<Modal open=\{app\.settings\}/);
+  assert.match(source, /<SettingsPanel \/>/);
+  // حالة app.settings بلا أي نداء تفعيل لها في الواجهة اليوم
+  for (const file of ['src/components/Header.tsx', 'src/components/AccountSurface.tsx'])
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /setSettings\(true\)/);
 });
 
 function authRouteWith({ user }) {

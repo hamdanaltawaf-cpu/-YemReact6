@@ -7,7 +7,11 @@ type InstallPrompt = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: string }>;
 };
-export function Settings() {
+/**
+ * محتوى التفضيلات مشترك: تعرضه صفحة /settings المستقلة مباشرة، وغلاف النافذة
+ * <Settings> يبقى للتوافق فقط — لا يفتحه أي زر إعدادات في الواجهة بعد الآن.
+ */
+export function SettingsPanel() {
   const app = useApp();
   const [install, setInstall] = useState<InstallPrompt | null>(null);
   useEffect(() => {
@@ -19,7 +23,7 @@ export function Settings() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
   return (
-    <Modal open={app.settings} onClose={() => app.setSettings(false)} title="على ذوقك">
+    <>
       <p className="muted">المكتبة نفسها. الجوّ اللي يناسبك.</p>
       <div className="settings-group">
         <h3>المظهر</h3>
@@ -109,6 +113,19 @@ export function Settings() {
         <RotateCcw size={15} />
         استعادة الإعدادات
       </button>
+    </>
+  );
+}
+
+/**
+ * النافذة القديمة للتوافق الداخلي فقط: كل أزرار «الإعدادات» في الواجهة تفتح
+ * صفحة /settings مباشرة (قرار حمدان) ولا تستدعي هذه النافذة.
+ */
+export function Settings() {
+  const app = useApp();
+  return (
+    <Modal open={app.settings} onClose={() => app.setSettings(false)} title="على ذوقك">
+      <SettingsPanel />
     </Modal>
   );
 }
