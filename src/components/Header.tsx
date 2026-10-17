@@ -20,6 +20,7 @@ import { SocialIcon } from './SocialIcon';
 import { isGatewayPath } from '@/lib/chrome';
 import type { SocialProvider } from '@/lib/social';
 import { GlassNav } from './glass-nav/GlassNav';
+import { AccountSurface } from './AccountSurface';
 import { useApp } from './AppProvider';
 import { useContribution } from './ContributionProvider';
 import { Modal } from './ui/Modal';
@@ -431,11 +432,10 @@ export function Header({
       <GlassNav onSelect={(key) => key === 'account' && openAccount()} />
 
       <Modal open={accountSheet} onClose={() => setAccountSheet(false)} title="الحساب" sheet>
-        <AccountActions
-          dismiss={() => setAccountSheet(false)}
+        <AccountSurface
           googleAuthOrigin={googleAuthOrigin}
-          embedded={embedded}
           readyProviders={readyProviders}
+          onNavigate={() => setAccountSheet(false)}
         />
       </Modal>
     </>

@@ -83,9 +83,12 @@ function navigation(
       __esModule: true,
       default: ({ children, ...props }) => React.createElement('a', props, children),
     },
-    './AppProvider': { useApp: () => ({ user, authReady: true }) },
+    './AppProvider': {
+      // الحد الأدنى المستخدم فعليًا عند تقديم سطح الحساب (بلا أحداث)
+      useApp: () => ({ user, authReady: true, reactions: [], saved: [], reduced: false }),
+    },
     './ContributionProvider': {
-      useContribution: () => ({ mockSignedIn, endMockSession: () => {} }),
+      useContribution: () => ({ mockSignedIn, records: [], endMockSession: () => {} }),
     },
     './glass-nav/GlassNav': {
       // الشريط الزجاجي مكوّن عميل مستقل — يكفي الاختبار بديل مبسّط يحفظ زر «الحساب»
@@ -114,6 +117,11 @@ function navigation(
     },
     'lucide-react': new Proxy({}, { get: () => () => null }),
   };
+  // ورقة الهاتف تعرض السطح الحقيقي (اختبارات سطحه التفصيلية في tests/account-page.test.mjs)
+  overrides['./AccountSurface'] = load('src/components/AccountSurface.tsx', {
+    ...overrides,
+    '@/lib/saved': load('src/lib/saved.ts', {}),
+  });
   const { Header } = load('src/components/Header.tsx', overrides);
   const { Footer } = load('src/components/Footer.tsx', overrides);
   return {
@@ -174,7 +182,9 @@ test('Only real admins see the Studio entry and ADMIN badge in their account men
       assert.match(header, new RegExp(item));
     assert.match(header, /class="account-role-badge">ADMIN<\/span>/);
     assert.match(header, /href="\/admin"[^>]*>.*الاستوديو/);
-    assert.ok(header.indexOf('الاستوديو') < header.indexOf('الإعدادات'));
+    // ترتيب «الاستوديو قبل الإعدادات» عقدُ قائمة الحاسوب تحديدًا؛ ورقة الهاتف تتبع
+    // ترتيب صفحة الحساب المقرر (هوية ← ملخّص ← إجراءان مباشران ← مبدّل ← مرافق)
+    if (mode.popoverOpen) assert.ok(header.indexOf('الاستوديو') < header.indexOf('الإعدادات'));
     assert.doesNotMatch(header, /الدخول بـ Google/);
   }
   const account = fs.readFileSync('src/features/Auth.tsx', 'utf8');

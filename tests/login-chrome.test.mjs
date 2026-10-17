@@ -88,6 +88,8 @@ function headerHtml(pathname) {
     './Qusasa': { Qusasa: () => null },
     './SocialIcon': { SocialIcon: () => null },
     './ui/Modal': { Modal: () => null },
+    // سطح حساب الورقة عميل خالص لا يُقدَّم من الخادم إطلاقًا — لا دخل له بهذا الاختبار
+    './AccountSurface': { AccountSurface: () => null },
     '@/lib/chrome': chrome,
     'lucide-react': new Proxy({}, { get: () => () => null }),
   });
