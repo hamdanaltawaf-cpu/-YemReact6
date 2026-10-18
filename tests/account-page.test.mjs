@@ -192,16 +192,24 @@ test('Guest cannot be shown contribution records; مساهماتي explains the 
   assert.doesNotMatch(html, /account-status/);
 });
 
-test('Owner summary is exactly two cards — labels and counts he can trust, never a claimed-published figure', () => {
+test('Owner summary is ONE truthful card — saved only; the contributions number is hidden until a trusted published source exists', () => {
   const html = renderSurface({ user: MEMBER, saved: ['YR-0012', 'YR-0007'], records: RECORDS });
   assert.match(
     html,
     /"account-summary-card"[^>]*data-active="true"[^>]*><b>2<\/b><span>المحفوظات<\/span>/,
   );
-  /* «مقبولة» لا تثبت «منشورة»: العدّاد الصادق = إجمالي سجلّاته بلا زرع دلالة */
-  assert.match(html, /<b>3<\/b><span>مساهماتي<\/span>/);
+  // بطاقة واحدة في الملخّص: لا بطاقة فارغة ولا إجمالي سجلات يدّعي «منشورًا»
+  assert.equal((html.match(/class="account-summary-card"/g) || []).length, 1);
+  const summary = html.slice(
+    html.indexOf('class="account-summary"'),
+    html.indexOf('account-actions-row'),
+  );
+  assert.doesNotMatch(summary, /مساهماتي/);
+  assert.doesNotMatch(summary, /<b>3<\/b>|<b>0<\/b>/);
   assert.doesNotMatch(html, /المساهمات المنشورة/);
-  assert.doesNotMatch(html, /<b>1<\/b>/);
+  // الحارس المصدري: لا يمكن أن تعود بطاقة رقمية للمساهمات عبر إجمالي السجلات
+  const source = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
+  assert.doesNotMatch(source, /<b>\{contribution\.records\.length\}<\/b>/);
 });
 
 test('Owner identity shows avatar initial and name with an inline edit entry — no Google email anywhere', () => {
@@ -263,12 +271,26 @@ test('Saving the display name PATCHes the session endpoint then resyncs the user
   assert.match(source, /min length|cleaned\.length < 2/);
 });
 
-test('Trial contributor is an owner of his own surface without touching a real identity', () => {
+test('Trial session is NOT an account owner: zero counters, zero records, a login explainer under مساهماتي', () => {
   const html = renderSurface({ mockSignedIn: true, records: [RECORDS[0]], saved: ['YR-0007'] });
-  assert.match(html, /account-summary/);
-  assert.match(html, /<b>1<\/b><span>مساهماتي<\/span>/);
+  // بلا ملخّص ولا عدّادات كأنها صاحبة حساب
+  assert.doesNotMatch(html, /account-summary/);
+  // وفي قسم مساهماتي حتى مع بيانات تجريبية قائمة: توضيح تسجيل الدخول، لا سجلات ولا حالات
+  const contributions = renderSurface({
+    mockSignedIn: true,
+    records: [RECORDS[0]],
+    demoStates: { tab: 'contributions' },
+  });
+  assert.match(contributions, /إرسال المساهمات ومتابعتها يتطلب تسجيل الدخول/);
+  assert.doesNotMatch(contributions, /ردّة فعل أولى|account-status/);
+  assert.doesNotMatch(contributions, /ما عندك مساهمات حتى الآن/);
+  // جلسة التجربة تبقى بإنهائها المعتاد أسفل الصفحة، بلا أي «حساب»
   assert.match(html, /إنهاء جلسة التجربة/);
   assert.doesNotMatch(html, /تحرير الهوية|تسجيل الخروج|member@site\.test/);
+  // محفوظاته المحلية — جهاز لا حساب — تبقى يظهرها مثل أي زائر
+  assert.match(html, /ضحكة فِرح/);
+  const source = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
+  assert.match(source, /const owner = !!app\.user;/);
 });
 
 test('Header keeps the public top bar clean; the phone account button now routes to the full /account page', () => {
