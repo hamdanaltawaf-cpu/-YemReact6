@@ -21,10 +21,14 @@ import type { SocialProvider } from '@/lib/social';
 
 /**
  * صفحة الحساب كاملة (يفتحها تبويب «الحساب» من الشريط السفلي على الهاتف) — الترتيب
- * من الأعلى للأسفل: الهوية ← ملخّص النشاط (لصاحب الحساب فقط) ← زرّا
+ * من الأعلى للأسفل: الهوية ← ملخّص النشاط (للجلسة المسجَّلة الحقيقية فقط) ←
  * «إرسال رياكشن»/«الإعدادات» مباشرة ← مبدّل واحد (المحفوظات / مساهماتي).
  * بريد Google لا يُعرض هنا إطلاقًا — لا للزائر ولا لصاحب الحساب. لا ملفات عامة
  * ولا إحصاءات اجتماعية — مكتبة لا شبكة.
+ *
+ * تعريف «صاحب الحساب» هنا صارم: جلسة التطبيق المسجَّلة app.user فقط. الزائر
+ * وجلسة تجربة contribution (mockSignedIn) ليسا حسابًا مسجَّلًا ولا صاحبَ
+ * بيانات: بلا عدّادات ولا سجلات مساهمات ولا حالات — وشّهادهم الصفحة كزائر.
  */
 const STATUS_TEXT = { pending: 'قيد المراجعة', approved: 'مقبولة', rejected: 'مرفوضة' } as const;
 
@@ -41,7 +45,8 @@ export function AccountSurface({
 }) {
   const app = useApp();
   const contribution = useContribution();
-  const owner = !!app.user || contribution.mockSignedIn;
+  /* «المالك»= الجلسة المسجَّلة الحقيقية فقط؛ لا تعامل جلسة التجربة كحساب له بيانات. */
+  const owner = !!app.user;
   const [tab, setTab] = useState<'saved' | 'contributions'>('saved');
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(app.user?.name || '');
@@ -49,9 +54,10 @@ export function AccountSurface({
   const [error, setError] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
   const savedItems = savedReactions(app.reactions, app.saved);
-  /* دورة حالة مساهمات المستخدمين اليوم محلية/تجريبية بلا مسار نشرٍ فعلي إلى
-     المكتبة؛ «مقبولة» لا تثبت «منشورة». لذلك تعرض البطاقة إجمالي مساهماته
-     الصادق مع تفصيل الحالات داخل القسم — لا رقمًا باسم «المساهمات المنشورة». */
+  /* مئوية «المساهمات المنشورة» مؤجّلة (تقرير قرار حمدان 2026-10-18): لا يوجد مسار
+     نشر فعلي لمساهمات المستخدمين اليوم، و«مقبولة» لا تثبت «منشورة» — لذلك أُخفيت
+     بطاقة رقم المساهمات من الملخّص كليًّا (لا إجمالي السجلات بدلًا عنها ولا بطاقة
+     فارغة). تعود طرفًا صادقًا عندما يتوفر مصدرٌ موثوق للنشر. */
 
   function selectTab(next: 'saved' | 'contributions') {
     setTab(next);
@@ -198,7 +204,8 @@ export function AccountSurface({
         </div>
       )}
 
-      {/* ٢ — ملخّص النشاط: بطاقتان رقميتان لصاحب الحساب فقط، والضغط ينقل للقسم */}
+      {/* ٢ — ملخّص النشاط: بطاقة المحفوظات وحدها للمسجَّل الحقيقي فقط (بطاقة
+             المساهمات مخفية مؤقتًا لحين مصدر «منشور» موثوق — لا بطاقات فارغة) */}
       {owner && (
         <div className="account-summary" aria-label="ملخص نشاطك">
           <button
@@ -209,15 +216,6 @@ export function AccountSurface({
           >
             <b>{savedItems.length}</b>
             <span>المحفوظات</span>
-          </button>
-          <button
-            type="button"
-            className="account-summary-card"
-            data-active={tab === 'contributions'}
-            onClick={() => selectTab('contributions')}
-          >
-            <b>{contribution.records.length}</b>
-            <span>مساهماتي</span>
           </button>
         </div>
       )}

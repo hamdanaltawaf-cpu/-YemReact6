@@ -263,8 +263,25 @@ const redirectsToLoginKeeping = (res, pathFor) =>
       /<Link href="\/settings" onClick=\{dismiss\}>/.test(headerSource),
   );
 
+  // ١٠ز: عقد العدّادات (حسم حمدان 2026-10-18): بطاقة «المساهمات المنشورة» مخفية
+  // مؤقتًا بلا بديلٍ مضلّل، والملخّص للمسجَّل الحقيقي فقط (mockSignedIn بلا أرقام)
+  const surface = require('node:fs').readFileSync('src/components/AccountSurface.tsx', 'utf8');
+  check(
+    'مصدر السطح: «المالك»= app.user فقط، ولا بطاقة رقمية للمساهمات في الملخّص',
+    /const owner = !!app\.user;/.test(surface) &&
+      !/<b>\{contribution\.records\.length\}<\/b>/.test(surface) &&
+      !/\{owner && \([\s\S]*?<span>مساهماتي<\/span>/m.test(
+        surface.slice(surface.indexOf('account-summary'), surface.indexOf('account-actions-row')),
+      ),
+  );
+  const cssPage = require('node:fs').readFileSync('src/app/navigation.css', 'utf8');
+  check(
+    'شبكة الملخّص عمودٌ واحد: بطاقة المحفوظات كاملة العرض بلا فراغ',
+    /\.account-summary \{\s*display: grid;\s*grid-template-columns: 1fr;/.test(cssPage),
+  );
+
   // ١١: كتلة أنماط سطح الحساب تتبع هوية الرمز — نصف قطر 9 وبلا خانة بنفسجية قديمة
-  const css = require('node:fs').readFileSync('src/app/navigation.css', 'utf8');
+  const css = cssPage;
   const surfaceStart = css.indexOf('سطح الحساب داخل صفحته');
   const surfaceBlock = css.slice(surfaceStart, css.indexOf('@media (min-width: 640px)'));
   check(
