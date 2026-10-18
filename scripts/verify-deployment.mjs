@@ -270,6 +270,37 @@ await check(
   },
 );
 
+// الإثبات الإنتاجي الحاسم لوجود الصفحتين نفسهما: الإحالة وحدها لا تكفي (البوابة
+// تحول أي مسار غير أصل) — والحاكم هو 200 بمحتواهما لدى الزائر المختار.
+await check(
+  'account-settings-live',
+  'صفحتا حسابك والإعدادات تقدّمان محتواهما الخاص في الإنتاج',
+  async () => {
+    for (const [pagePath, markers] of [
+      ['/account', [/<h1 id="account-title">حسابك/, /مساهماتي/, /href="\/settings"/]],
+      ['/settings', [/<h1 id="settings-title">الإعدادات/, /المظهر/, /استعادة الإعدادات/]],
+    ]) {
+      const anon = await request(`${origin}${pagePath}`, {
+        headers: { 'user-agent': BROWSER_UA, Accept: 'text/html' },
+      });
+      expect(
+        [301, 302, 303, 307, 308].includes(anon.status),
+        `${pagePath} بلا كوكي أعاد ${anon.status} — غائب النسخة القديمة لا بدليل أن تعترف بذلك (404) إن لم تُلغ`,
+      );
+      const guest = await request(`${origin}${pagePath}`, {
+        headers: { 'user-agent': BROWSER_UA, cookie: 'yr_guest=1' },
+      });
+      const html = await guest.text();
+      expect(guest.status === 200, `${pagePath} للزائر المختار أعاد ${guest.status} بدل 200`);
+      for (const marker of markers)
+        expect(marker.test(html), `${pagePath} بلا ${marker.source} — محتوى آخر؟`);
+      expect(!/account-profile-email/.test(html), `${pagePath} يعرض بريدًا: تسريب بريد البلاغ`);
+      expect(/<html[^>]+dir="rtl"/.test(html), `${pagePath} بلا اتجاه عربي`);
+    }
+    return '200 × 2 بمحتوى الصفحتين';
+  },
+);
+
 await check('media-delivery', 'تسليم الوسائط من القرص الدائم', async () => {
   const catalog = await (await request(`${origin}/api/reactions`)).json();
   const reaction = catalog.reactions.find((item) => item.media);
