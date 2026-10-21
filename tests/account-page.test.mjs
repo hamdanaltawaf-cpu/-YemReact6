@@ -293,19 +293,35 @@ test('Trial session is NOT an account owner: zero counters, zero records, a logi
   assert.match(source, /const owner = !!app\.user;/);
 });
 
-test('Header keeps the public top bar clean; the phone account button now routes to the full /account page', () => {
+test('Header keeps the public top bar clean; avatar opens /account and the adjacent arrow owns the desktop popover', () => {
   const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
   // الرأس العام نفسه بلا زرّي «إرسال رياكشن»/«الإعدادات» — وحصة إعدادات القائمة تبقى الصفحة
   assert.doesNotMatch(header, /إرسال رياكشن/);
   // لا ورقة حساب بعد الآن: لا مكوّن سطح داخل الرأس، ولا حالة ورقة أساسًا
   assert.doesNotMatch(header, /AccountSurface/);
   assert.doesNotMatch(header, /accountSheet/);
-  // الشريط الزجاجي + أزرار الحساب على الهاتف (أقل من 1024px) يقودان للصفحة الكاملة
+  // الصورة ودتها صفحة /account (رابط مستقل)، والسهم المجاور عنصر منفصل يملك عقد القائمة
+  assert.match(header, /<Link href="\/account" className="account-avatar"/);
+  assert.match(header, /account-menu-trigger/);
+  assert.match(header, /aria-label="فتح صفحة الحساب"/);
+  assert.match(header, /aria-expanded=\{accountPopover\}/);
+  assert.match(header, /aria-controls=\{accountPopover \? 'desktop-account-popover' : undefined\}/);
+  // دعم اللوحة والإغلاق الواضح محفوظة: Escape يغلق ويعيد التركيز، والمؤشر الخارجي والتعتيم خارج قائمة التركيز يغلقان
+  assert.match(header, /event\.key === 'Escape'/);
+  assert.match(header, /accountTrigger\.current\?\.focus\(\)/);
+  assert.match(header, /querySelector<HTMLElement>\('button, a'\)\?\.focus\(\)/);
+  // قائمة الزائر: «تسجيل الدخول» لصفحة /login الكاملة — لا OAuth مباشر ولا «الاستمرار كزائر» داخل القائمة
+  assert.match(header, /تسجيل الدخول/);
+  assert.match(
+    header,
+    /<Link href="\/login" className="account-google-action" onClick=\{dismiss\}>/,
+  );
+  assert.doesNotMatch(header, /api\/auth\/oauth\/google|الاستمرار كزائر|account-google-pending/);
+  // الشريط الزجاجي (هاتف <640px) يقود للصفحة الكاملة — matchMedia الخاص بالرأس يبقى لسلوكياته الأخرى
   assert.match(header, /router\.push\('\/account'\)/);
   assert.match(header, /matchMedia\('\(min-width: 1024px\)'\)/);
-  assert.match(header, /aria-expanded=\{accountPopover\}/);
-  // قائمة الحاسوب تُحفظ جزءًا من الرأس كما كانت
-  assert.match(header, /<AccountActions/);
+  // قائمة الحاسوب تُحفظ جزءًا من الرأس كما كانت (تُقدَّم من السهم الآن)
+  assert.match(header, /<AccountActions dismiss=/);
 });
 
 test('Settings destination in every UI entry point is the /settings page; publish destination stays /contribute', () => {

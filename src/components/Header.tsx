@@ -4,10 +4,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowLeft,
+  ChevronDown,
   CircleHelp,
   Clapperboard,
   Library,
   Layers3,
+  LogIn,
   LogOut,
   Plus,
   Search,
@@ -15,7 +17,6 @@ import {
   UserRound,
 } from 'lucide-react';
 import { Qusasa } from './Qusasa';
-import { SocialIcon } from './SocialIcon';
 import { isGatewayPath } from '@/lib/chrome';
 import type { SocialProvider } from '@/lib/social';
 import { GlassNav } from './glass-nav/GlassNav';
@@ -56,23 +57,13 @@ function UploadQuickAction({ mobile = false }: { mobile?: boolean }) {
   );
 }
 
-function AccountActions({
-  dismiss,
-  googleAuthOrigin,
-  embedded,
-  readyProviders = [],
-}: {
-  dismiss: () => void;
-  googleAuthOrigin: string;
-  embedded: boolean;
-  /** خدمات الدخول الجاهزة بالمفاتيح — يحدّدها الخادم حصرًا. */
-  readyProviders?: readonly SocialProvider[];
-}) {
+/* دفعة 2: القائمة لم تعد تضمّن روابط OAuth — «تسجيل الدخول» يفتح صفحة /login
+   الكاملة حيث يظهر Google فعّالًا وApple وMicrosoft «قيد التجهيز» كما هما. */
+function AccountActions({ dismiss }: { dismiss: () => void }) {
   const app = useApp();
   const contribution = useContribution();
   const router = useRouter();
   const path = usePathname();
-  const googleLogin = `${googleAuthOrigin}/api/auth/oauth/google`;
 
   async function signOut() {
     dismiss();
@@ -118,27 +109,11 @@ function AccountActions({
         {app.user?.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
       </div>
       <nav className="account-actions-list" aria-label="خيارات الحساب">
-        {!app.user &&
-          (readyProviders.includes('google') ? (
-            <a
-              className="account-google-action"
-              href={googleLogin}
-              target={embedded ? '_blank' : undefined}
-              rel={embedded ? 'noopener noreferrer' : undefined}
-              onClick={dismiss}
-            >
-              <SocialIcon provider="google" /> الدخول بـ Google
-            </a>
-          ) : (
-            <Link
-              href="/login"
-              className="account-google-action account-google-pending"
-              onClick={dismiss}
-            >
-              <SocialIcon provider="google" /> الدخول بالحساب{' '}
-              <span className="account-pending-chip">قيد التجهيز</span>
-            </Link>
-          ))}
+        {!app.user && (
+          <Link href="/login" className="account-google-action" onClick={dismiss}>
+            <LogIn size={19} aria-hidden="true" /> تسجيل الدخول
+          </Link>
+        )}
         {app.user?.role === 'admin' && (
           <Link href="/admin" className="account-studio-action" onClick={dismiss}>
             <Clapperboard size={19} aria-hidden="true" /> الاستوديو
@@ -163,11 +138,13 @@ function AccountActions({
 }
 
 export function Header({
-  googleAuthOrigin = '',
-  readyProviders = [],
+  // دفعة 2: القائمة تكتفي بمدخل «تسجيل الدخول» لصفحة /login، فلا تُمرَّر المزوّدون
+  // للقائمة بعد الآن. تبقى الخاصيتان في العقد العام حفاظًا على استدعاء التخطيط.
+  googleAuthOrigin: _googleAuthOrigin = '',
+  readyProviders: _readyProviders = [],
 }: {
   googleAuthOrigin?: string;
-  /** خدمات الدخول الجاهزة بالمفاتيح — يحدّدها الخادم حصرًا. */
+  /** خدمات الدخول الجاهزة بالمفاتيح — يحدّدها الخادم حصرًا (لصفحة /login عبر التخطيط). */
   readyProviders?: readonly SocialProvider[];
 }) {
   const path = usePathname();
@@ -177,12 +154,9 @@ export function Header({
   const [searchFocus, setSearchFocus] = useState(false);
   const [query, setQuery] = useState('');
   const [hiddenOnScroll, setHiddenOnScroll] = useState(false);
-  const [embedded, setEmbedded] = useState(false);
   const accountArea = useRef<HTMLDivElement>(null);
   const accountTrigger = useRef<HTMLButtonElement>(null);
   const popover = useRef<HTMLDivElement>(null);
-
-  useEffect(() => setEmbedded(window.self !== window.top), []);
 
   useEffect(() => {
     setAccountPopover(false);
@@ -299,14 +273,11 @@ export function Header({
     router.push(term ? `/library?q=${encodeURIComponent(term)}` : '/library');
   }
 
-  function openAccount() {
-    if (window.matchMedia('(min-width: 1024px)').matches) {
-      setAccountPopover((open) => !open);
-    } else {
-      /* الهاتف: الحساب صفحة كاملة - نفس وجهة تبويب الشريط السفلي بلا ورقة. */
-      setHiddenOnScroll(false);
-      router.push('/account');
-    }
+  /* تبويب «الحساب» في الشريط الزجاجي (هاتف <640px فقط — الشريط مخفي فوق ذلك):
+     صفحة /account الكاملة دائمًا، بلا ورقة ولا قائمة سفلية. */
+  function openAccountPage() {
+    setHiddenOnScroll(false);
+    router.push('/account');
   }
 
   // سطح بوّابة الدخول قائم بذاته: يُخفى رأس الموقع كاملًا (الشعار والبحث والتنقّل وزرّ الحساب)
@@ -381,21 +352,26 @@ export function Header({
                 if (!event.currentTarget.contains(event.relatedTarget)) setAccountPopover(false);
               }}
             >
-              <button
-                ref={accountTrigger}
-                type="button"
-                className="account-avatar"
-                aria-label="فتح قائمة الحساب"
-                aria-haspopup="dialog"
-                aria-expanded={accountPopover}
-                aria-controls={accountPopover ? 'desktop-account-popover' : undefined}
-                onClick={openAccount}
-              >
+              {/* دفعة 2: الصورة ودتها صفحة /account مباشرة، والسهم المجاور عنصر
+                  مستقل يفتح قائمة الحساب (حاسوب ≥1024px — يظهر بـCSS وحدها) */}
+              <Link href="/account" className="account-avatar" aria-label="فتح صفحة الحساب">
                 {app.user ? (
                   <span aria-hidden="true">{app.user.name.slice(0, 1)}</span>
                 ) : (
                   <UserRound size={20} aria-hidden="true" />
                 )}
+              </Link>
+              <button
+                ref={accountTrigger}
+                type="button"
+                className="account-menu-trigger"
+                aria-label="فتح قائمة الحساب"
+                aria-haspopup="dialog"
+                aria-expanded={accountPopover}
+                aria-controls={accountPopover ? 'desktop-account-popover' : undefined}
+                onClick={() => setAccountPopover((open) => !open)}
+              >
+                <ChevronDown size={16} aria-hidden="true" />
               </button>
               {accountPopover && (
                 <div
@@ -405,12 +381,7 @@ export function Header({
                   role="dialog"
                   aria-label="قائمة الحساب"
                 >
-                  <AccountActions
-                    dismiss={() => setAccountPopover(false)}
-                    googleAuthOrigin={googleAuthOrigin}
-                    embedded={embedded}
-                    readyProviders={readyProviders}
-                  />
+                  <AccountActions dismiss={() => setAccountPopover(false)} />
                 </div>
               )}
             </div>
@@ -418,8 +389,8 @@ export function Header({
         </div>
       </header>
 
-      {/* الشريط الزجاجي العائم: المسارات الأربعة روابط، و«الحساب» يفتح قائمة الحساب */}
-      <GlassNav onSelect={(key) => key === 'account' && openAccount()} />
+      {/* الشريط الزجاجي العائم (هاتف): المكتبة والمجموعات روابط، و«الحساب» يفتح صفحة الحساب */}
+      <GlassNav onSelect={(key) => key === 'account' && openAccountPage()} />
     </>
   );
 }
