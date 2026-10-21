@@ -49,28 +49,46 @@ function renderHub(mockSignedIn, loadError = '') {
   return renderToStaticMarkup(React.createElement(module.exports.default));
 }
 
-test('Three primary destinations stay separate from the active mock-upload quick action', () => {
+test('Two primary destinations stay separate from the active mock-upload quick action', () => {
   const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
   const primary = header.match(/const primaryLinks = \[([\s\S]*?)\] as const;/)?.[1];
   assert.ok(primary);
+  // دفعة التنقل 1: وجهتا الرأس العلويتان للحاسوب = المكتبة والمجموعات فقط؛
+  // «المحفوظات» أُزيلت من روابط الرأس (مستقرها قسمها داخل /account)
   assert.deepEqual(
     [...primary.matchAll(/href: '(\/[^']+)'/g)].map((match) => match[1]),
-    ['/library', '/collections', '/saved'],
+    ['/library', '/collections'],
   );
+  assert.doesNotMatch(primary, /\/saved|المحفوظات/);
+  // البحث وزر الإرسال المنفصل ضالّان في رأس سطح المكتب بوجهتيهما الحاليين
   assert.match(header, /function UploadQuickAction/);
   assert.match(header, /href="\/contribute"/);
   assert.match(header, /aria-label="رفع رياكشن — تجربة محلية"/);
   assert.match(header, /mobile-quick-action/);
-  // الشريط السفلي صار مكوّن GlassNav الزجاجي: خمسة تبويبات بترتيب RTL وبصيغة المستخدم
+  // الشريط السفلي صار مكوّن GlassNav الزجاجي: ثلاثة تبويبات بترتيب RTL وبصيغة المستخدم —
+  // المكتبة، المجموعات، الحساب. «المحفوظات» و«اضافة» أُزيلتا من شريط الهاتف.
   assert.match(header, /<GlassNav onSelect=/);
   const glassNav = fs.readFileSync('src/components/glass-nav/GlassNav.tsx', 'utf8');
+  const defaultTabs = glassNav.match(/DEFAULT_TABS: GlassTab\[\] = \[([\s\S]*?)\];/)?.[1];
+  assert.ok(defaultTabs, 'مصفوفة DEFAULT_TABS مفقودة');
   assert.deepEqual(
-    [...glassNav.matchAll(/key: '(library|groups|add|saved|account)'/g)].map((match) => match[1]),
-    ['library', 'groups', 'add', 'saved', 'account'],
+    [...defaultTabs.matchAll(/key: '(library|groups|add|saved|account)'/g)].map(
+      (match) => match[1],
+    ),
+    ['library', 'groups', 'account'],
   );
-  for (const label of ['المكتبة', 'المجموعات', 'اضافة', 'المحفوظات', 'الحساب']) {
-    assert.ok(glassNav.includes(`label: '${label}'`), `التبويب «${label}» مفقود`);
+  for (const label of ['المكتبة', 'المجموعات', 'الحساب']) {
+    assert.ok(defaultTabs.includes(`label: '${label}'`), `التبويب «${label}» مفقود`);
   }
+  for (const removed of ['add', 'saved']) {
+    assert.ok(!defaultTabs.includes(`key: '${removed}'`), `تبويب «${removed}» ما زال ضالًّا`);
+  }
+  assert.doesNotMatch(defaultTabs, /label: '(اضافة|المحفوظات)'|\/contribute|\/saved/);
+  // إتاحة الإرسال على الهاتف من المكتبة (حسم حمدان 2026-10-22): بلا موضع جديد —
+  // تبويب «الحساب» ← صفحة /account ← زر «إرسال رياكشن» الأساسي ← /contribute
+  const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
+  assert.match(surface, /href="\/contribute"/);
+  assert.match(surface, /إرسال رياكشن/);
   // صفّ رأس واحد: نموذج بحث واحد بمعرّف واحد داخل الصفّ، ولا أثر للبنية القديمة (صفّ البحث المنفصل والحقلان)
   assert.match(header, /className="library-search"/);
   assert.match(header, /id="library-search"/);
@@ -125,7 +143,7 @@ test('Accepted motion avoids fake progress and keeps the mobile bar fixed with r
   assert.match(global, /--motion-medium: 240ms/);
   const glassNavCSS = fs.readFileSync('src/components/glass-nav/glass-nav.css', 'utf8');
   assert.match(navigationCSS, /max-width: 1023px/);
-  // الشريط الزجاجي: خمس مناطق تفاعلية متساوية + تثبيت أسفل الشاشة + دعم تقليل الحركة
+  // الشريط الزجاجي: مناطق تفاعلية متساوية (ثلاث مناطق اليوم) + تثبيت أسفل الشاشة + دعم تقليل الحركة
   assert.match(glassNavCSS, /flex: 1 1 0/);
   assert.match(glassNavCSS, /position: fixed/);
   assert.match(glassNavCSS, /prefers-reduced-motion: reduce/);

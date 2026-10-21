@@ -2,8 +2,8 @@
  * صفحتا الحساب والإعدادات حيًّا: الصفحتان موجودتان وتحملان محتواهما للزائر
  * المختار (yr_guest) ولصاحب جلسة حقيقية، البوابة تتحوّط عن الزائر غير المختار
  * ثم تعيده إلى الوجهة نفسها، لا ملفات عامة، بريد Google غائب من صفحة الحساب،
- * الرأس العام نظيف كما كان، الشريط السفلي بألسنته الخمسة لم يتبدّل سوى وجهة
- * خانة «الحساب»، وPATCH /api/auth محبوس عن غير أصحاب الجلسات.
+ * الرأس العام نظيف كما كان، الشريط السفلي بتبويباته الثلاثة (المكتبة، المجموعات،
+ * الحساب) بلا «اضافة» ولا «محفوظات»، وPATCH /api/auth محبوس عن غير أصحاب الجلسات.
  * فحوص PATCH قاصرة على خادم محلي حصرًا — لا تُرسل كتابة إلى النسخة الحية أبدًا.
  * الاستخدام: node verification/account-page.cjs [base=http://localhost:3000]
  */
@@ -73,10 +73,20 @@ const redirectsToLoginKeeping = (res, pathFor) =>
     !/إرسال رياكشن|الإعدادات|تحرير الهوية/.test(header),
   );
   const glass = library.body.match(/<nav class="glass-nav"[\s\S]*?<\/nav>/);
+  const glassTabs = glass ? (glass[0].match(/class="gnav-tab/g) || []).length : 0;
+  const glassOrder = glass
+    ? glass[0].indexOf('المكتبة') > -1 &&
+      glass[0].indexOf('المجموعات') > glass[0].indexOf('المكتبة') &&
+      glass[0].indexOf('الحساب') > glass[0].indexOf('المجموعات')
+    : false;
   check(
-    'الشريط السفلي قائم بألسنته الخمسة وزر الحساب ضمنها',
-    !!glass && (glass[0].match(/class="gnav-/g) || []).length >= 5 && /الحساب/.test(glass[0]),
-    glass ? `${(glass[0].match(/class="gnav-/g) || []).length} ألسنة` : 'مفقود',
+    'الشريط السفلي قائم بتبويباته الثلاثة بالترتيب: المكتبة، المجموعات، الحساب',
+    glassTabs === 3 && glassOrder,
+    glass ? `${glassTabs} تبويبات` : 'مفقود',
+  );
+  check(
+    'لا «اضافة» ولا «المحفوظات» ولا روابط /contribute أو /saved داخل شريط الهاتف',
+    !!glass && !/اضافة|المحفوظات|href="\/contribute"|href="\/saved"/.test(glass[0]),
   );
 
   // ٢–٣: عقد البوابة كما هو على المسارين الجديدين (بلا أي تعديل على الحماية)

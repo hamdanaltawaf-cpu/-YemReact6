@@ -11,7 +11,7 @@
  *   - --header-offset (110px/74px) يقود scroll-padding وscroll-margin
  *   - .glass-nav مخفي ≥640px · حشوة body السفلية <640px فقط وبلا قاعدة غير مشروطة
  *   - translateY(-110%) + pointer-events:none داخل ≤1023 فقط
- *   - الروابط الثلاثة + زر الرفع + زر الحساب كلها في الرأس
+ *   - الرابطان العلويان (المكتبة/المجموعات) + زر الرفع + زر الحساب كلها في الرأس
  * ثم يطبع ملخّصًا رقميًا للعرض/الارتفاعات مشتقًّا من CSS المُخدَّم ومقاييس الخطوط
  * (Lalezar وIBM Plex Sans Arabic) — ليس قياس متصفّح.
  */
@@ -129,9 +129,10 @@ function ruleBody(css, selector, needle) {
     assert.ok(!html.includes(gone), `ما زال «${gone}» في HTML`);
   ok('لا أثر للبنى القديمة: desktop-library-search · mobile-library-search · header-search-row');
 
-  for (const href of ['/library', '/collections', '/saved'])
+  for (const href of ['/library', '/collections'])
     assert.ok(head.includes(`href="${href}"`), `الرابط ${href} مفقود من الرأس`);
-  ok('الروابط الثلاثة (المكتبة/المجموعات/المحفوظات) في الرأس');
+  assert.ok(!head.includes('href="/saved"'), 'رابط المحفوظات ما زال ضالًّا في الرأس');
+  ok('الرابطان العلويان (المكتبة/المجموعات) في الرأس بلا «المحفوظات»');
 
   assert.ok(head.includes('desktop-quick-action') && head.includes('href="/contribute"'));
   assert.ok(head.includes('account-avatar'));
@@ -146,7 +147,9 @@ function ruleBody(css, selector, needle) {
 
   // ── 3) جلب CSS المُخدَّم كاملًا ─────────────────────────────────
   const hrefs = [
-    ...html.matchAll(/<link[^>]+href="([^"]+)"[^>]*rel="stylesheet"|<link[^>]+rel="stylesheet"[^>]*href="([^"]+)"/g),
+    ...html.matchAll(
+      /<link[^>]+href="([^"]+)"[^>]*rel="stylesheet"|<link[^>]+rel="stylesheet"[^>]*href="([^"]+)"/g,
+    ),
   ].map((m) => m[1] || m[2]);
   assert.ok(hrefs.length > 0, 'لا <link rel="stylesheet"> مُخدَّم');
   const parts = [];
@@ -201,23 +204,14 @@ function ruleBody(css, selector, needle) {
   // ── 5) كتلة ≤1023: 60px · 74px · 42px · الإخفاء بالتمرير ────────
   const m1023Block = mediaBlockWith(css, '@media (max-width: 1023px)', '--header-offset: 74px');
   const m1023 = m1023Block.body;
-  assert.match(
-    ruleBody(m1023, '.site-header .header-row', 'height: 60px'),
-    /height: 60px/,
-  );
+  assert.match(ruleBody(m1023, '.site-header .header-row', 'height: 60px'), /height: 60px/);
   assert.match(ruleBody(m1023, ':root', '74px'), /--header-offset: 74px/);
   assert.match(ruleBody(m1023, '.library-search {', '42px'), /height: 42px/);
   assert.match(ruleBody(m1023, '.library-search {', '42px'), /max-width: none/);
   ok('داخل ≤1023: صفّ 60px · --header-offset:74px · حقل 42px بلا سقف عرض');
 
-  assert.match(
-    ruleBody(m1023, '.site-header .header-actions', 'display: none'),
-    /display: none/,
-  );
-  assert.match(
-    ruleBody(m1023, '.site-header .header-account', 'display: none'),
-    /display: none/,
-  );
+  assert.match(ruleBody(m1023, '.site-header .header-actions', 'display: none'), /display: none/);
+  assert.match(ruleBody(m1023, '.site-header .header-account', 'display: none'), /display: none/);
   ok('داخل ≤1023 (افتراضي الجوال): التنقّل والأدوات والحساب مخفاة في الرأس');
 
   const hidden = ruleBody(m1023, '.site-header.header-hidden');
@@ -225,10 +219,7 @@ function ruleBody(css, selector, needle) {
   assert.match(hidden, /pointer-events: none/);
   ok('الإخفاء بالتمرير: translateY(-110%) + pointer-events:none');
 
-  assert.match(
-    ruleBody(m1023, '.site-header {', 'transition'),
-    /transition: transform 250ms/,
-  );
+  assert.match(ruleBody(m1023, '.site-header {', 'transition'), /transition: transform 250ms/);
   ok('انتقال الرأس transition: transform 250ms دائر على ≤1023');
 
   const hiddenCount = (css.match(/translateY\(-110%\)/g) || []).length;
@@ -245,14 +236,8 @@ function ruleBody(css, selector, needle) {
   const midNav = ruleBody(m640, '.site-header .desktop-nav {', 'display: flex');
   assert.match(midNav, /display: flex/);
   assert.match(midNav, /gap: 14px/);
-  assert.match(
-    ruleBody(m640, '.site-header .header-actions', 'display: flex'),
-    /display: flex/,
-  );
-  assert.match(
-    ruleBody(m640, '.site-header .header-account', 'display: block'),
-    /display: block/,
-  );
+  assert.match(ruleBody(m640, '.site-header .header-actions', 'display: flex'), /display: flex/);
+  assert.match(ruleBody(m640, '.site-header .header-account', 'display: block'), /display: block/);
   assert.match(ruleBody(m640, '.library-search {', '44px'), /height: 44px/);
   ok('640–1023: التنقّل (flex,14px) والأدوات والحساب تعود للرأس، والحقل 44px');
 
@@ -303,16 +288,15 @@ function ruleBody(css, selector, needle) {
   const m374 = mediaBlockWith(css, '@media (max-width: 374px)', '.library-search button').body;
   assert.match(ruleBody(m374, '.site-header .brand > svg', '30px'), /width: 30px/);
   assert.match(ruleBody(m374, '.site-header .brand b', '20px'), /font-size: 20px/);
-  assert.match(
-    ruleBody(m374, '.site-header .brand small', 'display: none'),
-    /display: none/,
-  );
+  assert.match(ruleBody(m374, '.site-header .brand small', 'display: none'), /display: none/);
   assert.match(ruleBody(m374, '.library-search button', '30px'), /width: 30px/);
   ok('سلّم ≤374px كامل (شعار 30px/20px · حقل مضغوط) — لا تجاوز أفقي على 320px');
 
   // كتلتا الحركة يجب أن تكونا مُخدّمتين فعلًا، وأن تبقيا أخيرتين في ملف المصدر (مضادّ لقصّ الذيل)
   const motionBlocks = mediaBlocks(css, '@media (prefers-reduced-motion: reduce)');
-  const headerMotion = motionBlocks.find((block) => block.body.includes('.site-header.header-hidden'));
+  const headerMotion = motionBlocks.find((block) =>
+    block.body.includes('.site-header.header-hidden'),
+  );
   assert.ok(headerMotion, 'كتلة prefers-reduced-motion الخاصة بالرأس غير مُخدَّمة');
   assert.match(headerMotion.body, /transform: none/);
   assert.ok(
@@ -330,7 +314,9 @@ function ruleBody(css, selector, needle) {
     !sourceTail.includes('@media (max-width') && !sourceTail.includes('@media (min-width'),
     'كتلة عرضية جاءت بعد كتلتي الحركة — ذيل navigation.css مقصوص',
   );
-  ok('ذيل navigation.css سليم: كتبتا الحركة (prefers-reduced-motion · data-motion) أخيرتان ومُخدَّمتان');
+  ok(
+    'ذيل navigation.css سليم: كتبتا الحركة (prefers-reduced-motion · data-motion) أخيرتان ومُخدَّمتان',
+  );
 
   // ── ملخّص ────────────────────────────────────────────────────────
   console.log(`\n✅ ${checks.length}/${checks.length} — كل فحوص صفّ الرأس الواحد ناجحة`);

@@ -4,7 +4,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowLeft,
-  Bookmark,
   CircleHelp,
   Clapperboard,
   Library,
@@ -23,11 +22,11 @@ import { GlassNav } from './glass-nav/GlassNav';
 import { useApp } from './AppProvider';
 import { useContribution } from './ContributionProvider';
 
-// The upload action and account controls are deliberately not primary tabs.
+// The upload action, saved items and account controls are deliberately not primary tabs.
+// (دفعة التنقل 1): «المحفوظات» أُزيلت من روابط الرأس — مستقرها قسمها داخل /account.
 const primaryLinks = [
   { href: '/library', label: 'المكتبة', Icon: Library },
   { href: '/collections', label: 'المجموعات', Icon: Layers3 },
-  { href: '/saved', label: 'المحفوظات', Icon: Bookmark },
 ] as const;
 
 function isCurrent(path: string, href: string) {
