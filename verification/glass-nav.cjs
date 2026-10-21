@@ -4,10 +4,13 @@
  * التشغيل (من جذر المستودع، وخادم المعاينة يعمل على المنفذ 3000):
  *   node verification/glass-nav.cjs
  *
- * يغطّي: الترتيب RTL، تساوي مناطق اللمس، تمركز زر اضافة، التنقّل الحقيقي،
- * امتلاء الأيقونة النشطة فعليًا (فحص بكسلات لا خصائص CSS)، ورقة/منبثق الحساب،
+ * يغطّي: الترتيب RTL، تساوي مناطق اللمس، تمركز التبويب الأوسط (المجموعات)،
+ * التنقّل الحقيقي، امتلاء الأيقونة النشطة فعليًا (فحص بكسلات لا خصائص CSS)،
+ * صفحة الحساب على الهاتف ومنبثقها على الحاسوب،
  * أسهم لوحة المفاتيح بوعي RTL، تقليل الحركة، الوضع الداكن، axe للشريط وللرأس،
  * وغياب الانزياح الأفقي من 320px إلى 1920px.
+ * دفعة التنقل 1: الشريط ثلاثة تبويبات (المكتبة/المجموعات/الحساب) — بلا «اضافة»
+ * ولا «محفوظات» — ورأس الحاسوب برابطين علويين، والحساب على الهاتف صفحة كاملة.
  * حدّ 5.2.12: الشريط للجوال وحده (<640px) — على ≥640px يُتحقق من اختفائه،
  * ومن صِفريّة الحشوة السفلية، ومن انتقال التنقّل والحساب إلى الرأس (الرفع من 768px)،
  * مع حشوة محجوزة ما دُمنا عند 639px فأقل.
@@ -103,9 +106,9 @@ function check(name, fn) {
     const home = await geometry(page);
     await page.screenshot({ path: `${outDir}/glass-nav-mobile.png`, animations: 'disabled' });
 
-    await check('الشريط ثابت أسفل الشاشة بخمس تبويبات بترتيب RTL', () => {
-      assert.equal(home.tabs.length, 5);
-      assert.deepEqual(home.visualLtr, ['account', 'saved', 'add', 'groups', 'library']);
+    await check('الشريط ثابت أسفل الشاشة بثلاث تبويبات بترتيب RTL', () => {
+      assert.equal(home.tabs.length, 3);
+      assert.deepEqual(home.visualLtr, ['account', 'groups', 'library']);
       assert.equal(home.position, 'fixed');
       assert.ok(
         home.bottomGap >= 0 && home.bottomGap <= 40,
@@ -113,13 +116,13 @@ function check(name, fn) {
       );
     });
 
-    await check('مناطق اللمس الخمس متساوية وزر اضافة في المركز تمامًا', () => {
+    await check('مناطق اللمس الثلاث متساوية والتبويب الأوسط (المجموعات) في المركز تمامًا', () => {
       const widths = home.tabs.map((t) => t.w);
       assert.ok(Math.max(...widths) - Math.min(...widths) <= 1.5, `فروق عرض: ${widths.join(', ')}`);
-      const add = home.tabs.find((t) => t.key === 'add');
+      const groups = home.tabs.find((t) => t.key === 'groups');
       assert.ok(
-        Math.abs(add.cx - home.rect.cx) <= 2,
-        `انحراف المركز ${(add.cx - home.rect.cx).toFixed(1)}px`,
+        Math.abs(groups.cx - home.rect.cx) <= 2,
+        `انحراف المركز ${(groups.cx - home.rect.cx).toFixed(1)}px`,
       );
     });
 
@@ -143,7 +146,7 @@ function check(name, fn) {
       assert.ok(darkPct > 25, `نسبة البكسلات الداكنة ${darkPct}% — الأيقونة لا تبدو ممتلئة`);
     });
 
-    await check('التنقّل الحقيقي: المجموعات والمحفوظات تحدّث المسار والنشط', async () => {
+    await check('التنقّل الحقيقي: المجموعات تحدّث المسار والنشط', async () => {
       // انتظر اكتمال إعادة العرض *وانتهاء* تلاشي الأيقونة (240ms) قبل القياس
       const settled = (key) =>
         page.waitForFunction((k) => {
@@ -155,34 +158,31 @@ function check(name, fn) {
       await page.waitForURL('**/collections', { timeout: 15000 });
       await settled('groups');
       assert.equal((await geometry(page)).active, 'groups');
-      await page.click(tab('saved'));
-      await page.waitForURL('**/saved', { timeout: 15000 });
-      await settled('saved');
-      assert.equal((await geometry(page)).active, 'saved');
-      const sample = await darkness(page, `${tab('saved')} .gnav-ico svg`);
-      report.shadows.push({ where: 'mobile-saved', ...sample });
-      assert.ok(sample.darkPct > 25, `أيقونة المحفوظات غير ممتلئة (${sample.darkPct}%)`);
+      const sample = await darkness(page, `${tab('groups')} .gnav-ico svg`);
+      report.shadows.push({ where: 'mobile-groups', ...sample });
+      assert.ok(sample.darkPct > 25, `أيقونة المجموعات غير ممتلئة (${sample.darkPct}%)`);
     });
 
-    await check('زر اضافة ينبض عند اللمس ثم ينتقل إلى /contribute', async () => {
-      await page.click(tab('add'));
-      await page.waitForURL('**/contribute', { timeout: 15000 });
-      assert.equal((await geometry(page)).active, 'add');
-    });
-
-    await check('تبويب الحساب يفتح الورقة السفلية نفسها التي يفتحها Avatar', async () => {
-      await page.click(tab('account'));
-      await page.waitForTimeout(600);
-      const open = await page.evaluate(
-        () => document.querySelector('dialog.modal-sheet')?.open ?? false,
-      );
-      const title = await page.evaluate(
-        () => document.querySelector('dialog.modal-sheet h2')?.textContent ?? '',
-      );
-      assert.equal(open, true, 'الورقة السفلية لم تُفتح');
-      assert.match(title, /الحساب/);
-      await page.keyboard.press('Escape');
-    });
+    await check(
+      'تبويب الحساب يقود إلى صفحة /account الكاملة — لا ورقة إطلاقًا (البوابة تحوّل الزائر إلى /login)',
+      async () => {
+        await page.click(tab('account'));
+        await page.waitForURL(/\/(account|login)/, { timeout: 15000 }).catch(() => {});
+        await page.waitForTimeout(400);
+        const landed = new URL(page.url());
+        const atAccount = landed.pathname.startsWith('/account');
+        const gatedToLogin =
+          landed.pathname === '/login' && landed.searchParams.get('next')?.startsWith('/account');
+        assert.ok(atAccount || gatedToLogin, `وجهة غير متوقعة: ${landed.pathname}${landed.search}`);
+        assert.equal(
+          await page.evaluate(() => document.querySelector('dialog.modal-sheet')?.open ?? false),
+          false,
+          'ورقة سفلية ما زالت تُفتح — الاتفاق صفحة كاملة',
+        );
+        // أعد الصفحة إلى المكتبة قبل فحوص لوحة المفاتيح والحشوة اللاحقة
+        await page.goto(`${base}/library`, { waitUntil: 'networkidle' });
+      },
+    );
 
     await check('الجوال <640px: body يحجز حشوة سفلية بمقدار --gnav-h + 42px', async () => {
       const { padding, gnavH } = await page.evaluate(() => {
@@ -310,15 +310,17 @@ function check(name, fn) {
     });
 
     await check(
-      'الحاسوب: الرأس يحمل الشعار وحقلًا واحدًا والروابط الثلاثة والرفع والحساب',
+      'الحاسوب: الرأس يحمل الشعار وحقلًا واحدًا والرابطين (المكتبة/المجموعات) والرفع والحساب',
       async () => {
         assert.equal(await desktopPage.locator('form[role="search"]').count(), 1, 'نموذج واحد');
         assert.ok(await desktopPage.locator('.library-search').isVisible(), 'حقل الرأس غير ظاهر');
-        for (const href of ['/library', '/collections', '/saved'])
-          assert.ok(
-            await desktopPage.locator(`.desktop-nav a[href="${href}"]`).isVisible(),
-            href,
-          );
+        for (const href of ['/library', '/collections'])
+          assert.ok(await desktopPage.locator(`.desktop-nav a[href="${href}"]`).isVisible(), href);
+        assert.equal(
+          await desktopPage.locator('.desktop-nav a[href="/saved"]').count(),
+          0,
+          'رابط المحفوظات ما زال ضالًّا في رأس الحاسوب',
+        );
         assert.ok(await desktopPage.locator('.desktop-quick-action').isVisible(), 'زر الرفع مفقود');
         assert.ok(await desktopPage.locator('.account-avatar').isVisible(), 'زر الحساب مفقود');
       },
@@ -344,35 +346,38 @@ function check(name, fn) {
       assert.deepEqual(serious, [], serious.map((v) => v.id).join(', '));
     });
 
-    await check('نطاق 640–1023: الكبسولة مخفية والتنقّل والحساب في الرأس (الرفع من 768)', async () => {
-      for (const width of [640, 768, 1023]) {
-        await desktopPage.setViewportSize({ width, height: 900 });
-        await desktopPage.waitForTimeout(250);
-        assert.equal(
-          await desktopPage.locator(NAV).isVisible(),
-          false,
-          `الكبسولة ظاهرة عند ${width}px`,
-        );
-        assert.equal(
-          await desktopPage.evaluate(() => getComputedStyle(document.body).paddingBottom),
-          '0px',
-          `حشوة محجوزة عند ${width}px`,
-        );
-        assert.ok(
-          await desktopPage.locator('.desktop-nav').isVisible(),
-          `التنقّل مختفٍ عند ${width}px`,
-        );
-        assert.ok(
-          await desktopPage.locator('.account-avatar').isVisible(),
-          `زر الحساب مختفٍ عند ${width}px`,
-        );
-        assert.equal(
-          await desktopPage.locator('.desktop-quick-action').isVisible(),
-          width >= 768,
-          `زر الرفع عند ${width}px`,
-        );
-      }
-    });
+    await check(
+      'نطاق 640–1023: الكبسولة مخفية والتنقّل والحساب في الرأس (الرفع من 768)',
+      async () => {
+        for (const width of [640, 768, 1023]) {
+          await desktopPage.setViewportSize({ width, height: 900 });
+          await desktopPage.waitForTimeout(250);
+          assert.equal(
+            await desktopPage.locator(NAV).isVisible(),
+            false,
+            `الكبسولة ظاهرة عند ${width}px`,
+          );
+          assert.equal(
+            await desktopPage.evaluate(() => getComputedStyle(document.body).paddingBottom),
+            '0px',
+            `حشوة محجوزة عند ${width}px`,
+          );
+          assert.ok(
+            await desktopPage.locator('.desktop-nav').isVisible(),
+            `التنقّل مختفٍ عند ${width}px`,
+          );
+          assert.ok(
+            await desktopPage.locator('.account-avatar').isVisible(),
+            `زر الحساب مختفٍ عند ${width}px`,
+          );
+          assert.equal(
+            await desktopPage.locator('.desktop-quick-action').isVisible(),
+            width >= 768,
+            `زر الرفع عند ${width}px`,
+          );
+        }
+      },
+    );
 
     await check('حدّ 639px: الكبسولة ظاهرة ما دُمنا دون 640 والحشوة محجوزة', async () => {
       await desktopPage.setViewportSize({ width: 639, height: 900 });
