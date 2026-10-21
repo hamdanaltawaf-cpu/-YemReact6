@@ -273,6 +273,21 @@ const redirectsToLoginKeeping = (res, pathFor) =>
       /<Link href="\/settings" onClick=\{dismiss\}>/.test(headerSource),
   );
 
+  // ١٠ب: عقد أزرار الحساب (دفعة 2): الصورة رابط /account، والسهم عنصر مستقل
+  // يملك عقد القائمة، وقائمة الزائر «تسجيل الدخول» ← /login بلا OAuth مباشر
+  check(
+    'مصدر Header: صورة الحساب رابط /account والسهم المجاور زر مستقل للقائمة',
+    /<Link href="\/account" className="account-avatar"/.test(headerSource) &&
+      /account-menu-trigger/.test(headerSource) &&
+      (headerSource.match(/aria-haspopup/g) || []).length === 1,
+  );
+  check(
+    'مصدر Header: قائمة الزائر بـ«تسجيل الدخول» ← /login — بلا OAuth مباشر وبلا «الاستمرار كزائر»',
+    /<Link href="\/login" className="account-google-action" onClick=\{dismiss\}>/.test(
+      headerSource,
+    ) && !/api\/auth\/oauth\/|الاستمرار كزائر|account-google-pending/.test(headerSource),
+  );
+
   // ١٠ز: عقد العدّادات (حسم حمدان 2026-10-18): بطاقة «المساهمات المنشورة» مخفية
   // مؤقتًا بلا بديلٍ مضلّل، والملخّص للمسجَّل الحقيقي فقط (mockSignedIn بلا أرقام)
   const surface = require('node:fs').readFileSync('src/components/AccountSurface.tsx', 'utf8');

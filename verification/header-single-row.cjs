@@ -135,8 +135,9 @@ function ruleBody(css, selector, needle) {
   ok('الرابطان العلويان (المكتبة/المجموعات) في الرأس بلا «المحفوظات»');
 
   assert.ok(head.includes('desktop-quick-action') && head.includes('href="/contribute"'));
-  assert.ok(head.includes('account-avatar'));
-  ok('زر الرفع ＋ (desktop-quick-action) وزر الحساب (account-avatar) في الرأس');
+  assert.ok(head.includes('href="/account"') && head.includes('account-avatar'));
+  assert.ok(head.includes('account-menu-trigger'));
+  ok('زر الرفع ＋ وصورة الحساب (رابط /account) وسهم القائمة (account-menu-trigger) في الرأس');
 
   const placeholders = (head.match(/ابحث عن رياكشن أو موقف\.\.\./g) || []).length;
   assert.equal(placeholders, 1, `placeholder يتكرر ${placeholders} مرّة`);

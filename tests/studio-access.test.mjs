@@ -131,25 +131,31 @@ function navigation(
     },
   };
 }
-test('Account menu: desktop popover; on the phone the account button navigates to the full /account page — no sheet anywhere', () => {
+test('Account entry: avatar opens the /account page; the adjacent arrow toggles the desktop popover; the phone tab navigates — no sheet anywhere', () => {
   const { header } = navigation(null, { popoverOpen: true });
-  assert.match(header, /<button[^>]*class="account-avatar"[^>]*aria-haspopup="dialog"/);
+  // الصورة رابط مستقل وجهته صفحة الحساب الكاملة
+  assert.match(header, /<a href="\/account"[^>]*class="account-avatar"/);
+  assert.match(header, /aria-label="فتح صفحة الحساب"/);
+  // السهم عنصر منفصل: زر القائمة وحده يحمل عقد الوصول (haspopup/expanded/controls)
+  assert.match(header, /<button[^>]*class="account-menu-trigger"[^>]*aria-haspopup="dialog"/);
+  assert.match(header, /aria-expanded="true"[^>]*aria-controls="desktop-account-popover"/);
+  assert.match(header, /aria-label="فتح قائمة الحساب"/);
   assert.match(header, /role="dialog" aria-label="قائمة الحساب"/);
   assert.match(header, /أنت زائر/);
-  // الهاتف (أقل من 1024px): تبويب «الحساب» يفتح الصفحة الكاملة
+  // الصورة لم تعد زرّ قائمة: aria-haspopup يظهر مرة واحدة في المكوّن كله (على السهم)
+  const source = fs.readFileSync('src/components/Header.tsx', 'utf8');
+  assert.equal(source.match(/aria-haspopup/g)?.length, 1);
+  assert.doesNotMatch(
+    source,
+    /<Link href="\/account" className="account-avatar"[^>]*aria-haspopup/,
+  );
+  // الهاتف: تبويب «الحساب» في الشريط الزجاجي يفتح الصفحة الكاملة دائمًا — لا ورقة
   const phone = navigation(null);
   phone.selectAccount(false);
   assert.deepEqual(phone.pushes, ['/account']);
-  // الحاسوب: التبديل يبقى داخل القائمة — لا انتقال للصفحة ولا ورقة هاتف
-  const desktop = navigation(null);
-  desktop.selectAccount(true);
-  assert.deepEqual(desktop.pushes, []);
-  assert.doesNotMatch(
-    fs.readFileSync('src/components/Header.tsx', 'utf8'),
-    /accountSheet|AccountSurface|<Modal/,
-  );
+  assert.doesNotMatch(source, /accountSheet|AccountSurface|<Modal/);
 });
-test('Guest shows real Google entry, settings and help without a signed-in identity', () => {
+test('Guest menu: «تسجيل الدخول» opens the full /login page — never a direct OAuth link, and no «الاستمرار كزائر» inside', () => {
   const { header, footer } = navigation(null, {
     popoverOpen: true,
     googleAuthOrigin: 'https://example.test',
@@ -157,19 +163,29 @@ test('Guest shows real Google entry, settings and help without a signed-in ident
   });
   assert.match(header, /سجّل لحفظ رياكشناتك/);
   assert.match(header, /والوصول من أي جهاز/);
-  assert.match(
-    header,
-    /href="https:\/\/example\.test\/api\/auth\/oauth\/google"[^>]*>.*الدخول بـ Google/,
-  );
+  // المدخل الوحيد: «تسجيل الدخول» ← صفحة /login الكاملة — لا رابط OAuth مباشر حتى عند جاهزية Google
+  assert.match(header, /<a href="\/login"[^>]*class="account-google-action"[^>]*>.*تسجيل الدخول/);
+  assert.doesNotMatch(header, /api\/auth\/oauth\/|account-google-pending|الاستمرار كزائر/);
   for (const item of ['الإعدادات', 'المساعدة']) assert.match(header, new RegExp(item));
   assert.doesNotMatch(header + footer, /href="\/admin"|الاستوديو|تسجيل الخروج|ADMIN/);
-  assert.doesNotMatch(header, /href="\/login"|account-profile-email/);
+  assert.doesNotMatch(header, /account-profile-email/);
 });
-test('Keyless guest sees a pending sign-in entry that goes to /login, never a dead OAuth URL', () => {
-  const { header } = navigation(null, { popoverOpen: true });
-  assert.match(header, /href="\/login"[^>]*class="account-google-action account-google-pending"/);
-  assert.match(header, /account-pending-chip">قيد التجهيز/);
-  assert.doesNotMatch(header, /href="[^"]*\/api\/auth\/oauth\/google"/);
+test('Guest entry is the same /login page link in every provider state; providers stay as-is on the login page itself', () => {
+  for (const opts of [
+    {},
+    { googleAuthOrigin: 'https://example.test', readyProviders: ['google'] },
+  ]) {
+    const { header } = navigation(null, { popoverOpen: true, ...opts });
+    assert.match(header, /<a href="\/login"[^>]*>.*تسجيل الدخول/);
+    assert.doesNotMatch(header, /href="[^"]*\/api\/auth\/oauth\//);
+  }
+  // «أبقِ Google فعّالًا وApple وMicrosoft «قيد التجهيز»» — عقد صفحة الدخول بلا تغيير هذه الجولة
+  const auth = fs.readFileSync('src/features/Auth.tsx', 'utf8');
+  const social = fs.readFileSync('src/lib/social.ts', 'utf8');
+  assert.match(social, /'google', 'apple', 'microsoft'/);
+  assert.match(auth, /\/api\/auth\/oauth\//);
+  assert.match(auth, /social-provider-pending/);
+  assert.match(auth, /قيد التجهيز/);
 });
 test('Real member: popover shows avatar, name, email, settings (→/settings), help and logout only', () => {
   const user = { role: 'member', name: 'عضو تجريبي', email: 'member@example.test' };
@@ -206,7 +222,9 @@ test('Mock contribution sign-in remains a guest, with its own session-end action
   });
   assert.match(header, /أنت زائر/);
   assert.match(header, /إنهاء جلسة التجربة/);
-  assert.match(header, /href="\/api\/auth\/oauth\/google"/);
+  // جلسة التجربة كالزائر تمامًا: مدخل «تسجيل الدخول» لصفحة /login، بلا رابط OAuth مباشر
+  assert.match(header, /<a href="\/login"[^>]*>.*تسجيل الدخول/);
+  assert.doesNotMatch(header, /href="\/api\/auth\/oauth\/google"/);
   assert.doesNotMatch(header + footer, /href="\/admin"|الاستوديو|>ADMIN<|تسجيل الخروج/);
   assert.match(fs.readFileSync('src/components/Header.tsx', 'utf8'), /await app\.logout\(\)/);
 });

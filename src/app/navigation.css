@@ -95,6 +95,9 @@
 .header-account {
   position: relative;
   flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .account-avatar {
   display: grid;
@@ -109,14 +112,40 @@
   font-size: 17px;
   font-weight: 650;
   line-height: 1;
+  text-decoration: none;
   transition:
     border-color var(--motion-micro) var(--ease-standard),
     background var(--motion-micro) var(--ease-standard);
 }
-.account-avatar:hover,
-.account-avatar[aria-expanded='true'] {
+.account-avatar:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+/* دفعة 2: سهم قائمة الحساب — عنصر مستقل، حاسوب ≥1024px فقط (الصورة تفتح /account) */
+.account-menu-trigger {
+  display: none;
+  place-items: center;
+  width: 26px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color var(--motion-micro) var(--ease-standard),
+    background var(--motion-micro) var(--ease-standard);
+}
+.account-menu-trigger:hover,
+.account-menu-trigger[aria-expanded='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (min-width: 1024px) {
+  .account-menu-trigger {
+    display: grid;
+  }
 }
 .account-popover {
   position: absolute;
