@@ -11,6 +11,9 @@
  * وغياب الانزياح الأفقي من 320px إلى 1920px.
  * دفعة التنقل 1: الشريط ثلاثة تبويبات (المكتبة/المجموعات/الحساب) — بلا «اضافة»
  * ولا «محفوظات» — ورأس الحاسوب برابطين علويين، والحساب على الهاتف صفحة كاملة.
+ * دفعة أزرار الحساب 2: على الحاسوب صورة الحساب رابط مستقل إلى /account،
+ * والسهم المجاور (account-menu-trigger) هو عنصر القائمة المنفصل الذي يحمل
+ * سلوكها (فتح وEscape والإغلاق الواضح) — لا تفترس الصورة وظيفة القائمة إطلاقًا.
  * حدّ 5.2.12: الشريط للجوال وحده (<640px) — على ≥640px يُتحقق من اختفائه،
  * ومن صِفريّة الحشوة السفلية، ومن انتقال التنقّل والحساب إلى الرأس (الرفع من 768px)،
  * مع حشوة محجوزة ما دُمنا عند 639px فأقل.
@@ -326,17 +329,47 @@ function check(name, fn) {
       },
     );
 
-    await check('الحاسوب: Avatar الرأس يفتح المنبثق لا الورقة', async () => {
-      await desktopPage.click('.account-avatar');
-      await desktopPage.waitForTimeout(500);
-      assert.equal(await desktopPage.locator('#desktop-account-popover').count(), 1);
-      assert.equal(
-        await desktopPage.evaluate(
-          () => document.querySelector('dialog.modal-sheet')?.open ?? false,
-        ),
-        false,
-      );
-    });
+    await check(
+      'الحاسوب: السهم المجاور (account-menu-trigger) يفتح المنبثق لا الورقة، وEscape يغلق القائمة بوضوح',
+      async () => {
+        await desktopPage.click('.account-menu-trigger');
+        await desktopPage.waitForTimeout(500);
+        assert.equal(await desktopPage.locator('#desktop-account-popover').count(), 1);
+        assert.equal(
+          await desktopPage.evaluate(
+            () => document.querySelector('dialog.modal-sheet')?.open ?? false,
+          ),
+          false,
+        );
+        await desktopPage.keyboard.press('Escape');
+        await desktopPage.waitForTimeout(250);
+        assert.equal(
+          await desktopPage.locator('#desktop-account-popover').count(),
+          0,
+          'القائمة لم تُغلق بـEscape',
+        );
+      },
+    );
+
+    await check(
+      'الحاسوب: صورة الحساب رابط مستقل إلى /account — ولا تفتح القائمة إطلاقًا',
+      async () => {
+        await desktopPage.click('.account-avatar');
+        await desktopPage.waitForURL(/\/(account|login)/, { timeout: 15000 }).catch(() => {});
+        assert.equal(
+          await desktopPage.locator('#desktop-account-popover').count(),
+          0,
+          'فُتحت قائمة — الصورة يجب أن تبقى رابط صفحة فحسب',
+        );
+        const landed = new URL(desktopPage.url());
+        const atAccount = landed.pathname.startsWith('/account');
+        const gatedToLogin =
+          landed.pathname === '/login' && landed.searchParams.get('next')?.startsWith('/account');
+        assert.ok(atAccount || gatedToLogin, `وجهة غير متوقعة: ${landed.pathname}${landed.search}`);
+        // أعد الصفحة إلى المكتبة قبل فحوص حدود العرض اللاحقة
+        await desktopPage.goto(`${base}/library`, { waitUntil: 'networkidle' });
+      },
+    );
 
     await check('axe: لا انتهاكات جدّية داخل رأس الحاسوب', async () => {
       const results = await new AxeBuilder({ page: desktopPage })
