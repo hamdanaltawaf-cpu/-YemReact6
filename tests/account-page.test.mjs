@@ -113,11 +113,10 @@ function renderSurface({
   demoStates = {},
 } = {}) {
   let index = 0;
-  // استدعاءات useState داخل AccountSurface بالترتيب: المبدّل (0)، وضع التحرير (1)،
-  // الاسم (2)، حفظ جارٍ (3)، خطأ (4) — نزرع التجريبي على فهرسه فقط.
+  // بعد الدفعة 3 ذهب نموذج التحرير: تبقى useState وحيدة (المبدّل، فهرس 0) —
+  // نزرع التجريبي على فهرسه فقط.
   const seeded = {};
   if (demoStates.tab !== undefined) seeded[0] = demoStates.tab;
-  if (demoStates.editing !== undefined) seeded[1] = demoStates.editing;
   const overrides = {
     react: {
       ...React,
@@ -212,11 +211,11 @@ test('Owner summary is ONE truthful card — saved only; the contributions numbe
   assert.doesNotMatch(source, /<b>\{contribution\.records\.length\}<\/b>/);
 });
 
-test('Owner identity shows avatar initial and name with an inline edit entry — no Google email anywhere', () => {
+test('Owner identity shows avatar initial and name — read-only since batch 3: no edit entry, no Google email anywhere', () => {
   const html = renderSurface({ user: MEMBER });
   assert.match(html, /class="account-profile-avatar"[^>]*>ع</);
   assert.match(html, /<strong>عضو المكتبة<\/strong>/);
-  assert.match(html, /تحرير الهوية/);
+  assert.doesNotMatch(html, /تحرير الهوية|اسم العرض|حفظ التغييرات|account-edit|<form/);
   assert.doesNotMatch(html, /member@site\.test/);
   assert.doesNotMatch(html, /account-profile-email/);
 });
@@ -250,25 +249,15 @@ test('Owner empty saves state explains the habit and ends with the library link'
   assert.match(html, /href="\/library"[^>]*>.*تصفح المكتبة/);
 });
 
-test('Identity editing is an inline form with save and cancel — never a dialog', () => {
-  const html = renderSurface({ user: MEMBER, demoStates: { editing: true } });
-  assert.match(html, /<form class="account-identity /);
-  assert.match(html, /<input[^>]*maxlength="40"/i);
-  assert.match(html, /حفظ التغييرات/);
-  assert.match(html, /إلغاء/);
-  assert.match(html, /لا يُزامَن مع اسم حساب خدمة الدخول/);
-  assert.doesNotMatch(html, /role="dialog"|<dialog/);
-});
-
-test('Saving the display name PATCHes the session endpoint then resyncs the user and closes the form', () => {
+test('Identity editing is fully retired in batch 3: no form, no edit state, no PATCH call anywhere in the surface', () => {
   const source = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
-  assert.match(source, /method:\s*'PATCH'/);
-  assert.match(source, /fetch\('\/api\/auth'/);
-  assert.match(source, /body:\s*JSON\.stringify\(\{\s*name:\s*cleaned\s*\}\)/);
-  assert.match(source, /await app\.syncUser\(\)/);
-  assert.match(source, /app\.toast\('تم حفظ اسم العرض\.'\)/);
-  assert.match(source, /setEditing\(false\)/);
-  assert.match(source, /min length|cleaned\.length < 2/);
+  assert.doesNotMatch(source, /تحرير الهوية|اسم العرض|حفظ التغييرات|account-identity-editing/);
+  assert.doesNotMatch(source, /setEditing|saveName|cancelEdit/);
+  assert.doesNotMatch(source, /method:\s*'PATCH'|fetch\('\/api\/auth'/);
+  // لا بند إدخال اسم ولا ربط مزامنة عمره منطق الحفظ القديم
+  assert.doesNotMatch(source, /syncUser\(\)|app\.toast\('تم حفظ اسم العرض\.'\)/);
+  const html = renderSurface({ user: MEMBER });
+  assert.doesNotMatch(html, /<form|role="dialog"|<dialog|<input/);
 });
 
 test('Trial session is NOT an account owner: zero counters, zero records, a login explainer under مساهماتي', () => {
@@ -453,39 +442,17 @@ function authRouteWith({ user }) {
   );
   return { route, calls };
 }
-const patchReq = (name) =>
-  new Request('https://site.test/api/auth', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', origin: 'https://site.test' },
-    body: JSON.stringify({ name }),
-  });
-
-test('PATCH /api/auth rejects guests with 401 and never touches the database', async () => {
-  const { route, calls } = authRouteWith({ user: null });
-  const response = await route.PATCH(patchReq('اسم جديد'));
-  assert.equal(response.status, 401);
-  assert.equal(calls.update.length, 0);
-  assert.equal(calls.audit.length, 0);
-});
-
-test('PATCH /api/auth validates the display name boundaries', async () => {
-  const { route, calls } = authRouteWith({ user: MEMBER });
-  for (const bad of ['ن', ' ', '', 'أ'.repeat(41), 'اسم\u0007بريء']) {
-    const response = await route.PATCH(patchReq(bad));
-    assert.equal(response.status, 400, JSON.stringify(bad));
-  }
-  assert.equal(calls.update.length, 0);
-});
-
-test('PATCH /api/auth trims, persists and echoes the cleaned name — locally in YemReact only', async () => {
-  const { route, calls } = authRouteWith({ user: MEMBER });
-  const response = await route.PATCH(patchReq('  حمدان   التواف  '));
-  assert.equal(response.status, 200);
-  assert.deepEqual(calls.update[0], ['حمدان التواف', MEMBER.id]);
-  assert.equal(calls.audit.length, 1);
-  const data = await response.json();
-  assert.equal(data.user.name, 'حمدان التواف');
-  assert.equal(response.headers.get('cache-control'), 'no-store');
-  // لا إنشاء ملف عام ولا مزامنة لاي خدمة خارجية — تحديث جلسة محلي فقط
-  assert.doesNotMatch(fs.readFileSync('src/app/api/auth/route.ts', 'utf8'), /fetch\(|api\/oauth/);
+/* الدفعة 3: أُزيل PATCH /api/auth بعد ذهاب مستهلكه الوحيد (نموذج الاسم أعلاه).
+   لم يعد للمسار معالج أصلًا: أي طلب PATCH عليه يلقى 405 تلقائيًّا من Next —
+   ولا تحد أقل، حتى من يحمل جلسة حقيقية. العقود المعاكسة القديمة (401/400/200)
+   استُبدلت بهذا العقد السلبي الصارم: */
+test('PATCH /api/auth is retired in batch 3: the module exports GET/POST/DELETE only — any PATCH gets 405 from Next', () => {
+  const { route } = authRouteWith({ user: MEMBER });
+  assert.equal(typeof route.GET, 'function');
+  assert.equal(typeof route.POST, 'function'); // ما زال يرد 410 «الدخول اجتماعي فقط»
+  assert.equal(typeof route.DELETE, 'function');
+  assert.equal(typeof route.PATCH, 'undefined', 'ما زال معالج PATCH موجودًا!');
+  const source = fs.readFileSync('src/app/api/auth/route.ts', 'utf8');
+  assert.doesNotMatch(source, /export async function PATCH/);
+  assert.doesNotMatch(source, /DISPLAY_NAME|profile\.rename|UPDATE users SET name/);
 });

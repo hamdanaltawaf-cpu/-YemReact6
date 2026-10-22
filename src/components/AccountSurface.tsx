@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   ArrowLeft,
   CircleHelp,
@@ -8,7 +8,6 @@ import {
   FileImage,
   FileVideo2,
   LogOut,
-  Pencil,
   Send,
   Settings2,
   UserRound,
@@ -29,6 +28,11 @@ import type { SocialProvider } from '@/lib/social';
  * تعريف «صاحب الحساب» هنا صارم: جلسة التطبيق المسجَّلة app.user فقط. الزائر
  * وجلسة تجربة contribution (mockSignedIn) ليسا حسابًا مسجَّلًا ولا صاحبَ
  * بيانات: بلا عدّادات ولا سجلات مساهمات ولا حالات — تعاملهما الصفحة كزائر.
+ *
+ * الدفعة 3: تبديل تسمية الحساب وتعديل الهوية أُزيلا من الواجهة نهائيًّا
+ * (عرض فقط)، ومعهما ذهب PATCH /api/auth من الخادم (أي طلب عليه ⇒ 405).
+ * الأسماء والسجلات القائمة كما هي بلا أي مساس، وقاعدة البيانات ومخططها لم
+ * يتغيّرا.
  */
 const STATUS_TEXT = { pending: 'قيد المراجعة', approved: 'مقبولة', rejected: 'مرفوضة' } as const;
 
@@ -48,10 +52,6 @@ export function AccountSurface({
   /* «المالك»= الجلسة المسجَّلة الحقيقية فقط؛ لا تعامل جلسة التجربة كحساب له بيانات. */
   const owner = !!app.user;
   const [tab, setTab] = useState<'saved' | 'contributions'>('saved');
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(app.user?.name || '');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
   const savedItems = savedReactions(app.reactions, app.saved);
   /* عدّاد «المساهمات المنشورة» مؤجّل (بلاغ قرار حمدان 2026-10-18): لا يوجد مسار
@@ -86,42 +86,6 @@ export function AccountSurface({
       </Link>
     );
 
-  async function saveName(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (saving) return;
-    const cleaned = name.replace(/\s+/g, ' ').trim();
-    if (cleaned.length < 2 || cleaned.length > 40) {
-      setError('اسم العرض من حرفين إلى 40 حرفًا.');
-      return;
-    }
-    setSaving(true);
-    setError('');
-    try {
-      const response = await fetch('/api/auth', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: cleaned }),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.error || 'تعذّر حفظ الاسم. تحقّق من الاتصال ثم حاول مجددًا.');
-      }
-      // آلية المزامنة الموجودة: إعادة قراءة الجلسة من الخادم تجلب اسم العرض الجديد
-      await app.syncUser();
-      app.toast('تم حفظ اسم العرض.');
-      setEditing(false);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'تعذّر حفظ الاسم.');
-    } finally {
-      setSaving(false);
-    }
-  }
-  function cancelEdit() {
-    setName(app.user?.name || '');
-    setError('');
-    setEditing(false);
-  }
-
   function tabsKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
     event.preventDefault();
@@ -136,61 +100,18 @@ export function AccountSurface({
 
   return (
     <section className="account-surface" aria-label="صفحة الحساب">
-      {/* ١ — الهوية */}
+      {/* ١ — الهوية: عرض فقط (الدفعة 3 ألغت تعديلها من الواجهة والمسار) */}
       {app.user ? (
-        editing ? (
-          <form className="account-identity account-identity-editing" onSubmit={saveName}>
-            <span className="account-profile-avatar" aria-hidden="true">
-              {app.user.name.trim().slice(0, 1) || <UserRound size={18} />}
-            </span>
-            <div className="account-identity-copy">
-              <label className="account-edit-field">
-                اسم العرض
-                <input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  minLength={2}
-                  maxLength={40}
-                  autoFocus
-                  required
-                  dir="auto"
-                />
-                <small>خاص بـ YemReact وحده؛ لا يُزامَن مع اسم حساب خدمة الدخول ولا يغيّره.</small>
-              </label>
-              <div className="account-edit-actions">
-                <button className="btn btn-dark" type="submit" disabled={saving}>
-                  {saving ? 'جارٍ الحفظ…' : 'حفظ التغييرات'}
-                </button>
-                <button className="btn" type="button" onClick={cancelEdit} disabled={saving}>
-                  إلغاء
-                </button>
-              </div>
-              {error && (
-                <p className="account-edit-error" role="alert">
-                  {error}
-                </p>
-              )}
-            </div>
-          </form>
-        ) : (
-          <div className="account-identity">
-            <span className="account-profile-avatar" aria-hidden="true">
-              {app.user.name.trim().slice(0, 1) || <UserRound size={18} />}
-            </span>
-            <div className="account-identity-copy">
-              <strong>{app.user.name}</strong>
-              <small>حسابك على يمن رياكت؛ لا يُعرض بريدُك هنا.</small>
-            </div>
-            {app.user.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
-            <button
-              type="button"
-              className="text-button account-edit-open"
-              onClick={() => setEditing(true)}
-            >
-              <Pencil size={15} aria-hidden="true" /> تحرير الهوية
-            </button>
+        <div className="account-identity">
+          <span className="account-profile-avatar" aria-hidden="true">
+            {app.user.name.trim().slice(0, 1) || <UserRound size={18} />}
+          </span>
+          <div className="account-identity-copy">
+            <strong>{app.user.name}</strong>
+            <small>حسابك على يمن رياكت؛ لا يُعرض بريدُك هنا.</small>
           </div>
-        )
+          {app.user.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
+        </div>
       ) : (
         <div className="account-identity account-identity-guest">
           <UserRound size={22} aria-hidden="true" />
