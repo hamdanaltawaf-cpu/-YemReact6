@@ -3,7 +3,9 @@
  * المختار (yr_guest) ولصاحب جلسة حقيقية، البوابة تتحوّط عن الزائر غير المختار
  * ثم تعيده إلى الوجهة نفسها، لا ملفات عامة، بريد Google غائب من صفحة الحساب،
  * الرأس العام نظيف كما كان، الشريط السفلي بتبويباته الثلاثة (المكتبة، المجموعات،
- * الحساب) بلا «اضافة» ولا «محفوظات»، وPATCH /api/auth محبوس عن غير أصحاب الجلسات.
+ * الحساب) بلا «اضافة» ولا «محفوظات»، وقديم /saved يحوّل (307) إلى /account حيث
+ * قسم المحفوظات الدائم. الدفعة 3: PATCH /api/auth لم يعد موجودًا أصلًا — الجميع
+ * بلا استثناء (حتى أصحاب الجلسات) يلقون 405، وواجهة تحرير الهوية ذهبت نهائيًّا.
  * فحوص PATCH قاصرة على خادم محلي حصرًا — لا تُرسل كتابة إلى النسخة الحية أبدًا.
  * الاستخدام: node verification/account-page.cjs [base=http://localhost:3000]
  */
@@ -146,6 +148,21 @@ const redirectsToLoginKeeping = (res, pathFor) =>
     !/المساهمات المنشورة/.test(account.body),
   );
 
+  // ٤ب: الدفعة 3 — /saved لم تعد صفحة مستقلة: 307 إلى /account بقسم محفوظاته
+  // الدائم، ومحفوظة الزائر المحلية تعرضها الصفحة نفسها دون أي دمج أو رفع.
+  const savedGuest = await call('/saved', { cookie: guestCookie });
+  check(
+    '/saved للزائر المختار ⇒ 307 يوجّه إلى /account',
+    savedGuest.status === 307 && (savedGuest.location || '').includes('/account'),
+    `${savedGuest.status} → ${savedGuest.location || 'بلا وجهة'}`,
+  );
+  const anonSaved = await call('/saved');
+  check(
+    'البوابة على المسار القديم كما هي: /saved بلا كوكي ⇒ /login?next=/saved',
+    redirectsToLoginKeeping(anonSaved, '/saved'),
+    `${anonSaved.status} → ${anonSaved.location || 'بلا وجهة'}`,
+  );
+
   // ٥: صفحة الإعدادات المستقلة حية بأقسامها الخمسة للزائر نفسه
   const settings = await call('/settings', { cookie: guestCookie });
   check('/settings للزائر المختار — 200', settings.status === 200, `${settings.status}`);
@@ -174,24 +191,28 @@ const redirectsToLoginKeeping = (res, pathFor) =>
     `${subs.status}`,
   );
 
-  // ٨: PATCH مقفل أمام من لا جلسة حقيقية له (على أي بيئة)
+  // ٨: PATCH أُزيل كليًّا في الدفعة 3 — الجميع بلا استثناء يلقى 405 (على أي بيئة)
   const patchGuest = await call('/api/auth', {
     method: 'PATCH',
     body: JSON.stringify({ name: 'زائر متلصص' }),
   });
-  check('PATCH بلا جلسة ⇒ 401', patchGuest.status === 401, `${patchGuest.status}`);
+  check(
+    'PATCH بلا جلسة ⇒ 405 (المعالج لم يعد موجودًا أصلًا)',
+    patchGuest.status === 405,
+    `${patchGuest.status}`,
+  );
   const patchCookieFlag = await call('/api/auth', {
     method: 'PATCH',
     cookie: guestCookie,
     body: JSON.stringify({ name: 'زائر بعلم' }),
   });
   check(
-    'PATCH بكوكي yr_guest فقط (لا جلسة) ⇒ 401',
-    patchCookieFlag.status === 401,
+    'PATCH بكوكي yr_guest فقط (لا جلسة) ⇒ 405',
+    patchCookieFlag.status === 405,
     `${patchCookieFlag.status}`,
   );
   if (patchGuest.status === 200 || patchCookieFlag.status === 200)
-    check('اسم العرض: زائر نجح بالتعديل (انسكاب أمني!)', false, 'وصل 200 بلا جلسة');
+    check('اسم العرض: PATCH نجح أصلًا — المسار المتقاعد حيّ!', false, 'وصل 200');
 
   // ٩: الحدود الناجحة/الرفض مع حساب مبذور — على خادم محلي فقط، ولا كتابة إنتاج أبدًا
   if (!isLocalServer) {
@@ -221,37 +242,44 @@ const redirectsToLoginKeeping = (res, pathFor) =>
         Date.now() + 3600e3,
       );
       const session = `yr_session=${token}`;
-      const tooShort = await call('/api/auth', {
+      // الدفعة 3: حتى صاحب الجلسة الحقيقية يلقى 405 — لا طريق لتغيير اسم إطلاقًا
+      const still405 = await call('/api/auth', {
         method: 'PATCH',
         cookie: session,
-        body: JSON.stringify({ name: 'ن' }),
-      });
-      check('اسم من حرف واحد ⇒ 400', tooShort.status === 400, `${tooShort.status}`);
-      const tooLong = await call('/api/auth', {
-        method: 'PATCH',
-        cookie: session,
-        body: JSON.stringify({ name: 'أ'.repeat(41) }),
-      });
-      check('اسم فوق 40 حرفًا ⇒ 400', tooLong.status === 400, `${tooLong.status}`);
-      const ok = await call('/api/auth', {
-        method: 'PATCH',
-        cookie: session,
-        body: JSON.stringify({ name: '  حمدان   التواف  ' }),
+        body: JSON.stringify({ name: 'اسم بديل' }),
       });
       check(
-        'اسم نظيف مع حشوات يتقص ويُقبل ⇒ 200 محفوظ',
-        ok.status === 200 && JSON.parse(ok.body).user?.name === 'حمدان التواف',
-        `${ok.status}`,
+        'PATCH مع جلسة حقيقية ⇒ 405 (الاسم غير قابل للتغيير بعد اليوم)',
+        still405.status === 405,
+        `${still405.status}`,
       );
       const me = await call('/api/auth', { cookie: session });
       check(
-        'قراءة الجلسة بعد الحفظ تعيد الاسم الجديد المحفوظ',
-        me.status === 200 && JSON.parse(me.body).user?.name === 'حمدان التواف',
+        'قراءة الجلسة تبقي الاسم الأصلي بلا أي مساس بعد المحاولة',
+        me.status === 200 && JSON.parse(me.body).user?.name === 'متحقق الحساب',
       );
       const audit = db
         .prepare("SELECT COUNT(*) AS c FROM audit WHERE user_id=? AND action='profile.rename'")
         .get(userId).c;
-      check('السجل التدقيقي يوثّق تغيير الاسم', audit >= 1, `audit=${audit}`);
+      check('لا سطر تدقيقي profile.rename جديد بعد المحاولة', audit === 0, `audit=${audit}`);
+      // ملاحظة معمارية صادقة: HTML الأول لصفحة الحساب يبدو زائري الشكل للجميع —
+      // تعريف المالك يحدث داخل العميل عبر syncUser بعد التهيئة (لا SSR للجلسة).
+      // لذا قيد «بيانات الحساب للمسجل الحقيقي فقط» يُثبت هنا على طبقة HTTP حيث
+      // يُفرض فعلًا: فضاء محفوظات الخادم خاص بصاحب الجلسة وحده، ملغلق على الزائر.
+      const mine = await call('/account', { cookie: session });
+      check('GET /account بجلسة حقيقية — 200 حيّة', mine.status === 200, `${mine.status}`);
+      const apiSavedOK = await call('/api/saved', { cookie: session });
+      check(
+        'خادم /api/saved بجلسة حقيقية ⇒ 200 (فضاء الحساب خاص بصاحبه)',
+        apiSavedOK.status === 200,
+        `${apiSavedOK.status}`,
+      );
+      const apiSavedGuest = await call('/api/saved', { cookie: guestCookie });
+      check(
+        'خادم /api/saved بكوكي yr_guest فقط ⇒ 401 (لا فضاء حساب للزائر — يبقى المحلي له)',
+        apiSavedGuest.status === 401,
+        `${apiSavedGuest.status}`,
+      );
     } finally {
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
       db.prepare('DELETE FROM audit WHERE user_id = ?').run(userId);

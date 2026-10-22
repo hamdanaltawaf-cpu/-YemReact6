@@ -72,43 +72,31 @@ test('Downloads keep the actual image/video file extension', () => {
   ])
     assert.equal(media.mediaFileExtension(src, mime), extension);
 });
-function renderSaved(authReady, savedIds) {
-  const { default: Saved } = load('src/features/Saved.tsx', {
-    '@/components/AppProvider': {
-      useApp: () => ({ reactions: items, saved: savedIds, user: null, authReady }),
-    },
-    '@/lib/saved': saved,
-    '@/components/ReactionMasonry': {
-      ReactionMasonry: ({ items, savedView }) =>
-        React.createElement(
-          'div',
-          { 'data-saved-view': savedView },
-          items.map((r) => React.createElement('article', { key: r.code }, r.caption)),
-        ),
-    },
-    'next/link': {
-      __esModule: true,
-      default: ({ children, ...props }) => React.createElement('a', props, children),
-    },
-  });
-  return renderToStaticMarkup(React.createElement(Saved));
-}
-test('Saved page contains one name and no search, sorting, duration controls, counters or export toolbar', () => {
-  const html = renderSaved(true, ['IMAGE', 'VIDEO']);
-  assert.match(html, /<h1 id="saved-title">المحفوظات<\/h1>/);
-  assert.match(html, /data-saved-view="true"/);
-  assert.doesNotMatch(
-    html,
-    /<input|<select|<form|مجموعتك|تصدير|library-note|duration-filter|category-tabs/,
+test('Batch 3: /saved redirects to /account where the saved section lives; guest saves stay strictly local — never merged, never sent', () => {
+  const page = fs.readFileSync('src/app/saved/page.tsx', 'utf8');
+  assert.match(page, /redirect\('\/account'\)/);
+  assert.doesNotMatch(page, /features\/Saved/);
+  assert.ok(!fs.existsSync('src/features/Saved.tsx'), 'مكوّن المحفوظات المستقل ما زال موجودًا');
+  // القسم قائم في صفحة الحساب فعلًا: مبدّل بلسانَي المحفوظات/مساهماتي يبدأ بالمحفوظات
+  const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
+  assert.match(surface, /id="account-tab-saved"/);
+  assert.match(surface, /useState<'saved' \| 'contributions'>\('saved'\)/);
+  // الفضاءان منفصلان كما كان — ولا شيء في هذه الدفعة يغيّره: فضاء الحساب
+  // (/api/saved) حصري لجلسة حقيقية (requireUser على القراءة والكتابة)،
+  // والزائر على مخزنه المحلي يظهر له وحده ضمن الصفحة نفسها دون دمج أو رفع.
+  const api = fs.readFileSync('src/app/api/saved/route.ts', 'utf8');
+  assert.match(api, /requireUser\(\)/);
+  const provider = fs.readFileSync('src/components/AppProvider.tsx', 'utf8');
+  assert.match(provider, /else setSaved\(read\('yr:guest-saved', \[\]\)\)/);
+  const toggleBlock = provider.slice(
+    provider.indexOf('async function toggleSave'),
+    provider.indexOf('async function refresh'),
   );
-});
-test('Saved loading and empty collections do not show an empty-state message', () => {
-  const loading = renderSaved(false, []);
-  assert.match(loading, /جارٍ تحميل المحفوظات/);
-  assert.doesNotMatch(loading, /احتفظ بما يعجبك/);
-  const empty = renderSaved(true, []);
-  assert.doesNotMatch(empty, /احتفظ بما يعجبك|لا يوجد|saved-empty/);
-  assert.match(empty, /href="\/library"/);
+  const putAt = toggleBlock.indexOf("fetch('/api/saved'");
+  assert.ok(
+    putAt > toggleBlock.indexOf('if (user) {') && putAt < toggleBlock.indexOf('} else '),
+    'كتابة /api/saved خرجت عن ذراع المستخدم المسجل — ذريعة دمج محتملة!',
+  );
 });
 test('Library and saved hide the footer, while the collections footer remains', () => {
   for (const pathname of ['/saved', '/saved/', '/library', '/collections']) {

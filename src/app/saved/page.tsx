@@ -1,9 +1,12 @@
-import Saved from '@/features/Saved';
-export const metadata = {
-  title: 'المحفوظات',
-  description: 'الصور والفيديوهات التي احتفظت بها، في مكان واحد.',
-  robots: { index: false },
-};
-export default function Page() {
-  return <Saved />;
+import { redirect } from 'next/navigation';
+
+/**
+ * الدفعة 3: صفحة المحفوظات المستقلة تقاعدت — «المحفوظات» قسم دائم داخل
+ * صفحة الحساب (/account). التحويل (307 مؤقت) يُبقي كل الرابط القديم حيًّا.
+ * صفحة الحساب تعرض للزائر قسم محفوظاته المحلية من متصفحه كما كانت:
+ * لا دمج مع محفوظات أي حساب، ولا رفع إلى الخادم إطلاقًا، ولا حفظًا خادميًّا
+ * أصلًا (المحفوظات محلية بحتة منذ الجولة الزائرية — ولا شيء هنا يغيّر ذلك).
+ */
+export default function SavedRedirect() {
+  redirect('/account');
 }
