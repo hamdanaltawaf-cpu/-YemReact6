@@ -404,6 +404,15 @@ test('SettingsPanel keeps all five sections working on the page; the legacy moda
 
   const source = fs.readFileSync('src/components/Settings.tsx', 'utf8');
   assert.match(source, /export function SettingsPanel\(\)/);
+  // الدفعة 4: لوحة «لونك المفضّل» بلا بنفسجي — كهرماني (الافتراضي القائم)
+  // وأخضر فقط، بلا توسيع ولا لون بديل، واستعادة الإعدادات ترجع الكهرماني كما كانت.
+  assert.deepEqual(
+    panel.match(/aria-label="(?:كهرماني|أخضر|بنفسجي)"/g) || [],
+    ['aria-label="كهرماني"', 'aria-label="أخضر"'],
+    'لوحة الألوان ليست كهرماني+أخضر فقط',
+  );
+  assert.doesNotMatch(source, /#6863ac|بنفسجي/);
+  assert.match(source, /app\.setAccent\('#c1592e'\)/);
   assert.match(source, /<Modal open=\{app\.settings\}/);
   assert.match(source, /<SettingsPanel \/>/);
   // حالة app.settings بلا أي نداء تفعيل لها في الواجهة اليوم

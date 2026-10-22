@@ -54,7 +54,6 @@ export function SettingsPanel() {
           {[
             ['#c1592e', 'كهرماني'],
             ['#367567', 'أخضر'],
-            ['#6863ac', 'بنفسجي'],
           ].map(([color, name]) => (
             <button
               key={color}
