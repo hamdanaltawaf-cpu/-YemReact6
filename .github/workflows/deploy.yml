@@ -1,7 +1,10 @@
-name: النشر والتحقق في الإنتاج
+name: النشر والتحقق في المعاينة
 
-# يتحقق من الجودة، يحاول النشر على Railway عند توفّر الرمز المميز، ثم يفحص الموقع الحيّ
-# عقد الفحوص في scripts/verify-deployment.mjs ولا يحتاج أي صلاحية على Railway.
+# يتحقق من الجودة، ثم يفحص معاينة Render التجريبية على عنوانها؛ عناوين وعقود
+# الفحوص في scripts/verify-deployment.mjs ولا يحتاج أي صلاحية على Render.
+# قسم النشر عبر Railway أدناه خامل بلا RAILWAY_TOKEN ويبقى كما احترازًا —
+# عنوان Railway القديم لم يعد وجهة الفحوص، ولا تعني هذه التعديلات أي نشر أو
+# تغيير إعدادات على أي منصة.
 #
 # نسخة pnpm تُقرأ من حقل packageManager في package.json؛ لا تُضِف input باسم version
 # وإلا يفشل pnpm/action-setup برسالة "Multiple versions of pnpm specified".
@@ -17,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       verify_only:
-        description: 'تحقق من الإنتاج الحالي دون محاولة نشر'
+        description: 'تحقق من معاينة Render الحالية دون محاولة نشر'
         type: boolean
         default: false
       deploy_only:
@@ -26,17 +29,17 @@ on:
         default: false
 
 concurrency:
-  # طلبات الدمج لا تصطفّ خلف نشر الإنتاج؛ والنشر يبقى أحاديًا دائمًا.
-  group: ${{ github.event_name == 'pull_request' && github.ref || 'production-deploy' }}
+  # طلبات الدمج لا تصطفّ خلف نشر المعاينة؛ والنشر يبقى أحاديًا دائمًا.
+  group: ${{ github.event_name == 'pull_request' && github.ref || 'preview-deploy' }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 env:
-  # NEXT_PUBLIC_SITE_URL تُدمج وقت البناء؛ البديل الافتراضي هو نطاق الإنتاج الحالي.
-  NEXT_PUBLIC_SITE_URL: ${{ vars.PRODUCTION_URL || 'https://yemreact-production.up.railway.app' }}
-  PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://yemreact-production.up.railway.app' }}
+  # المصدر الوحيد لعنوان المعاينة التجريبية: أولوية لمتغيّر المستودع PREVIEW_BASE_URL،
+  # ثم البديل الثابت أدناه (معاينة Render). الفحوص والبناء يقرآنه ولا يكرّرانه.
+  PREVIEW_BASE_URL: ${{ vars.PREVIEW_BASE_URL || 'https://yemreact-preview.onrender.com' }}
   FFPROBE_PATH: /usr/bin/ffprobe
   FFMPEG_PATH: /usr/bin/ffmpeg
 
@@ -66,7 +69,10 @@ jobs:
       - name: اختبارات المنطق
         run: pnpm test
       - name: بناء الإنتاج بنفس أمر الحاوية
-        run: pnpm build
+        env:
+          # أولوية الفرض اليدوي عبر متغيّر المستودع NEXT_PUBLIC_SITE_URL؛ وإلا عنوان المعاينة الموحّد.
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || '' }}
+        run: NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-$PREVIEW_BASE_URL}" pnpm build
 
   deploy:
     name: النشر على Railway
@@ -165,9 +171,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   verify:
-    name: التحقق من الإنتاج
+    name: التحقق من معاينة Render
     needs: [quality, deploy]
-    # فقط على الدفع/التشغيل اليدوي؛ لا معنى لفحص الإنتاج من طلب دمج.
+    # فقط على الدفع/التشغيل اليدوي؛ لا معنى لفحص المعاينة من طلب دمج.
     if: ${{ always() && needs.quality.result == 'success' && github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.deploy_only != true) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -176,7 +182,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - name: انتظار النشرة ثم تنفيذ عقد الفحوص
+      - name: إيقاظ المعاينة ثم انتظار النشرة ثم تنفيذ عقد الفحوص
         env:
           # عند «تحقق فقط» لا ننتظر إصدارًا جديدًا، بل نفحص ما هو منشور الآن.
           WAIT_FOR_REVISION: ${{ github.event_name != 'workflow_dispatch' || inputs.verify_only != true }}
@@ -185,8 +191,16 @@ jobs:
           WAIT_SECONDS: ${{ needs.deploy.outputs.cli == 'failure' && (vars.VERIFY_WAIT_AFTER_FAILURE || '300') || '900' }}
         run: |
           set -euo pipefail
-          echo "مهلة انتظار النشرة: ${WAIT_SECONDS} ثانية"
-          args=("$PRODUCTION_URL" --wait "$WAIT_SECONDS" --poll 15 --json verification/deployment/result.json)
+          echo "مهلة انتظار النشرة: ${WAIT_SECONDS} ثانية — مهلة إيقاظ المعاينة: 180 ثانية"
+          args=(
+            "$PREVIEW_BASE_URL"
+            --wait "$WAIT_SECONDS"
+            --poll 15
+            # Render المجاني ينام بعد الخمول: إحماء مقيَّد وواضح قبل الفحوص،
+            # وعند انتهائه تعرض الفحوص الخطأ الحقيقي لكل مسار (لا تجاوز).
+            --warm 180
+            --json verification/deployment/result.json
+          )
           if [ "$WAIT_FOR_REVISION" = "true" ]; then
             args+=(--expect-revision "$GITHUB_SHA")
             if [ -n "${{ needs.deploy.outputs.deployed_at }}" ]; then
@@ -198,7 +212,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
         with:
-          name: production-verification
+          name: render-preview-verification
           path: verification/deployment/result.json
           if-no-files-found: ignore
           retention-days: 30

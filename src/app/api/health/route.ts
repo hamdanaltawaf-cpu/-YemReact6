@@ -13,7 +13,12 @@ const run = promisify(execFile);
 /** Deployment commit, so the post-deploy verifier can wait for the new build to serve. */
 function deployedRevision() {
   return (
+    // ضرورة ثابتة لتوجيه فحوص CI إلى معاينة Render: الخدمة تُبلّغ التزامها عبر
+    // RENDER_GIT_COMMIT وقت التشغيل (تزوّده منصة Render للخدمات المبنية من Git)،
+    // فبدونه يفقد --expect-revision مقارنته الحرفية مع GITHUB_SHA. بلا أن يمس
+    // ذلك أي بيانات أو سلوك مستخدم.
     process.env.RAILWAY_GIT_COMMIT_SHA ||
+    process.env.RENDER_GIT_COMMIT ||
     process.env.GIT_COMMIT_SHA ||
     process.env.SOURCE_VERSION ||
     ''
