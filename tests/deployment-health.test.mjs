@@ -35,7 +35,7 @@ test('Production without a public origin fails: metadata would still point at lo
     'fail',
   );
   assert.equal(
-    levelOf(siteUrlCheck({ ...production, siteUrl: 'https://yemreact-production.up.railway.app' })),
+    levelOf(siteUrlCheck({ ...production, siteUrl: 'https://yemreact-preview.onrender.com' })),
     'ok',
   );
   // A path, query or credentials are not an origin; warn instead of silently accepting.
@@ -126,11 +126,11 @@ test('Overall level is fail only on a real failure, warn for unfinished setup', 
 test('Collected checks are stable, uniquely identified and ordered for the verifier', () => {
   const checks = collectDeployChecks({
     nodeEnv: 'production',
-    siteUrl: 'https://yemreact-production.up.railway.app',
+    siteUrl: 'https://yemreact-preview.onrender.com',
     dataDir: '/app/data',
     ffprobePath: '/usr/bin/ffprobe',
     ffprobeAvailable: true,
-    oauthSiteUrl: 'https://yemreact-production.up.railway.app',
+    oauthSiteUrl: 'https://yemreact-preview.onrender.com',
     socialProviders: ['google'],
     reactions: 12,
     owners: 1,

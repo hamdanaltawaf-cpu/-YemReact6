@@ -17,11 +17,7 @@ function deployedRevision() {
     // RENDER_GIT_COMMIT وقت التشغيل (تزوّده منصة Render للخدمات المبنية من Git)،
     // فبدونه يفقد --expect-revision مقارنته الحرفية مع GITHUB_SHA. بلا أن يمس
     // ذلك أي بيانات أو سلوك مستخدم.
-    process.env.RAILWAY_GIT_COMMIT_SHA ||
-    process.env.RENDER_GIT_COMMIT ||
-    process.env.GIT_COMMIT_SHA ||
-    process.env.SOURCE_VERSION ||
-    ''
+    process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT_SHA || process.env.SOURCE_VERSION || ''
   );
 }
 const uploadsPath = () => path.resolve(process.env.DATA_DIR || 'data', 'uploads');
