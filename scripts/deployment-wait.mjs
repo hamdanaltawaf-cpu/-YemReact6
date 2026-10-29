@@ -1,11 +1,9 @@
 /**
  * Decides whether a deployment under verification is the one we just shipped.
  *
- * Two deployment paths exist for this project and they expose different evidence:
- *  - a GitHub-connected deploy reports RAILWAY_GIT_COMMIT_SHA, so the commit can
- *    be compared exactly (`expectRevision`);
- *  - a `railway up` upload carries no commit, so freshness is judged from the
- *    container start time relative to when the deploy ran (`deployedAt`).
+ * Render reports RENDER_GIT_COMMIT for Git-connected deployments, so the commit
+ * can be compared exactly (`expectRevision`). The generic `deployedAt` fallback
+ * remains available to callers verifying a deployment without revision metadata.
  *
  * Kept separate from the verifier so the rule is unit-tested and cannot drift.
  *

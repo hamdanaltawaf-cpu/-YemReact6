@@ -34,7 +34,7 @@ test('Paths and ports are preserved, and the published sitemap URL stays valid',
 });
 
 test('robots.txt is rendered per request so it uses the runtime origin', () => {
-  // It is served from Railway, whose build stage has no service variables; a
+  // It is served from Render, whose build stage has no service variables; a
   // static prerender would bake in the localhost fallback.
   const ctx = {
     exports: {},
