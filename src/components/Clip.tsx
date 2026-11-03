@@ -65,6 +65,7 @@ export function ReactionActions({ reaction }: { reaction: Reaction }) {
       <button
         className="btn btn-primary"
         aria-label={busy ? 'جارٍ التنزيل' : 'تنزيل'}
+        aria-busy={busy}
         onClick={download}
         disabled={busy || verifiedMediaType(reaction) === 'unknown'}
       >

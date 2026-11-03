@@ -4,9 +4,9 @@
 :root {
   --accent: #c1592e;
   --accent-text: color-mix(in srgb, var(--accent) 78%, #000);
-  --bg: #f5f1ea;
-  --surface: #fffdf9;
-  --ink: #20221e;
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --ink: #121214;
   --muted: #595b52;
   --line: #dfded5;
   --soft: #ece9e1;
@@ -23,16 +23,16 @@
   --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
   --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
   --ease-seal: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --font-body: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  --font-body: var(--f-latin), var(--f-body), sans-serif;
   /* ارتفاع الرأس الثابت — يقود scroll-padding ومواضع الإزاحة؛ navigation.css يبدّله إلى 74px ≤1023 */
   --header-offset: 110px;
   color-scheme: light;
 }
 :root[data-theme='dark'] {
   --accent-text: color-mix(in srgb, var(--accent) 60%, #fff);
-  --bg: #151714;
-  --surface: #20231e;
-  --ink: #f3eee6;
+  --bg: #18140f;
+  --surface: #221c16;
+  --ink: #f3ece2;
   --muted: #b0b3a7;
   --line: #383d32;
   --soft: #292d25;
@@ -41,7 +41,7 @@
   color-scheme: dark;
 }
 @theme inline {
-  --font-body: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  --font-body: var(--f-latin), var(--f-body), sans-serif;
   --font-mono: var(--f-mono);
 }
 * {
@@ -56,7 +56,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 14px;
   line-height: 1.8;
 }
@@ -513,7 +513,7 @@ kbd {
   border-radius: 50%;
 }
 .card-caption b {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: clamp(20px, 10cqw, 36px);
   font-weight: 400;
   display: block;
@@ -574,7 +574,7 @@ kbd {
   padding-bottom: 48px;
 }
 .hand-note {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 20px;
   color: var(--muted);
   transform: rotate(-5deg);
@@ -600,7 +600,7 @@ kbd {
 }
 .step-card h3 {
   font-size: 23px;
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-weight: 400;
   margin: 20px 0 10px;
 }
@@ -625,7 +625,7 @@ kbd {
   color: var(--accent-text);
 }
 .collection-callout h3 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 25px;
   font-weight: 400;
 }
@@ -658,7 +658,7 @@ kbd {
   margin-bottom: 35px;
 }
 .page-heading h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 57px;
   font-weight: 400;
   margin-top: 15px;
@@ -763,7 +763,7 @@ kbd {
 }
 .empty-state h2,
 .empty-state h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 36px;
   font-weight: 400;
 }
@@ -808,7 +808,7 @@ kbd {
   border-radius: 50%;
 }
 .detail-copy h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 62px;
   font-weight: 400;
   margin-top: 0;
@@ -962,7 +962,7 @@ kbd {
 }
 .modal-top h2 {
   font-size: 23px;
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-weight: 400;
 }
 .modal-top > .icon-btn {
@@ -990,7 +990,7 @@ kbd {
   gap: 20px;
 }
 .preview-copy h3 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 47px;
   font-weight: 400;
 }
@@ -1184,7 +1184,7 @@ kbd {
   margin: 40px 0 20px;
 }
 .auth-story h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 59px;
   font-weight: 400;
   line-height: 1.3;
@@ -1207,7 +1207,7 @@ kbd {
   background: var(--surface);
 }
 .auth-form-wrap h2 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 36px;
   font-weight: 400;
   margin: 15px 0 10px;
@@ -1304,7 +1304,7 @@ kbd {
   padding-left: 23px;
 }
 .admin-title {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 28px;
   display: flex;
   align-items: center;
@@ -1348,7 +1348,7 @@ kbd {
   margin-bottom: 28px;
 }
 .admin-heading h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-weight: 400;
   font-size: 36px;
 }
@@ -2629,7 +2629,7 @@ kbd {
   border-bottom: 1px solid var(--line);
 }
 .saved-heading h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: clamp(38px, 4vw, 58px);
   font-weight: 400;
   line-height: 1.25;
@@ -2729,7 +2729,7 @@ kbd {
   transform: rotate(6deg);
 }
 .saved-empty h2 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: clamp(27px, 3vw, 36px);
   font-weight: 400;
 }
@@ -2856,7 +2856,7 @@ kbd {
   margin-bottom: 32px;
 }
 .information-heading h1 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: clamp(34px, 4vw, 54px);
   line-height: 1.35;
   font-weight: 400;

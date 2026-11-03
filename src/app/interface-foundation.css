@@ -1,0 +1,135 @@
+/* Batch 2: I04/I08/I09/I10 + 5B-CANONICAL. No route, data or auth changes.
+   Accent hex values are intentionally unchanged: I03/5B.21 approve names,
+   not replacement hex values. Do not borrow the rejected category palette. */
+:root {
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --control-border: rgba(0, 0, 0, 0.04);
+}
+:root[data-theme='dark'] {
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --control-border: rgba(255, 255, 255, 0.06);
+}
+body {
+  font-family: var(--f-latin), var(--f-body), sans-serif;
+}
+.container {
+  width: min(1120px, calc(100% - 32px));
+}
+/* Three sizes from I10: default M=44, small S=40, explicit L=48. */
+.btn {
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+}
+.btn-small {
+  min-height: 40px;
+  padding: 8px 12px;
+}
+.btn-large {
+  min-height: 48px;
+  padding: 12px 24px;
+}
+.btn:hover:not(:disabled):not([aria-disabled='true']):not([aria-busy='true']) {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+/* Active is transient press feedback, not focus and not a selected toggle. */
+:is(.btn, .icon-btn, .text-button, .segmented button, .library-search button):active:not(
+    :disabled
+  ):not([aria-disabled='true']):not([aria-busy='true']) {
+  transform: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+:is(.btn, .icon-btn, .text-button)[aria-disabled='true'],
+button:disabled {
+  cursor: not-allowed;
+}
+:is(.btn, .icon-btn, .text-button):is(:disabled, [aria-disabled='true']) {
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+/* Real consumers set aria-busy; CSS must never fabricate a successful action. */
+.btn[aria-busy='true'] {
+  cursor: progress;
+  opacity: 1;
+}
+.btn[aria-busy='true']::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: control-spin var(--motion-large) linear infinite;
+}
+@keyframes control-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Focus remains visible while a button is pressed, disabled styling is separate. */
+:is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.library-search {
+  height: 44px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.library-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+/* The search container supplies the ring; do not draw a second ring inside it. */
+.library-search input:focus-visible {
+  outline: none;
+}
+.segmented button,
+.icon-btn {
+  min-height: 44px;
+}
+.icon-btn {
+  width: 44px;
+  height: 44px;
+}
+.segmented button {
+  border-radius: 10px;
+}
+.segmented button[aria-pressed='true'] {
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+@media (max-width: 639px) {
+  /* Keep the original mark/link intact, reserve the remaining row for search. */
+  .site-header .brand > span {
+    display: none;
+  }
+  .library-search {
+    max-width: none;
+  }
+}
+@media (min-width: 1024px) {
+  .site-header {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn[aria-busy='true']::before {
+    animation: none;
+  }
+}
+:root[data-motion='reduce'] .btn[aria-busy='true']::before {
+  animation: none;
+}

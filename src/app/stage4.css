@@ -1,6 +1,6 @@
-/* Stage 4 / PD-I04–I07. PD-I08's new palette is deliberately not applied. */
+/* Stage 4 typography and content primitives; interface-foundation.css applies I08/I10. */
 body {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -33,7 +33,7 @@ h3,
 .saved-empty h2,
 .empty-state h1,
 .empty-state h2 {
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   letter-spacing: 0;
 }
 h1,
@@ -305,7 +305,7 @@ h3,
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 14px;
   font-weight: 500;
   line-height: 1.5;
@@ -485,7 +485,7 @@ h3,
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: Inter, 'IBM Plex Sans Arabic', sans-serif;
+  font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 12px;
   font-weight: 500;
   line-height: 16px;
