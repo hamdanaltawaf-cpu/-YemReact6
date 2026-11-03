@@ -15,6 +15,7 @@ import './stage4.css';
 import './contribution.css';
 import './contribution-entry.css';
 import './navigation.css';
+import './interface-foundation.css';
 const display = Lalezar({
   weight: '400',
   subsets: ['arabic'],

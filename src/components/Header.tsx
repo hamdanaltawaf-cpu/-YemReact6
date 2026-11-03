@@ -245,6 +245,7 @@ export function Header({
           window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
           app.reduced ||
           searchFocus ||
+          document.querySelector('.site-header')?.contains(document.activeElement) ||
           document.querySelector('dialog[open]')
         ) {
           previous = y;
@@ -312,7 +313,7 @@ export function Header({
             onSubmit={submitSearch}
           >
             <label className="sr-only" htmlFor="library-search">
-              ابحث عن رياكشن أو موقف
+              ابحث عن رياكشن
             </label>
             <Search size={19} aria-hidden="true" />
             <input
@@ -323,10 +324,10 @@ export function Header({
               onChange={(event) => setQuery(event.target.value)}
               onFocus={() => setSearchFocus(true)}
               onBlur={() => setSearchFocus(false)}
-              placeholder="ابحث عن رياكشن أو موقف..."
+              placeholder="ابحث عن رياكشن..."
               autoComplete="off"
             />
-            <button type="submit" aria-label="تنفيذ البحث" title="ابحث عن رياكشن أو موقف">
+            <button type="submit" aria-label="تنفيذ البحث" title="ابحث عن رياكشن">
               <ArrowLeft size={17} aria-hidden="true" />
             </button>
           </form>
