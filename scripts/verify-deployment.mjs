@@ -337,10 +337,18 @@ await check(
       const anon = await request(`${origin}${pagePath}`, {
         headers: { 'user-agent': BROWSER_UA, Accept: 'text/html' },
       });
-      expect(
-        [301, 302, 303, 307, 308].includes(anon.status),
-        `${pagePath} بلا كوكي أعاد ${anon.status} — غائب النسخة القديمة لا بدليل أن تعترف بذلك (404) إن لم تُلغ`,
-      );
+      if (pagePath === '/account') {
+        const html = await anon.text();
+        expect(anon.status === 200, `/account بلا كوكي أعاد ${anon.status} بدل سطح الزائر 200`);
+        for (const marker of markers)
+          expect(marker.test(html), `/account بلا كوكي لا يعرض ${marker.source}`);
+        expect(!/account-profile-email/.test(html), '/account بلا كوكي يعرض بريد حساب');
+      } else {
+        expect(
+          [301, 302, 303, 307, 308].includes(anon.status),
+          `${pagePath} بلا كوكي أعاد ${anon.status} بدل إحالة البوابة`,
+        );
+      }
       const guest = await request(`${origin}${pagePath}`, {
         headers: { 'user-agent': BROWSER_UA, cookie: 'yr_guest=1' },
       });
@@ -352,6 +360,35 @@ await check(
       expect(/<html[^>]+dir="rtl"/.test(html), `${pagePath} بلا اتجاه عربي`);
     }
     return '200 × 2 بمحتوى الصفحتين';
+  },
+);
+
+await check(
+  'account-contribute-footer-and-saved-api',
+  'الحساب والإرسال بلا تذييل، وواجهة المحفوظات محمية من الزائر',
+  async () => {
+    for (const [pagePath, marker, cookie] of [
+      ['/account', /<h1 id="account-title">حسابك/, ''],
+      ['/contribute', /<h1>المساهمة<\/h1>/, 'yr_guest=1'],
+    ]) {
+      const response = await request(`${origin}${pagePath}`, {
+        headers: { 'user-agent': BROWSER_UA, Accept: 'text/html', ...(cookie ? { cookie } : {}) },
+      });
+      const html = await response.text();
+      expect(response.status === 200, `${pagePath} أعاد ${response.status} بدل 200`);
+      expect(marker.test(html), `${pagePath} لم يعرض محتوى الصفحة المقصودة`);
+      expect(
+        !/<footer\b[^>]*class="[^"]*\bsite-footer\b/.test(html),
+        `${pagePath} ما زال يعرض تذييل الموقع`,
+      );
+    }
+    for (const cookie of ['', 'yr_guest=1']) {
+      const response = await request(`${origin}/api/saved`, {
+        headers: { 'user-agent': BROWSER_UA, ...(cookie ? { cookie } : {}) },
+      });
+      expect(response.status === 401, `/api/saved للزائر أعاد ${response.status} بدل 401`);
+    }
+    return 'صفحتان 200 بلا تذييل؛ /api/saved يعيد 401 بلا جلسة ومع علم الزائر';
   },
 );
 

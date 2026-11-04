@@ -1,6 +1,7 @@
 export const SESSION_COOKIE = 'yr_session';
 export const GUEST_COOKIE = 'yr_guest';
-const OPEN_PATHS = new Set(['/login', '/help', '/privacy', '/offline']);
+// The account shell also serves guest-local saves; APIs still enforce account identity.
+const OPEN_PATHS = new Set(['/login', '/account', '/help', '/privacy', '/offline']);
 const OPEN_PREFIXES = ['/api/', '/_next/', '/icons/'];
 const ASSET_FILE = /\.[a-z0-9]{2,12}$/i; // تشمل .webmanifest
 const CRAWLER =

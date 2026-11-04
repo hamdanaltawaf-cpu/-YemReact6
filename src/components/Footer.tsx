@@ -7,7 +7,8 @@ export function Footer() {
   const pathname = usePathname();
   const { user } = useApp();
   const path = pathname.replace(/\/$/, '') || '/';
-  if (isGatewayPath(path) || ['/library', '/saved'].includes(path)) return null;
+  if (isGatewayPath(path) || ['/library', '/saved', '/contribute', '/account'].includes(path))
+    return null;
   return (
     <footer className="site-footer">
       <div className="container compact-footer-row">

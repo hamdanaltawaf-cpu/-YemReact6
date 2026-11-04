@@ -143,3 +143,47 @@ test('Middleware gates every request through decideGate and answers with a tempo
   assert.match(middleware, /_rsc/);
   assert.match(middleware, /purpose'\) === 'prefetch'|sec-purpose/);
 });
+
+test('Guest account shell is reachable without cookies, including HEAD and RSC, but not private descendants', () => {
+  for (const method of ['GET', 'HEAD']) {
+    for (const hasGuest of [false, true]) {
+      expectOpen(
+        decideGate({
+          pathname: '/account',
+          search: '?tab=saved',
+          method,
+          accept: 'text/html',
+          userAgent: 'Mozilla/5.0',
+          hasGuest,
+        }),
+        'guest account',
+      );
+    }
+  }
+  expectOpen(
+    decideGate({
+      pathname: '/account',
+      isRsc: true,
+      accept: 'text/x-component',
+      userAgent: 'Mozilla/5.0',
+    }),
+    'RSC account',
+  );
+  for (const pathname of [
+    '/account/submissions',
+    '/account-other',
+    '/admin',
+    '/settings',
+    '/contribute',
+  ])
+    expectGated(decideGate({ pathname, accept: 'text/html', userAgent: 'Mozilla/5.0' }), pathname);
+});
+
+test('Login next=/account guest return target is no longer gated even when cookies are unavailable', () => {
+  const next = safeNext('/account');
+  assert.equal(next, '/account');
+  for (const hasGuest of [false, true])
+    expectOpen(
+      decideGate({ pathname: next, accept: 'text/html', userAgent: 'Mozilla/5.0', hasGuest }),
+    );
+});

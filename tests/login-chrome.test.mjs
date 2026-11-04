@@ -130,11 +130,22 @@ test('SSR: every other surface keeps its chrome (header, and glass-nav, and foot
     assert.match(headerHtml(pathname), /class="site-header"/, `header on ${pathname}`);
     assert.match(glassNavHtml(pathname), /class="glass-nav/, `glass-nav on ${pathname}`);
   }
-  // الفوتر: لم يتغيّر سلوكه خارج مساري البوّابة (يُخفى في /library و/saved كما كان)
+  // تبقى قواعد الفوتر السابقة لهذه الصفحات كما هي؛ للحساب والإرسال اختبار مستقل أدناه.
   assert.match(footerHtml('/help'), /class="site-footer"/);
   assert.match(footerHtml('/privacy'), /class="site-footer"/);
   assert.equal(footerHtml('/library'), '');
   assert.equal(footerHtml('/saved'), '');
+});
+
+test('SSR: account and contribute hide only the footer, including trailing slash paths', () => {
+  for (const pathname of ['/account', '/contribute']) {
+    assert.equal(footerHtml(pathname), '', `footer hidden on ${pathname}`);
+    assert.equal(footerHtml(`${pathname}/`), '', `footer hidden on ${pathname}/`);
+    assert.match(headerHtml(pathname), /class="site-header"/, `header retained on ${pathname}`);
+    assert.match(glassNavHtml(pathname), /class="glass-nav/, `navigation retained on ${pathname}`);
+  }
+  for (const pathname of ['/settings', '/collections', '/account/submissions'])
+    assert.match(footerHtml(pathname), /class="site-footer"/, `footer retained on ${pathname}`);
 });
 
 test('The "/" search shortcut targets the existing search field only — never swallows the key', () => {
