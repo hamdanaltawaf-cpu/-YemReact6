@@ -28,7 +28,13 @@ export type ContributionDraft = {
 };
 
 type FileState = 'empty' | 'checking' | 'ready' | 'error';
-export function ContributionForm({ onSubmit }: { onSubmit: (draft: ContributionDraft) => void }) {
+export function ContributionForm({
+  initialDraft = null,
+  onSubmit,
+}: {
+  initialDraft?: ContributionDraft | null;
+  onSubmit: (draft: ContributionDraft) => void;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [fileState, setFileState] = useState<FileState>('empty');
@@ -51,6 +57,14 @@ export function ContributionForm({ onSubmit }: { onSubmit: (draft: ContributionD
     },
     [],
   );
+
+  useEffect(() => {
+    if (!initialDraft) return;
+    setTitle(initialDraft.title);
+    setCharacter(initialDraft.character);
+    setSecondary(initialDraft.secondary);
+    void choose(initialDraft.file);
+  }, [initialDraft]);
 
   function clearFile() {
     task.current++;

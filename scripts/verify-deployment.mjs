@@ -337,10 +337,18 @@ await check(
       const anon = await request(`${origin}${pagePath}`, {
         headers: { 'user-agent': BROWSER_UA, Accept: 'text/html' },
       });
-      expect(
-        [301, 302, 303, 307, 308].includes(anon.status),
-        `${pagePath} بلا كوكي أعاد ${anon.status} — غائب النسخة القديمة لا بدليل أن تعترف بذلك (404) إن لم تُلغ`,
-      );
+      if (pagePath === '/account') {
+        const html = await anon.text();
+        expect(anon.status === 200, `/account بلا كوكي أعاد ${anon.status} بدل سطح الزائر 200`);
+        for (const marker of markers)
+          expect(marker.test(html), `/account بلا كوكي لا يعرض ${marker.source}`);
+        expect(!/account-profile-email/.test(html), '/account بلا كوكي يعرض بريد حساب');
+      } else {
+        expect(
+          [301, 302, 303, 307, 308].includes(anon.status),
+          `${pagePath} بلا كوكي أعاد ${anon.status} بدل إحالة البوابة`,
+        );
+      }
       const guest = await request(`${origin}${pagePath}`, {
         headers: { 'user-agent': BROWSER_UA, cookie: 'yr_guest=1' },
       });

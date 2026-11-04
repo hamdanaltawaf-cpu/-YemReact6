@@ -465,3 +465,15 @@ test('PATCH /api/auth is retired in batch 3: the module exports GET/POST/DELETE 
   assert.doesNotMatch(source, /export async function PATCH/);
   assert.doesNotMatch(source, /DISPLAY_NAME|profile\.rename|UPDATE users SET name/);
 });
+
+test('Guest identity uses a narrow-screen grid so sign-in cannot collapse its copy at 320px', () => {
+  const css = fs.readFileSync('src/app/navigation.css', 'utf8');
+  assert.match(
+    css,
+    /@media \(max-width: 374px\) \{[\s\S]*?\.account-identity-guest \{\s*display: grid;\s*grid-template-columns: auto minmax\(0, 1fr\);/,
+  );
+  assert.match(
+    css,
+    /\.account-identity-guest > \.account-signin,\s*\.account-identity-guest > \.account-google-pending \{\s*grid-column: 1 \/ -1;\s*width: 100%;/,
+  );
+});

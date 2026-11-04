@@ -676,6 +676,17 @@
   .account-actions-row {
     grid-template-columns: 1fr;
   }
+  .account-identity-guest {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+  .account-identity-guest > .account-signin,
+  .account-identity-guest > .account-google-pending {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
   .account-summary-card b {
     font-size: 19px;
   }
