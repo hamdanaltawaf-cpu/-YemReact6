@@ -47,7 +47,7 @@ async function ffprobeAvailable(): Promise<boolean | undefined> {
 
 function ownerCount(): number | undefined {
   try {
-    const row = db.prepare("SELECT COUNT(*) AS total FROM users WHERE role='owner'").get() as
+    const row = db.prepare("SELECT COUNT(*) AS total FROM users WHERE role='admin'").get() as
       { total: number } | undefined;
     return row?.total ?? 0;
   } catch {

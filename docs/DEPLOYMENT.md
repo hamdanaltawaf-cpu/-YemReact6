@@ -82,7 +82,8 @@ Install a maintained FFmpeg/FFprobe package in the runtime host/container (Debia
 
 ## Automated deployment and verification
 
-`main` is deployed and verified by `.github/workflows/deploy.yml`: quality gates, an optional
-Railway CLI deploy, then a live contract check via `scripts/verify-deployment.mjs` against
-`/api/health` and the public routes. See [DEPLOYMENT-CI.md](DEPLOYMENT-CI.md) for the required
-GitHub variables/secrets, the Railway service variables and the failure playbook.
+`.github/workflows/deploy.yml` runs quality gates for `main` and pull requests, then checks the
+public Render preview after pushes to `main` (or on a manual workflow run). The workflow does
+**not** deploy or change Render settings; Render deployment happens outside it. The live contract
+check uses `scripts/verify-deployment.mjs` against `/api/health` and public routes. See
+[DEPLOYMENT-CI.md](DEPLOYMENT-CI.md) for the current workflow and its optional GitHub variables.

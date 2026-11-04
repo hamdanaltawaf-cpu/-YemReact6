@@ -105,6 +105,15 @@ test('Owner, storage and content checks separate warnings from hard failures', (
   assert.equal(levelOf(contentCheck({ reactions: 12 })), 'ok');
 });
 
+test('Health counts the admin role assigned by owner provisioning and required by authorization', () => {
+  const healthRoute = fs.readFileSync('src/app/api/health/route.ts', 'utf8');
+  const auth = fs.readFileSync('src/server/auth.ts', 'utf8');
+  const provision = fs.readFileSync('scripts/create-admin.mjs', 'utf8');
+  assert.match(healthRoute, /SELECT COUNT\(\*\) AS total FROM users WHERE role='admin'/);
+  assert.match(auth, /u\.role !== 'admin'/);
+  assert.match(provision, /UPDATE users SET role='admin'/);
+});
+
 test('Overall level is fail only on a real failure, warn for unfinished setup', () => {
   assert.equal(deployLevel([{ id: 'a', level: 'ok' }]), 'ok');
   assert.equal(
