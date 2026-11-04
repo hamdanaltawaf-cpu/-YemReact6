@@ -363,6 +363,35 @@ await check(
   },
 );
 
+await check(
+  'account-contribute-footer-and-saved-api',
+  'الحساب والإرسال بلا تذييل، وواجهة المحفوظات محمية من الزائر',
+  async () => {
+    for (const [pagePath, marker, cookie] of [
+      ['/account', /<h1 id="account-title">حسابك/, ''],
+      ['/contribute', /<h1>المساهمة<\/h1>/, 'yr_guest=1'],
+    ]) {
+      const response = await request(`${origin}${pagePath}`, {
+        headers: { 'user-agent': BROWSER_UA, Accept: 'text/html', ...(cookie ? { cookie } : {}) },
+      });
+      const html = await response.text();
+      expect(response.status === 200, `${pagePath} أعاد ${response.status} بدل 200`);
+      expect(marker.test(html), `${pagePath} لم يعرض محتوى الصفحة المقصودة`);
+      expect(
+        !/<footer\b[^>]*class="[^"]*\bsite-footer\b/.test(html),
+        `${pagePath} ما زال يعرض تذييل الموقع`,
+      );
+    }
+    for (const cookie of ['', 'yr_guest=1']) {
+      const response = await request(`${origin}/api/saved`, {
+        headers: { 'user-agent': BROWSER_UA, ...(cookie ? { cookie } : {}) },
+      });
+      expect(response.status === 401, `/api/saved للزائر أعاد ${response.status} بدل 401`);
+    }
+    return 'صفحتان 200 بلا تذييل؛ /api/saved يعيد 401 بلا جلسة ومع علم الزائر';
+  },
+);
+
 await check('media-delivery', 'تسليم الوسائط من القرص الدائم', async () => {
   const catalog = await (await request(`${origin}/api/reactions`)).json();
   const reaction = catalog.reactions.find((item) => item.media);
