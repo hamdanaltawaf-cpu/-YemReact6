@@ -68,7 +68,7 @@ export default function ContributeHub() {
           <p className="contribute-card-note">
             {signedIn
               ? 'جاهز للتجربة. لن يُرفع الملف أو يظهر في المكتبة.'
-              : 'قبل الإرسال، ستظهر محاكاة دخول Google؛ لا تنشئ حسابًا حقيقيًا.'}
+              : 'عند إرسال النموذج، ستظهر محاكاة Google؛ لا تنشئ حسابًا حقيقيًا.'}
           </p>
         </section>
 

@@ -37,6 +37,7 @@ export function ContributionProvider({ children }: { children: ReactNode }) {
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState<View>('closed');
   const [afterSignIn, setAfterSignIn] = useState<'form' | 'submissions'>('form');
+  const [pendingDraft, setPendingDraft] = useState<ContributionDraft | null>(null);
   const [success, setSuccess] = useState<MockSubmission | null>(null);
   const [storageNote, setStorageNote] = useState('');
   function reload() {
@@ -62,7 +63,7 @@ export function ContributionProvider({ children }: { children: ReactNode }) {
     if (!ready || !app.authReady) return;
     setStorageNote('');
     setAfterSignIn('form');
-    setView(app.user || mockSignedIn ? 'form' : 'signin');
+    setView('form');
   }
   function requestSubmissions() {
     if (!ready || !app.authReady) return;
@@ -93,6 +94,12 @@ export function ContributionProvider({ children }: { children: ReactNode }) {
     setView('closed');
   }
   function submit(draft: ContributionDraft) {
+    if (!app.user && !mockSignedIn) {
+      setPendingDraft(draft);
+      setAfterSignIn('form');
+      setView('signin');
+      return;
+    }
     const created: MockSubmission = {
       id: nextSubmissionId(records),
       title: draft.title.trim(),
@@ -107,6 +114,7 @@ export function ContributionProvider({ children }: { children: ReactNode }) {
     const next = [created, ...records];
     setRecords(next);
     setSuccess(created);
+    setPendingDraft(null);
     setView('success');
     try {
       // Store metadata only, never the binary file or a fake server session.
@@ -139,7 +147,10 @@ export function ContributionProvider({ children }: { children: ReactNode }) {
       {children}
       <Modal
         open={view !== 'closed'}
-        onClose={() => setView('closed')}
+        onClose={() => {
+          if (view === 'form') setPendingDraft(null);
+          setView('closed');
+        }}
         title={
           view === 'signin'
             ? afterSignIn === 'submissions'
@@ -173,7 +184,7 @@ export function ContributionProvider({ children }: { children: ReactNode }) {
             </p>
           </div>
         )}
-        {view === 'form' && <ContributionForm onSubmit={submit} />}
+        {view === 'form' && <ContributionForm initialDraft={pendingDraft} onSubmit={submit} />}
         {view === 'success' && success && (
           <div className="contribution-success" role="status">
             <div className="contribution-success-icon" aria-hidden="true">
