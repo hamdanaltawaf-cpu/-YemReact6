@@ -331,7 +331,15 @@ await check(
   'صفحتا حسابك والإعدادات تقدّمان محتواهما الخاص في المعاينة',
   async () => {
     for (const [pagePath, markers] of [
-      ['/account', [/<h1 id="account-title">حسابك/, /مساهماتي/, /href="\/settings"/]],
+      [
+        '/account',
+        [
+          /<h1 id="account-title">حسابك/,
+          /مساهماتي/,
+          /href="\/settings"/,
+          /<a[^>]+href="\/login"[^>]*>[\s\S]*?تسجيل الدخول/,
+        ],
+      ],
       ['/settings', [/<h1 id="settings-title">الإعدادات/, /المظهر/, /استعادة الإعدادات/]],
     ]) {
       const anon = await request(`${origin}${pagePath}`, {
@@ -343,6 +351,10 @@ await check(
         for (const marker of markers)
           expect(marker.test(html), `/account بلا كوكي لا يعرض ${marker.source}`);
         expect(!/account-profile-email/.test(html), '/account بلا كوكي يعرض بريد حساب');
+        expect(
+          !/href="[^"]*\/api\/auth\/oauth\/google|تسجيل الدخول بـ Google/.test(html),
+          '/account يبدأ Google مباشرة بدل صفحة الدخول',
+        );
       } else {
         expect(
           [301, 302, 303, 307, 308].includes(anon.status),
