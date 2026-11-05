@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { CollectionCard } from '@/components/CollectionCard';
 import { listCollections } from '@/server/collections';
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,15 @@ export default function CollectionsPage() {
           {collections.map((collection) => (
             <CollectionCard key={collection.slug} collection={collection} />
           ))}
+        </div>
+      )}
+      {collections.length === 0 && (
+        <div className="collections-empty-state">
+          <h2>ما فيه مجموعات منشورة حاليًا</h2>
+          <p>تصفّح المكتبة لاستكشاف الرياكشنات المتاحة.</p>
+          <Link className="btn btn-outline" href="/library">
+            استكشف المكتبة
+          </Link>
         </div>
       )}
     </section>

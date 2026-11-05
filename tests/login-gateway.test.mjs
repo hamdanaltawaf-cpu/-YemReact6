@@ -80,9 +80,26 @@ test('Guest card is the full path to a browsing session with the server-safe nex
   );
   assert.match(html, /aria-label="الاستمرار كزائر بلا حساب"/);
   assert.match(html, /<b>الاستمرار كزائر<\/b>/);
-  assert.match(html, /بلا حساب\. وما تحفظه يبقى على هذا الجهاز\./);
+  assert.match(html, /بلا حساب\. محفوظاتك تبقى على هذا الجهاز\./);
   const fallback = renderAuth({});
   assert.match(fallback, /href="\/library"/);
+});
+
+test('Guest choice follows an available provider and precedes providers still in preparation', () => {
+  const html = renderAuth({ authOrigin: 'https://oauth.test', readyProviders: ['google'] });
+  const availableIndex = html.indexOf('social-provider-google');
+  const guestIndex = html.indexOf('social-guest-card');
+  const pendingIndex = html.indexOf('social-pending-options');
+
+  assert.ok(availableIndex >= 0 && availableIndex < guestIndex);
+  assert.ok(guestIndex < pendingIndex);
+  assert.match(html, /<summary>خيارات دخول أخرى قيد التجهيز<\/summary>/);
+  assert.match(html, /بحسابك، محفوظاتك معك بين الأجهزة؛ كزائر، تبقى على هذا الجهاز\./);
+
+  const noProvider = renderAuth({});
+  assert.ok(
+    noProvider.indexOf('social-guest-card') < noProvider.indexOf('social-provider-pending'),
+  );
 });
 
 test('Guest click sets a first-party SameSite=Lax session cookie only — never a persistent one', () => {
@@ -100,12 +117,13 @@ test('Guest click sets a first-party SameSite=Lax session cookie only — never 
 test('Gateway HTML errors and identity tokens stay on-brand', () => {
   const html = renderAuth({ initialError: 'تعذّر إكمال الدخول.' });
   assert.match(html, /تعذّر إكمال الدخول\./);
-  assert.match(html, /class="[^"]*social-error/);
+  assert.match(html, /class="[^\"]*social-error/);
   const globals = fs.readFileSync('src/app/globals.css', 'utf8');
   for (const selector of [
     /\.social-provider\.social-provider-pending\b/,
     /\.social-provider-badge\b/,
     /\.social-pending-note\b/,
+    /\.social-pending-options summary\b/,
     /\.social-guest-card\b/,
   ])
     assert.match(globals, selector);

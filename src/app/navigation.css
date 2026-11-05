@@ -1,5 +1,5 @@
 /* One navigation hierarchy: three destinations, one upload action, one account menu.
-   صفّ رأس واحد: الشعار يمينًا · حقل بحث واحد يملأ الوسط · التنقّل والأدوات يسارًا. */
+   صفّ رأس واحد: الشعار والتنقّل يمينًا · حقل بحث واحد يملأ الوسط · الأدوات يسارًا. */
 .site-header .header-row {
   display: flex;
   align-items: center;
@@ -8,6 +8,7 @@
 }
 .site-header .brand {
   flex: none;
+  min-height: 44px;
 }
 .site-header .desktop-nav {
   gap: clamp(16px, 2vw, 28px);
@@ -64,8 +65,8 @@
 .library-search button {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   flex: none;
   border-radius: 7px;
   background: var(--soft);
@@ -125,7 +126,7 @@
 .account-menu-trigger {
   display: none;
   place-items: center;
-  width: 26px;
+  width: 44px;
   height: 44px;
   padding: 0;
   border: 0;
@@ -296,7 +297,7 @@
     --header-offset: 74px;
   }
   .library-search {
-    height: 42px;
+    height: 44px;
     max-width: none;
     margin-inline: 0;
   }
@@ -427,7 +428,7 @@
   padding: 9px 14px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   font-size: 12px;
   font-weight: 600;
@@ -443,10 +444,11 @@
 .account-summary-card {
   display: grid;
   gap: 2px;
+  min-height: 44px;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  background: #fff;
+  background: var(--surface);
   text-align: start;
   cursor: pointer;
   transition:
@@ -495,6 +497,7 @@
   border-bottom: 1px solid var(--line);
 }
 .account-tabs [role='tab'] {
+  min-height: 44px;
   padding: 9px 13px;
   font-size: 13px;
   font-weight: 600;
@@ -619,7 +622,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 6px 8px;
   border-radius: 9px;
   background: transparent;
@@ -676,6 +679,17 @@
   .account-actions-row {
     grid-template-columns: 1fr;
   }
+  .account-identity-guest {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+  .account-identity-guest > .account-signin,
+  .account-identity-guest > .account-google-pending {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
   .account-summary-card b {
     font-size: 19px;
   }
@@ -704,8 +718,8 @@
     height: 17px;
   }
   .library-search button {
-    width: 30px;
-    height: 30px;
+    width: 44px;
+    height: 44px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

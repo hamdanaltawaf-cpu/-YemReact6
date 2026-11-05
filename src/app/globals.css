@@ -12,6 +12,9 @@
   --soft: #ece9e1;
   --accent-soft: #eee0d3;
   --paper: #f3eae0;
+  --error-text: #b42318;
+  --error-surface: #fff1f0;
+  --error-border: #b42318;
   --shadow: 0 20px 60px #2924140d;
   --radius: 18px;
   /* PD-I09: functional UI motion; spring is reserved for the future Seal animation. */
@@ -37,6 +40,9 @@
   --line: #383d32;
   --soft: #292d25;
   --accent-soft: #3b2b20;
+  --error-text: #ffb4ab;
+  --error-surface: #3b2020;
+  --error-border: #ffb4ab;
   --shadow: 0 20px 60px #0003;
   color-scheme: dark;
 }
@@ -1265,9 +1271,9 @@ kbd {
   top: 4px;
 }
 .form-error {
-  color: #b13930;
-  background: #b139300c;
-  border: 1px solid #b1393044;
+  color: var(--error-text);
+  background: var(--error-surface);
+  border: 1px solid var(--error-border);
   padding: 10px 14px;
   border-radius: 7px;
   font-size: 12px;
@@ -1626,10 +1632,10 @@ kbd {
   border-radius: 10px;
 }
 .danger-btn {
-  color: #bc473a;
+  color: var(--error-text);
 }
 .danger-btn:hover {
-  background: #bc473a15;
+  background: var(--error-surface);
 }
 .form-checkbox {
   flex-direction: row !important;
@@ -2393,11 +2399,32 @@ kbd {
   line-height: 1.9;
   color: var(--muted);
 }
+.social-pending-options {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.social-pending-options summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.social-pending-options[open] summary {
+  color: var(--ink);
+}
+.social-pending-options .social-providers {
+  gap: 8px;
+  margin: 4px 0 12px;
+}
 .social-error {
   margin-top: 16px;
-  color: var(--ink);
-  border-color: var(--accent-text);
-  background: var(--accent-soft);
+  color: var(--error-text);
+  border-color: var(--error-border);
+  background: var(--error-surface);
 }
 .social-trust {
   display: flex;
@@ -2480,24 +2507,23 @@ kbd {
     margin-block: 24px;
   }
   .social-auth .auth-story {
-    padding: 26px;
+    padding: 20px 24px 18px;
   }
   .social-auth .auth-story > svg {
     width: 35px;
     height: 35px;
   }
   .social-auth .auth-story .eyebrow {
-    margin: 18px 0 10px;
+    margin: 12px 0 8px;
   }
   .social-auth .auth-story h1 {
-    font-size: 40px;
+    font-size: 34px;
   }
   .social-auth .auth-story h1 br {
     display: none;
   }
   .social-auth .auth-story p {
-    margin-top: 10px;
-    font-size: 12px;
+    display: none;
   }
   .social-benefits,
   .social-story-signature {
@@ -2535,6 +2561,29 @@ kbd {
 .library-feed {
   padding-block: 24px 36px;
   min-height: 70vh;
+}
+.library-empty-state {
+  min-height: min(54vh, 420px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 40px 18px;
+  text-align: center;
+}
+.library-empty-state h2 {
+  max-width: 100%;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.5;
+}
+.library-empty-state p {
+  max-width: 440px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.library-empty-state .btn {
+  margin-top: 4px;
 }
 .library-masonry {
   --pin-gap: 20px;

@@ -106,3 +106,26 @@ test('contribution UI is isolated from real auth, uploads and public feed', () =
   assert.match(listing, /معاينة الحالة الفارغة/);
   assert.doesNotMatch(listing, /Qusasa|watermark/);
 });
+
+test('guest starts with the form; Google mock follows submit and returns the complete draft without auto-submit', () => {
+  const provider = fs.readFileSync('src/components/ContributionProvider.tsx', 'utf8');
+  const form = fs.readFileSync('src/components/ContributionForm.tsx', 'utf8');
+  assert.match(provider, /function requestOpen\(\)[\s\S]*?setView\('form'\)/);
+  assert.match(
+    provider,
+    /function submit\(draft: ContributionDraft\)[\s\S]*?if \(!app\.user && !mockSignedIn\) \{[\s\S]*?setPendingDraft\(draft\);[\s\S]*?setView\('signin'\);[\s\S]*?return;/,
+  );
+  assert.match(provider, /<ContributionForm initialDraft=\{pendingDraft\} onSubmit=\{submit\} \/>/);
+  assert.match(form, /initialDraft\?: ContributionDraft \| null/);
+  assert.match(form, /setTitle\(initialDraft\.title\)/);
+  assert.match(form, /setCharacter\(initialDraft\.character\)/);
+  assert.match(form, /setSecondary\(initialDraft\.secondary\)/);
+  assert.match(form, /void choose\(initialDraft\.file\)/);
+  const mockSignIn = provider.slice(
+    provider.indexOf('function signInMock'),
+    provider.indexOf('function endMockSession'),
+  );
+  assert.match(mockSignIn, /setView\('form'\)/);
+  assert.doesNotMatch(mockSignIn, /submit\(/);
+  assert.doesNotMatch(provider, /FormData\(|\/api\/upload|fetch\(/);
+});

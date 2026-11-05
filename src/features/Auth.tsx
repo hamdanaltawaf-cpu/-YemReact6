@@ -47,7 +47,44 @@ export default function Auth({
   const providerUrl = (provider: SocialProvider) => `${authOrigin}/api/auth/oauth/${provider}`;
   // البطاقة بلا مفاتيح لا تكون رابطًا: الجاهزية تقرار على الخادم حصرًا.
   const ready = (provider: SocialProvider) => readyProviders.includes(provider);
-  const pendingCount = SOCIAL_PROVIDERS.length - SOCIAL_PROVIDERS.filter(ready).length;
+  const availableProviders = SOCIAL_PROVIDERS.filter(ready);
+  const pendingProviders = SOCIAL_PROVIDERS.filter((provider) => !ready(provider));
+  const pendingCount = pendingProviders.length;
+  const renderProvider = (provider: SocialProvider) =>
+    ready(provider) ? (
+      <a
+        key={provider}
+        className={`social-provider social-provider-${provider}`}
+        href={providerUrl(provider)}
+        target={embedded ? '_blank' : '_self'}
+        rel="noopener noreferrer"
+        onClick={() => {
+          if (embedded) {
+            setAttempt(provider);
+            setCopyStatus('');
+          }
+        }}
+      >
+        <SocialIcon provider={provider} />
+        <span>
+          تسجيل باستخدام <bdi>{SOCIAL_NAMES[provider]}</bdi>
+        </span>
+        <ArrowUpLeft size={17} className="social-provider-arrow" aria-hidden="true" />
+      </a>
+    ) : (
+      <div
+        key={provider}
+        className={`social-provider social-provider-pending social-provider-${provider}`}
+        aria-disabled="true"
+      >
+        <SocialIcon provider={provider} />
+        <span>
+          تسجيل باستخدام <bdi>{SOCIAL_NAMES[provider]}</bdi>
+          <small>يُفتح بعد إضافة مفاتيح الخدمة</small>
+        </span>
+        <span className="social-provider-badge">قيد التجهيز</span>
+      </div>
+    );
   function continueAsGuest() {
     const secure = window.location.protocol === 'https:' ? '; Secure' : '';
     document.cookie = `${GUEST_COOKIE}=1; path=/; SameSite=Lax${secure}`; // كوكي جلسة: بلا Max-Age
@@ -83,14 +120,10 @@ export default function Auth({
         <Bookmark size={42} aria-hidden="true" />
         <span className="eyebrow">كل ردودك. معك.</span>
         <h1 id="social-title">
-          المحفوظات، <br />
-          وين ما تكون.
+          مع حسابك، <br />
+          محفوظاتك معك.
         </h1>
-        <p>
-          ردّك المناسب، محفوظ لوقته.
-          <br />
-          المحفوظات معك، من جهاز إلى آخر.
-        </p>
+        <p>مكتبة يمنية لردود الفعل واللحظات التي تحبّها.</p>
         <ul className="social-benefits">
           <li>
             <Bookmark size={18} />
@@ -98,7 +131,7 @@ export default function Auth({
           </li>
           <li>
             <Globe2 size={18} />
-            <span>على جوالك. وعلى الويب.</span>
+            <span>مع حسابك، على الجوال والويب.</span>
           </li>
           <li>
             <Check size={18} />
@@ -111,50 +144,36 @@ export default function Auth({
       </div>
       <div className="auth-form-wrap social-panel">
         <span className="eyebrow">أهلًا بأهل الردود الحلوة</span>
-        <h2>حيّاك. بطريقتك.</h2>
+        <h2>تابع إلى المكتبة</h2>
         <p className="social-intro">
-          اختر حسابك وخلّ الباقي علينا.
-          <br />
-          الدخول وإنشاء الحساب متاحان عبر هذه الخدمات فقط.
+          بحسابك، محفوظاتك معك بين الأجهزة؛ كزائر، تبقى على هذا الجهاز.
         </p>
-        <div className="social-providers" role="group" aria-label="اختر خدمة الدخول">
-          {SOCIAL_PROVIDERS.map((provider) =>
-            ready(provider) ? (
-              <a
-                key={provider}
-                className={`social-provider social-provider-${provider}`}
-                href={providerUrl(provider)}
-                target={embedded ? '_blank' : '_self'}
-                rel="noopener noreferrer"
-                onClick={() => {
-                  if (embedded) {
-                    setAttempt(provider);
-                    setCopyStatus('');
-                  }
-                }}
-              >
-                <SocialIcon provider={provider} />
-                <span>
-                  تسجيل باستخدام <bdi>{SOCIAL_NAMES[provider]}</bdi>
-                </span>
-                <ArrowUpLeft size={17} className="social-provider-arrow" aria-hidden="true" />
-              </a>
-            ) : (
-              <div
-                key={provider}
-                className={`social-provider social-provider-pending social-provider-${provider}`}
-                aria-disabled="true"
-              >
-                <SocialIcon provider={provider} />
-                <span>
-                  تسجيل باستخدام <bdi>{SOCIAL_NAMES[provider]}</bdi>
-                  <small>يُفتح بعد إضافة مفاتيح الخدمة</small>
-                </span>
-                <span className="social-provider-badge">قيد التجهيز</span>
-              </div>
-            ),
-          )}
-        </div>
+        {availableProviders.length > 0 && (
+          <div className="social-providers" role="group" aria-label="خدمات الدخول المتاحة">
+            {availableProviders.map(renderProvider)}
+          </div>
+        )}
+        <Link
+          href={next}
+          className="social-guest-card"
+          onClick={continueAsGuest}
+          aria-label="الاستمرار كزائر بلا حساب"
+        >
+          <UserRound size={19} aria-hidden="true" />
+          <span>
+            <b>الاستمرار كزائر</b>
+            <small>بلا حساب. محفوظاتك تبقى على هذا الجهاز.</small>
+          </span>
+          <ArrowLeft size={17} aria-hidden="true" />
+        </Link>
+        {pendingProviders.length > 0 && (
+          <details className="social-pending-options">
+            <summary>خيارات دخول أخرى قيد التجهيز</summary>
+            <div className="social-providers" role="group" aria-label="خدمات قيد التجهيز">
+              {pendingProviders.map(renderProvider)}
+            </div>
+          </details>
+        )}
         {pendingCount > 0 && (
           <p className="social-pending-note">
             {pendingCount === SOCIAL_PROVIDERS.length
@@ -196,19 +215,6 @@ export default function Auth({
         <p className="social-privacy">
           باستمرارك، أنت توافق على <Link href="/privacy">سياسة الخصوصية والحقوق</Link>.
         </p>
-        <Link
-          href={next}
-          className="social-guest-card"
-          onClick={continueAsGuest}
-          aria-label="الاستمرار كزائر بلا حساب"
-        >
-          <UserRound size={19} aria-hidden="true" />
-          <span>
-            <b>الاستمرار كزائر</b>
-            <small>بلا حساب. وما تحفظه يبقى على هذا الجهاز.</small>
-          </span>
-          <ArrowLeft size={17} aria-hidden="true" />
-        </Link>
       </div>
     </section>
   );

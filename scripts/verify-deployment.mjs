@@ -392,6 +392,31 @@ await check(
   },
 );
 
+await check('header-navigation-order', 'روابط الهيدر تسبق البحث في ترتيب RTL', async () => {
+  for (const pagePath of ['/library', '/collections']) {
+    const response = await request(`${origin}${pagePath}`, {
+      headers: { 'user-agent': BROWSER_UA, Accept: 'text/html', cookie: 'yr_guest=1' },
+    });
+    const html = await response.text();
+    expect(response.status === 200, `${pagePath} أعاد ${response.status} بدل 200`);
+    expect(/<html[^>]*dir="rtl"/.test(html), `${pagePath} لا يستخدم اتجاه RTL`);
+    const brand = html.indexOf('class="brand"');
+    const navigation = html.indexOf('class="desktop-nav"');
+    const search = html.indexOf('class="library-search"');
+    const actions = html.indexOf('class="header-actions"');
+    expect(
+      brand >= 0 && brand < navigation && navigation < search && search < actions,
+      `${pagePath}: ترتيب الشعار والتنقل والبحث والأدوات غير مطابق`,
+    );
+    const links = html.slice(navigation, search);
+    expect(
+      links.includes('href="/library"') && links.includes('href="/collections"'),
+      `${pagePath}: أحد رابطَي التنقل مفقود`,
+    );
+  }
+  return 'المكتبة والمجموعات: الشعار ← التنقل ← البحث ← الأدوات في DOM باتجاه RTL';
+});
+
 await check('media-delivery', 'تسليم الوسائط من القرص الدائم', async () => {
   const catalog = await (await request(`${origin}/api/reactions`)).json();
   const reaction = catalog.reactions.find((item) => item.media);

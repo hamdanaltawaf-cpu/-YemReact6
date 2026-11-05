@@ -73,8 +73,10 @@
   height: 1px;
   opacity: 0;
   pointer-events: none;
+  clip-path: inset(50%);
 }
 .contribution-drop-area {
+  position: relative;
   min-height: 184px;
   display: flex;
   flex-direction: column;
@@ -89,7 +91,24 @@
   color: var(--muted);
   transition:
     background var(--motion-small) var(--ease-standard),
-    border-color var(--motion-small) var(--ease-standard);
+    border-color var(--motion-small) var(--ease-standard),
+    box-shadow var(--motion-small) var(--ease-standard);
+  cursor: pointer;
+}
+.contribution-file-input:focus-visible + .contribution-drop-area {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px var(--accent-soft);
+}
+@media (hover: hover) {
+  .contribution-drop-area:hover:not(.is-dragging) {
+    border-color: var(--accent);
+    background: var(--soft);
+  }
+  .contribution-drop-area:hover .contribution-pick {
+    border-color: var(--accent-text);
+    background: var(--accent-soft);
+  }
 }
 .contribution-drop-area > svg {
   color: var(--accent-text);
@@ -111,13 +130,13 @@
   background: var(--accent-soft);
 }
 .contribution-drop-area.has-error {
-  border-color: #a54841;
+  border-color: var(--error-text);
 }
 .contribution-drop-area.has-error > svg {
-  color: #a54841;
+  color: var(--error-text);
 }
 .contribution-pick {
-  min-height: 36px;
+  min-height: 44px;
   padding: 5px 16px;
   font-size: 12px;
 }
@@ -202,11 +221,20 @@
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: #151515de;
   color: #fff;
+  transition:
+    background var(--motion-small) var(--ease-standard),
+    transform var(--motion-micro) var(--ease-standard);
+}
+.contribution-remove:hover {
+  background: #a54841;
+}
+.contribution-remove:active {
+  transform: scale(0.96);
 }
 .contribution-submit {
   width: 100%;
@@ -219,7 +247,7 @@
   gap: 17px;
 }
 .contribution-error-dialog > svg {
-  color: #aa423b;
+  color: var(--error-text);
 }
 .contribution-error-dialog p {
   color: var(--muted);
@@ -246,6 +274,9 @@
   color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
+}
+.contribution-success > p.contribution-storage-note {
+  color: var(--error-text);
 }
 .contribution-hero-icon,
 .contribution-success-icon {
@@ -283,7 +314,7 @@
   margin-top: 6px;
 }
 .contribution-storage-note {
-  color: #a23c33 !important;
+  color: var(--error-text);
   font-size: 12px !important;
 }
 
@@ -387,7 +418,7 @@
   font-size: 11px;
 }
 .submission-card-copy small {
-  color: #943d35;
+  color: var(--error-text);
   font-size: 12px;
 }
 .submission-chevron {
@@ -514,8 +545,8 @@
   font-size: 13px;
   color: var(--muted);
 }
-.submission-detail .submission-reason {
-  color: #903d36 !important;
+.submission-detail > p.submission-reason {
+  color: var(--error-text);
 }
 .submission-detail .detail-secondary {
   width: 100%;

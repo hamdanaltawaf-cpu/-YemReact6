@@ -199,6 +199,29 @@ h3,
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
+.collections-empty-state {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  max-width: 560px;
+  margin-inline: auto;
+  padding: 32px clamp(18px, 5vw, 40px);
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: var(--soft);
+}
+.collections-empty-state h2 {
+  font-size: 20px;
+  line-height: 1.5;
+}
+.collections-empty-state p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.collections-empty-state .btn {
+  margin-top: 3px;
+}
 .collections-grid .collection-cover {
   aspect-ratio: 1.6 / 1;
 }
@@ -215,7 +238,7 @@ h3,
   color: var(--ink);
 }
 
-/* Card: image/video, 32x20 seconds-only video badge, one-line title and 34x34 menu. */
+/* Card: image/video, seconds-only badge, two-line title and 44x44 menu. */
 .reaction-card {
   position: relative;
   min-width: 0;
@@ -298,13 +321,15 @@ h3,
 }
 .reaction-card .card-info .card-title,
 .saved-card .card-info .card-title {
-  display: block;
+  display: -webkit-box;
   flex: 1;
   min-width: 0;
   min-height: auto;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
   font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -321,8 +346,8 @@ h3,
 .reaction-menu-trigger {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 7px;
@@ -352,7 +377,7 @@ h3,
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 39px;
+  min-height: 44px;
   padding: 8px 10px;
   border-radius: 6px;
   text-align: right;
@@ -398,7 +423,7 @@ h3,
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 38px;
+  min-height: 44px;
   padding: 7px 12px;
   border-radius: 8px;
   background: #171717df;
@@ -440,7 +465,8 @@ h3,
   gap: 6px;
 }
 .detail-controls .reaction-actions .btn {
-  min-height: 38px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 6px 10px;
   gap: 7px;
   font-size: 12px;
@@ -458,8 +484,8 @@ h3,
 }
 .detail-controls .reaction-menu-trigger {
   border-color: var(--line);
-  height: 38px;
-  width: 34px;
+  height: 44px;
+  width: 44px;
 }
 .detail-controls .reaction-menu-panel {
   top: calc(100% + 8px);
@@ -545,7 +571,7 @@ h3,
 .detail-collections a {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 44px;
   border: 1px solid var(--line);
   background: var(--surface);
   padding: 6px 12px;
@@ -642,7 +668,7 @@ h3,
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 37px;
+  min-height: 44px;
   padding: 4px 7px;
   font-size: 13px;
 }
@@ -721,6 +747,15 @@ h3,
   .detail-page {
     padding-block: 16px 55px;
   }
+  .detail-titlebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .detail-controls {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
   .detail-back {
     top: 10px;
     right: 10px;
@@ -735,20 +770,23 @@ h3,
     gap: 4px;
   }
   .detail-controls .reaction-actions {
+    flex-wrap: wrap;
     gap: 4px;
   }
   .detail-controls .reaction-actions .btn {
-    width: 36px;
-    height: 36px;
-    padding: 0;
+    width: auto;
+    height: auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px 9px;
     justify-content: center;
   }
   .detail-controls .reaction-actions .btn span {
-    position: absolute;
-    clip: rect(0, 0, 0, 0);
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
+    position: static;
+    clip: auto;
+    width: auto;
+    height: auto;
+    overflow: visible;
     white-space: nowrap;
   }
   .detail-controls .reaction-actions .btn svg {
@@ -756,7 +794,8 @@ h3,
     height: 16px;
   }
   .detail-controls .reaction-menu-trigger {
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
   .detail-titlebar h1 {
     font-size: 32px;
@@ -769,13 +808,9 @@ h3,
   .collections-grid {
     grid-template-columns: 1fr;
   }
-  .detail-controls .reaction-actions .btn {
-    width: 33px;
-    height: 34px;
-  }
   .detail-controls .reaction-menu-trigger {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
   }
 }
 .reaction-menu-panel[data-align='right'] {
