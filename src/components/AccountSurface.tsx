@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   ArrowLeft,
-  CircleHelp,
   Clapperboard,
   FileImage,
   FileVideo2,
@@ -20,8 +19,8 @@ import type { SocialProvider } from '@/lib/social';
 
 /**
  * صفحة الحساب كاملة (يفتحها تبويب «الحساب» من الشريط السفلي على الهاتف) — الترتيب
- * من الأعلى للأسفل: الهوية ← ملخّص النشاط (للجلسة المسجَّلة الحقيقية فقط) ←
- * «إرسال رياكشن»/«الإعدادات» مباشرة ← مبدّل واحد (المحفوظات / مساهماتي).
+ * من الأعلى للأسفل: الهوية ← إجراءات الحساب الأيقونية ← ملخّص النشاط (للجلسة
+ * المسجَّلة الحقيقية فقط) ← مبدّل واحد (المحفوظات / مساهماتي).
  * بريد Google لا يُعرض هنا إطلاقًا — لا للزائر ولا لصاحب الحساب. لا ملفات عامة
  * ولا إحصاءات اجتماعية — مكتبة لا شبكة.
  *
@@ -125,6 +124,26 @@ export function AccountSurface({
         </div>
       )}
 
+      {/* إجراءان مباشران في مقدمة السطح؛ أسماء الوصول تبقى لقارئات الشاشة. */}
+      <div className="account-actions-row" role="group" aria-label="إجراءات الحساب">
+        <Link
+          aria-label="إرسال رياكشن"
+          className="account-icon-action account-icon-action-primary"
+          href="/contribute"
+          onClick={onNavigate}
+        >
+          <Send size={19} aria-hidden="true" />
+        </Link>
+        <Link
+          aria-label="الإعدادات"
+          className="account-icon-action"
+          href="/settings"
+          onClick={onNavigate}
+        >
+          <Settings2 size={19} aria-hidden="true" />
+        </Link>
+      </div>
+
       {/* ٢ — ملخّص النشاط: بطاقة المحفوظات وحدها للمسجَّل الحقيقي فقط (بطاقة
              المساهمات مخفية مؤقتًا لحين مصدر «منشور» موثوق — لا بطاقات فارغة) */}
       {owner && (
@@ -141,17 +160,7 @@ export function AccountSurface({
         </div>
       )}
 
-      {/* ٣ — الإجراءان المباشران على الهاتف: نشرٌ وإعدادات بلا قوائم وسيطة */}
-      <div className="account-actions-row">
-        <Link className="btn btn-dark" href="/contribute" onClick={onNavigate}>
-          <Send size={16} aria-hidden="true" /> إرسال رياكشن
-        </Link>
-        <Link className="btn" href="/settings" onClick={onNavigate}>
-          <Settings2 size={16} aria-hidden="true" /> الإعدادات
-        </Link>
-      </div>
-
-      {/* ٤ — مبدّل واحد بقسمين، وتحته محتوى المختار */}
+      {/* ٣ — مبدّل واحد بقسمين، وتحته محتوى المختار */}
       <div className="account-tabs" role="tablist" aria-label="محتوى حسابك" onKeyDown={tabsKeyDown}>
         <button
           type="button"
@@ -259,9 +268,6 @@ export function AccountSurface({
             <Clapperboard size={17} aria-hidden="true" /> الاستوديو
           </Link>
         )}
-        <Link href="/help" onClick={onNavigate}>
-          <CircleHelp size={17} aria-hidden="true" /> المساعدة
-        </Link>
         {(app.user || contribution.mockSignedIn) && (
           <button
             type="button"

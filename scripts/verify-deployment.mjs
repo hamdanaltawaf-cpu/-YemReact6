@@ -334,13 +334,23 @@ await check(
       [
         '/account',
         [
-          /<h1 id="account-title">حسابك/,
+          /<h1 class="sr-only">الحساب<\/h1>/,
           /مساهماتي/,
           /href="\/settings"/,
+          /aria-label="إرسال رياكشن"/,
+          /aria-label="الإعدادات"/,
           /<a[^>]+href="\/login"[^>]*>[\s\S]*?تسجيل الدخول/,
         ],
       ],
-      ['/settings', [/<h1 id="settings-title">الإعدادات/, /المظهر/, /استعادة الإعدادات/]],
+      [
+        '/settings',
+        [
+          /<h1 id="settings-title">الإعدادات/,
+          /المظهر/,
+          /استعادة الإعدادات/,
+          /class="settings-help-link" href="\/help"/,
+        ],
+      ],
     ]) {
       const anon = await request(`${origin}${pagePath}`, {
         headers: { 'user-agent': BROWSER_UA, Accept: 'text/html' },
@@ -380,7 +390,7 @@ await check(
   'الحساب والإرسال بلا تذييل، وواجهة المحفوظات محمية من الزائر',
   async () => {
     for (const [pagePath, marker, cookie] of [
-      ['/account', /<h1 id="account-title">حسابك/, ''],
+      ['/account', /<h1 class="sr-only">الحساب<\/h1>/, ''],
       ['/contribute', /<h1>المساهمة<\/h1>/, 'yr_guest=1'],
     ]) {
       const response = await request(`${origin}${pagePath}`, {

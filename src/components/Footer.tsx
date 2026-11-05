@@ -13,8 +13,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="container compact-footer-row">
         <span className="footer-wordmark">YemReact</span>
-        <nav aria-label="المعلومات والمساعدة">
-          {path !== '/help' && <Link href="/help">المساعدة</Link>}
+        <nav aria-label="معلومات الموقع">
           {path !== '/privacy' && (
             <Link href="/privacy" id={path === '/help' ? 'privacy' : undefined}>
               الخصوصية وحقوق المحتوى

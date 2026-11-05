@@ -91,11 +91,11 @@ const redirectsToLoginKeeping = (res, pathFor) =>
     !!glass && !/اضافة|المحفوظات|href="\/contribute"|href="\/saved"/.test(glass[0]),
   );
 
-  // ٢–٣: عقد البوابة كما هو على المسارين الجديدين (بلا أي تعديل على الحماية)
+  // ٢–٣: الحساب سطح زائر عام؛ الإعدادات تتطلب اختيار الزائر أو جلسة دخول.
   const anonAccount = await call('/account');
   check(
-    '/account بلا كوكي ⇒ إحالة إلى /login مع next=/account (لا 404)',
-    redirectsToLoginKeeping(anonAccount, '/account'),
+    '/account بلا كوكي — 200؛ سطح الزائر لا يكشف بيانات حساب خاصة',
+    anonAccount.status === 200,
     `${anonAccount.status} → ${anonAccount.location || 'بلا وجهة'}`,
   );
   const anonSettings = await call('/settings');
@@ -106,23 +106,24 @@ const redirectsToLoginKeeping = (res, pathFor) =>
   );
   // الصفحتان خلف البوابة: 307 الدليلُ أن المسار معروف — و200 أدناه دليل المحتوى
   check(
-    'الإحالة نفسها تثبت أن المسارين موجودان (لا 404 ولا 200 مسرّب)',
-    anonAccount.status !== 404 &&
-      anonSettings.status !== 404 &&
-      anonAccount.status !== 200 &&
-      anonSettings.status !== 200,
+    'الحساب متاح للزائر، وصفحة الإعدادات غير متاحة دون جلسة أو اختيار زائر',
+    anonAccount.status === 200 && anonSettings.status !== 404 && anonSettings.status !== 200,
   );
 
   // ٤: صفحة الحساب حية بمحتواها للزائر بعد «الاستمرار كزائر»
   const account = await call('/account', { cookie: guestCookie });
   check('/account للزائر المختار — 200', account.status === 200, `${account.status}`);
   check(
-    'الصفحة «حسابك» بهويتها المطلوبة (ترحيب بالزائر + دخول واضح)',
-    /<h1 id="account-title">حسابك<\/h1>/.test(account.body) && /أنت زائر/.test(account.body),
+    'إزالة عنوان H1 المرئي والوصف التمهيدي مع عنوان دلالي لقارئ الشاشة وتعريف واضح للزائر',
+    /<h1 class="sr-only">الحساب<\/h1>/.test(account.body) &&
+      !/<h1[^>]*>حسابك<\/h1>|مساحتك الشخصية|account-title/.test(account.body) &&
+      /أنت زائر/.test(account.body),
   );
   check(
-    'الإجراءان المباشران على الصفحة: إرسال رياكشن ← /contribute والإعدادات ← /settings',
-    /href="\/contribute"/.test(account.body) && /href="\/settings"/.test(account.body),
+    'الإجراءان أيقونيان بلا نص مرئي، مع أسماء وصول ووجهتين صحيحتين',
+    /<a(?=[^>]*aria-label="إرسال رياكشن")(?=[^>]*href="\/contribute")[^>]*><svg/.test(
+      account.body,
+    ) && /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*><svg/.test(account.body),
   );
   check(
     'المبدّل الوحيد بلسانيه «المحفوظات» و«مساهماتي»',
@@ -141,6 +142,10 @@ const redirectsToLoginKeeping = (res, pathFor) =>
   check(
     'لا عدّادات ملخّص للزائر (account-summary غائب تمامًا)',
     !/account-summary/.test(account.body),
+  );
+  check(
+    'المساعدة غير موجودة ضمن مرافق أسفل الحساب؛ إتاحتها من الإعدادات',
+    !/<div class="account-utilities">[\s\S]*?href="\/help"/.test(account.body),
   );
   check('لا تعديل اسم للزائر ولا تسجيل خروج', !/تحرير الهوية|تسجيل الخروج/.test(account.body));
   check(
@@ -167,11 +172,13 @@ const redirectsToLoginKeeping = (res, pathFor) =>
   const settings = await call('/settings', { cookie: guestCookie });
   check('/settings للزائر المختار — 200', settings.status === 200, `${settings.status}`);
   check(
-    'صفحة «الإعدادات» بالأقسام الخمسة كما كانت في النافذة القديمة',
+    'صفحة «الإعدادات» بأقسام التفضيلات ورابط مركز المساعدة',
     /<h1 id="settings-title">الإعدادات<\/h1>/.test(settings.body) &&
       ['المظهر', 'لونك المفضّل', 'تخفيف الحركة', 'المكتبة معك', 'استعادة الإعدادات'].every((s5) =>
         settings.body.includes(s5),
-      ),
+      ) &&
+      /class="settings-help-link" href="\/help"/.test(settings.body) &&
+      settings.body.includes('مركز المساعدة'),
   );
   check('الصفحة عربية الاتجاه rtl', /<html[^>]+dir="rtl"/.test(settings.body));
 
@@ -220,7 +227,10 @@ const redirectsToLoginKeeping = (res, pathFor) =>
       'ℹ️ PATCH الحدود الناجحة: محجوز للخادم المحلي — لا كتابة ضد النسخة الحية (مرر base محليًا).',
     );
   } else {
-    const dbPath = path.join(process.cwd(), 'data', 'yemreact.sqlite');
+    const dbPath = path.join(
+      process.env.DATA_DIR || path.join(process.cwd(), 'data'),
+      'yemreact.sqlite',
+    );
     const token = randomUUID() + randomUUID();
     const tokenHash = createHash('sha256').update(token).digest('hex');
     const userId = 'account-check-' + randomUUID();

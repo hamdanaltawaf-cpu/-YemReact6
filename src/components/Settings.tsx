@@ -1,6 +1,7 @@
 'use client';
-import { Monitor, Sun, Moon, Check, Download, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Monitor, Sun, Moon, Check, Download, RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useApp } from './AppProvider';
 import { Modal } from './ui/Modal';
 type InstallPrompt = Event & {
@@ -26,7 +27,7 @@ export function SettingsPanel() {
     <>
       <p className="muted">المكتبة نفسها. الجوّ اللي يناسبك.</p>
       <div className="settings-group">
-        <h3>المظهر</h3>
+        <h2>المظهر</h2>
         <div className="segmented">
           {[
             ['system', 'تلقائي', Monitor],
@@ -49,7 +50,7 @@ export function SettingsPanel() {
         </div>
       </div>
       <div className="settings-group">
-        <h3>لونك المفضّل</h3>
+        <h2>لونك المفضّل</h2>
         <div className="swatches">
           {[
             ['#c1592e', 'كهرماني'],
@@ -80,7 +81,7 @@ export function SettingsPanel() {
         />
       </label>
       <div className="settings-group">
-        <h3>المكتبة معك</h3>
+        <h2>المكتبة معك</h2>
         {install ? (
           <button
             className="btn btn-dark"
@@ -99,6 +100,16 @@ export function SettingsPanel() {
             دون اتصال متاحان في نسخة الإنتاج.
           </p>
         )}
+      </div>
+      <div className="settings-group">
+        <h2>المساعدة</h2>
+        <Link className="settings-help-link" href="/help">
+          <span className="settings-help-copy">
+            <b>مركز المساعدة</b>
+            <small>إجابات عن الحساب والمحفوظات والمحتوى.</small>
+          </span>
+          <ArrowLeft size={17} aria-hidden="true" />
+        </Link>
       </div>
       <button
         className="text-button"
