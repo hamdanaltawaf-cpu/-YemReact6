@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowLeft,
@@ -149,6 +149,8 @@ export function Header({
 }) {
   const path = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
   const app = useApp();
   const [accountPopover, setAccountPopover] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
@@ -162,14 +164,8 @@ export function Header({
     setAccountPopover(false);
     setSearchFocus(false);
     setHiddenOnScroll(false);
-    const syncQuery = () =>
-      setQuery(
-        path === '/library' ? new URLSearchParams(window.location.search).get('q') || '' : '',
-      );
-    syncQuery();
-    window.addEventListener('popstate', syncQuery);
-    return () => window.removeEventListener('popstate', syncQuery);
-  }, [path]);
+    setQuery(path === '/library' ? searchQuery : '');
+  }, [path, searchQuery]);
 
   useEffect(() => {
     if (!accountPopover) return;

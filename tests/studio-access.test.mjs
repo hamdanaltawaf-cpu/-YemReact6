@@ -76,6 +76,7 @@ function navigation(
     'next/navigation': {
       usePathname: () => '/collections',
       useRouter: () => ({ push: (to) => pushes.push(to), replace: () => {} }),
+      useSearchParams: () => ({ get: () => null }),
     },
     'next/link': {
       __esModule: true,
