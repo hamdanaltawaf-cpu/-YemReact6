@@ -1,5 +1,5 @@
 /* One navigation hierarchy: three destinations, one upload action, one account menu.
-   صفّ رأس واحد: الشعار يمينًا · حقل بحث واحد يملأ الوسط · التنقّل والأدوات يسارًا. */
+   صفّ رأس واحد: الشعار والتنقّل يمينًا · حقل بحث واحد يملأ الوسط · الأدوات يسارًا. */
 .site-header .header-row {
   display: flex;
   align-items: center;

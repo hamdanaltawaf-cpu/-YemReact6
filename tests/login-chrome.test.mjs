@@ -160,3 +160,18 @@ test('The "/" search shortcut targets the existing search field only — never s
   assert.ok(guardAt > -1 && preventAt > guardAt, 'field guard must precede preventDefault');
   assert.match(shortcut, /#library-search/);
 });
+
+test('SSR: header navigation precedes search in RTL reading and keyboard order', () => {
+  for (const pathname of ['/library', '/collections']) {
+    const html = headerHtml(pathname);
+    const brand = html.indexOf('class="brand"');
+    const navigation = html.indexOf('class="desktop-nav"');
+    const search = html.indexOf('class="library-search"');
+    const actions = html.indexOf('class="header-actions"');
+    assert.ok(brand >= 0 && brand < navigation && navigation < search && search < actions);
+    const links = html.slice(navigation, search);
+    assert.match(links, /href="\/library"/);
+    assert.match(links, /href="\/collections"/);
+    assert.match(links, new RegExp(`href="${pathname}" aria-current="page"`));
+  }
+});
