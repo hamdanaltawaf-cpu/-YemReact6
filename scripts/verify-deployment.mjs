@@ -413,6 +413,10 @@ await check('header-navigation-order', 'روابط الهيدر تسبق الب�
     expect(response.status === 200, `${pagePath} أعاد ${response.status} بدل 200`);
     expect(/<html[^>]*dir="rtl"/.test(html), `${pagePath} لا يستخدم اتجاه RTL`);
     const brand = html.indexOf('class="brand"');
+    expect(
+      !html.includes('<small>YEMREACT</small>'),
+      `${pagePath}: ما زال الشعار يعرض العنوان الإنجليزي`,
+    );
     const navigation = html.indexOf('class="desktop-nav"');
     const search = html.indexOf('class="library-search"');
     const actions = html.indexOf('class="header-actions"');

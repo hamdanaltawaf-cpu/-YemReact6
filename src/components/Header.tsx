@@ -298,7 +298,6 @@ export function Header({
               <b>
                 يمن رياكت<span className="brand-dot">.</span>
               </b>
-              <small>YEMREACT</small>
             </span>
           </Link>
 
