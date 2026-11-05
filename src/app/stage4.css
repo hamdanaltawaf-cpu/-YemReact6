@@ -344,8 +344,8 @@ h3,
 .reaction-menu-trigger {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: 7px;
@@ -375,7 +375,7 @@ h3,
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 39px;
+  min-height: 44px;
   padding: 8px 10px;
   border-radius: 6px;
   text-align: right;
@@ -421,7 +421,7 @@ h3,
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 38px;
+  min-height: 44px;
   padding: 7px 12px;
   border-radius: 8px;
   background: #171717df;
@@ -463,7 +463,7 @@ h3,
   gap: 6px;
 }
 .detail-controls .reaction-actions .btn {
-  min-height: 38px;
+  min-height: 44px;
   padding: 6px 10px;
   gap: 7px;
   font-size: 12px;
@@ -481,8 +481,8 @@ h3,
 }
 .detail-controls .reaction-menu-trigger {
   border-color: var(--line);
-  height: 38px;
-  width: 34px;
+  height: 44px;
+  width: 44px;
 }
 .detail-controls .reaction-menu-panel {
   top: calc(100% + 8px);
@@ -568,7 +568,7 @@ h3,
 .detail-collections a {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 44px;
   border: 1px solid var(--line);
   background: var(--surface);
   padding: 6px 12px;
@@ -665,7 +665,7 @@ h3,
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 37px;
+  min-height: 44px;
   padding: 4px 7px;
   font-size: 13px;
 }
@@ -744,6 +744,14 @@ h3,
   .detail-page {
     padding-block: 16px 55px;
   }
+  .detail-titlebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .detail-controls {
+    justify-content: flex-start;
+  }
   .detail-back {
     top: 10px;
     right: 10px;
@@ -761,8 +769,8 @@ h3,
     gap: 4px;
   }
   .detail-controls .reaction-actions .btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     justify-content: center;
   }
@@ -779,7 +787,8 @@ h3,
     height: 16px;
   }
   .detail-controls .reaction-menu-trigger {
-    height: 36px;
+    width: 44px;
+    height: 44px;
   }
   .detail-titlebar h1 {
     font-size: 32px;
@@ -793,12 +802,12 @@ h3,
     grid-template-columns: 1fr;
   }
   .detail-controls .reaction-actions .btn {
-    width: 33px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
   }
   .detail-controls .reaction-menu-trigger {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
   }
 }
 .reaction-menu-panel[data-align='right'] {

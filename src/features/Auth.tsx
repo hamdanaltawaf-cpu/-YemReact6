@@ -123,11 +123,7 @@ export default function Auth({
           مع حسابك، <br />
           محفوظاتك معك.
         </h1>
-        <p>
-          تصل إلى محفوظاتك من أجهزتك عند تسجيل الدخول.
-          <br />
-          كزائر، تبقى على هذا الجهاز.
-        </p>
+        <p>مكتبة يمنية لردود الفعل واللحظات التي تحبّها.</p>
         <ul className="social-benefits">
           <li>
             <Bookmark size={18} />
@@ -148,10 +144,9 @@ export default function Auth({
       </div>
       <div className="auth-form-wrap social-panel">
         <span className="eyebrow">أهلًا بأهل الردود الحلوة</span>
-        <h2>حيّاك. بطريقتك.</h2>
-        <p className="social-intro">اختر طريقة المتابعة المناسبة لك.</p>
-        <p className="social-intro social-sync-note">
-          مع الحساب، تصل لمحفوظاتك من أجهزتك. كزائر، تبقى على هذا الجهاز فقط.
+        <h2>تابع إلى المكتبة</h2>
+        <p className="social-intro">
+          بحسابك، محفوظاتك معك بين الأجهزة؛ كزائر، تبقى على هذا الجهاز.
         </p>
         {availableProviders.length > 0 && (
           <div className="social-providers" role="group" aria-label="خدمات الدخول المتاحة">
@@ -172,9 +167,12 @@ export default function Auth({
           <ArrowLeft size={17} aria-hidden="true" />
         </Link>
         {pendingProviders.length > 0 && (
-          <div className="social-providers" role="group" aria-label="خدمات قيد التجهيز">
-            {pendingProviders.map(renderProvider)}
-          </div>
+          <details className="social-pending-options">
+            <summary>خيارات دخول أخرى قيد التجهيز</summary>
+            <div className="social-providers" role="group" aria-label="خدمات قيد التجهيز">
+              {pendingProviders.map(renderProvider)}
+            </div>
+          </details>
         )}
         {pendingCount > 0 && (
           <p className="social-pending-note">

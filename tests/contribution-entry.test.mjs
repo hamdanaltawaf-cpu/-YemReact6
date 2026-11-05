@@ -178,7 +178,7 @@ test('Single header row locks: one search field, glass-nav mobile-only, hide-on-
   assert.match(navCss, /\.site-header \.header-row \{[^}]*height: 78px/);
   const mobileBlock = navCss.split('@media (max-width: 1023px)')[1] ?? '';
   assert.match(mobileBlock, /\.site-header \.header-row \{[^}]*height: 60px/);
-  assert.match(mobileBlock, /\.library-search \{[^}]*height: 42px/);
+  assert.match(mobileBlock, /\.library-search \{[^}]*height: 44px/);
   // الكبسولة مخفية من 640px
   assert.match(glassCss, /@media \(min-width: 640px\)\s*\{\s*\.glass-nav \{\s*display: none/);
   // الحشوة السفلية <640px فقط، وبلا قاعدة غير مشروطة
@@ -188,6 +188,7 @@ test('Single header row locks: one search field, glass-nav mobile-only, hide-on-
   assert.ok(paddingAt > media639, 'لا قاعدة body:has خارج ميديا 639px');
   assert.match(glassCss, /padding-bottom: calc\(var\(--gnav-h\) \+ 42px/);
   assert.equal(glassCss.match(/body:has\(> \.glass-nav\)/g)?.length, 1);
+  assert.match(mobileBlock, /\.library-search button \{[^}]*width: 44px/);
   // نطاق 640–1023 يعيد التنقّل والحساب، و768 يعيد زر الرفع
   const mid = navCss.split('@media (min-width: 640px) and (max-width: 1023px)')[1] ?? '';
   assert.match(mid, /\.site-header \.desktop-nav \{[^}]*display: flex/);
@@ -211,7 +212,7 @@ test('Single header row locks: one search field, glass-nav mobile-only, hide-on-
   assert.match(ladder, /\.site-header \.brand > svg \{[^}]*width: 30px/);
   assert.match(ladder, /\.site-header \.brand b \{[^}]*font-size: 20px/);
   assert.match(ladder, /\.library-search \{[^}]*padding-inline: 10px 4px/);
-  assert.match(ladder, /\.library-search button \{[^}]*width: 30px/);
+  assert.match(ladder, /\.library-search button \{[^}]*width: 44px/);
   // الهيدر يُقصى من شجرة الوصول عند الاختفاء (inert + aria-hidden)
   assert.match(header, /inert=\{hiddenOnScroll\}/);
   assert.match(header, /aria-hidden=\{hiddenOnScroll \? true : undefined\}/);
