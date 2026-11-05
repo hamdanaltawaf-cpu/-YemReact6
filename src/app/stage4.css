@@ -238,7 +238,7 @@ h3,
   color: var(--ink);
 }
 
-/* Card: image/video, 32x20 seconds-only video badge, one-line title and 34x34 menu. */
+/* Card: image/video, seconds-only badge, two-line title and 44x44 menu. */
 .reaction-card {
   position: relative;
   min-width: 0;
@@ -321,13 +321,15 @@ h3,
 }
 .reaction-card .card-info .card-title,
 .saved-card .card-info .card-title {
-  display: block;
+  display: -webkit-box;
   flex: 1;
   min-width: 0;
   min-height: auto;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
   font-family: var(--f-latin), var(--f-body), sans-serif;
   font-size: 14px;
   font-weight: 500;
@@ -463,6 +465,7 @@ h3,
   gap: 6px;
 }
 .detail-controls .reaction-actions .btn {
+  min-width: 44px;
   min-height: 44px;
   padding: 6px 10px;
   gap: 7px;
@@ -751,6 +754,7 @@ h3,
   }
   .detail-controls {
     justify-content: flex-start;
+    flex-wrap: wrap;
   }
   .detail-back {
     top: 10px;
@@ -766,20 +770,23 @@ h3,
     gap: 4px;
   }
   .detail-controls .reaction-actions {
+    flex-wrap: wrap;
     gap: 4px;
   }
   .detail-controls .reaction-actions .btn {
-    width: 44px;
-    height: 44px;
-    padding: 0;
+    width: auto;
+    height: auto;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px 9px;
     justify-content: center;
   }
   .detail-controls .reaction-actions .btn span {
-    position: absolute;
-    clip: rect(0, 0, 0, 0);
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
+    position: static;
+    clip: auto;
+    width: auto;
+    height: auto;
+    overflow: visible;
     white-space: nowrap;
   }
   .detail-controls .reaction-actions .btn svg {
@@ -800,10 +807,6 @@ h3,
 @media (max-width: 375px) {
   .collections-grid {
     grid-template-columns: 1fr;
-  }
-  .detail-controls .reaction-actions .btn {
-    width: 44px;
-    height: 44px;
   }
   .detail-controls .reaction-menu-trigger {
     width: 44px;
