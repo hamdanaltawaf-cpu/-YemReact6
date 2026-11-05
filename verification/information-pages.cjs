@@ -30,6 +30,7 @@ const live=base.startsWith('https:');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
     const noFooter=['/library','/saved','/login'].includes(route);
     assert.equal(await page.locator('.site-footer').count(),noFooter?0:1);
+    assert.equal(await page.locator('.site-footer a[href="/help"]').count(),0);
     assert.equal(await page.locator('.desktop-nav a[href="/help"], .desktop-nav a[href="/privacy"]').count(),0);
     if(noFooter){
      if(width<=650){await page.getByRole('button',{name:'فتح القائمة',exact:true}).click();await page.locator('.mobile-nav').getByRole('link',{name:'المساعدة',exact:true}).waitFor();}

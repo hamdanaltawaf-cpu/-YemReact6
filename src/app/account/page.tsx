@@ -12,11 +12,8 @@ export const metadata: Metadata = { title: 'حسابك' };
  */
 export default function AccountPage() {
   return (
-    <section className="container account-page" aria-labelledby="account-title">
-      <div className="page-head">
-        <span className="eyebrow">مساحتك الشخصية</span>
-        <h1 id="account-title">حسابك</h1>
-      </div>
+    <section className="container account-page">
+      <h1 className="sr-only">الحساب</h1>
       <AccountSurface
         googleAuthOrigin={oauthConfig('google')?.origin || ''}
         readyProviders={SOCIAL_PROVIDERS.filter((provider) => oauthConfig(provider) !== null)}

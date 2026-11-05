@@ -365,6 +365,42 @@
 .settings-page .settings-group {
   margin: 14px 0;
 }
+.settings-help-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 160ms,
+    background-color 160ms;
+}
+.settings-help-link:hover {
+  border-color: var(--accent-text);
+  background: var(--soft);
+}
+.settings-help-link:focus-visible {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 3px;
+}
+.settings-help-copy {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+.settings-help-copy b {
+  font-size: 13px;
+}
+.settings-help-copy small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
 .settings-page .toggle-row {
   margin: 12px 0;
 }
@@ -482,14 +518,41 @@
   outline-offset: 3px;
 }
 .account-actions-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.account-actions-row .btn {
-  min-height: 48px;
-  justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   gap: 8px;
+}
+.account-icon-action {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 160ms,
+    background-color 160ms,
+    color 160ms;
+}
+.account-icon-action-primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+.account-icon-action:hover,
+.account-icon-action-primary:hover {
+  border-color: var(--accent-text);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.account-icon-action:focus-visible {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 3px;
 }
 .account-tabs {
   display: flex;
@@ -676,9 +739,6 @@
 }
 /* سلّم ≤374px: يمنع أي تجاوز أفقي على 320px */
 @media (max-width: 374px) {
-  .account-actions-row {
-    grid-template-columns: 1fr;
-  }
   .account-identity-guest {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
