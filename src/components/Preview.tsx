@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
 import { verifiedMediaType } from '@/lib/media';
+import { distinctSituation } from '@/lib/reaction-copy';
 import { useApp } from './AppProvider';
 import { Modal } from './ui/Modal';
 import { ClipPlayer, ReactionActions } from './Clip';
@@ -11,6 +12,7 @@ export function Preview() {
   const app = useApp(),
     index = app.reactions.findIndex((r) => r.code === app.preview),
     r = app.reactions[index];
+  const situation = r ? distinctSituation(r.caption, r.situation) : null;
   const touch = useRef(0);
   const reduced = useReducedMotion() || app.reduced;
   return (
@@ -51,10 +53,10 @@ export function Preview() {
                 {r.characterName}
               </span>
             )}
-            {r.situation?.trim() && (
+            {situation && (
               <details className="detail-secondary">
                 <summary>الوصف الثنائي</summary>
-                <p>{r.situation}</p>
+                <p>{situation}</p>
               </details>
             )}
             <ReactionActions reaction={r} />

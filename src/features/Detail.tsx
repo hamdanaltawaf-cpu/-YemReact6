@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import type { Reaction } from '@/lib/reactions';
 import type { Collection } from '@/lib/collections';
+import { distinctSituation } from '@/lib/reaction-copy';
 import { detailRecommendations } from '@/lib/collections';
 import { verifiedMediaType } from '@/lib/media';
 import { useApp } from '@/components/AppProvider';
@@ -21,6 +22,7 @@ export default function Detail({
   const { reactions } = useApp();
   const router = useRouter();
   const { related, more } = detailRecommendations(reaction, reactions, collections);
+  const situation = distinctSituation(reaction.caption, reaction.situation);
   function goBack() {
     const referrer = document.referrer;
     const sameSite = referrer && new URL(referrer).origin === window.location.origin;
@@ -49,18 +51,14 @@ export default function Detail({
               <span className="character-chip" title={reaction.characterName}>
                 {reaction.characterName}
               </span>
-              <span aria-hidden="true" className="detail-meta-separator">
-                ·
-              </span>
-              <span className="detail-meta-description">{reaction.caption}</span>
             </div>
           )}
-          {reaction.situation?.trim() && (
+          {situation && (
             <details className="detail-secondary">
               <summary>
                 الوصف الثنائي <ChevronDown size={17} aria-hidden="true" />
               </summary>
-              <p>{reaction.situation}</p>
+              <p>{situation}</p>
             </details>
           )}
           {collections.length > 0 && (

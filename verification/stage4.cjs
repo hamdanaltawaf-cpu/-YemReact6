@@ -78,18 +78,20 @@ let browser,
       'Three curated groups have correct membership and public counts; admin-only collection and report APIs reject guests.',
     );
 
-    const rootRedirect = await guest.request.get(base + '/', { maxRedirects: 0 });
-    assert.equal(rootRedirect.status(), 308);
-    assert.equal(new URL(rootRedirect.headers().location, base).pathname, '/library');
+    const rootPage = await guest.request.get(base + '/', { maxRedirects: 0 });
+    assert.equal(rootPage.status(), 200);
     await load(desktop, '/');
+    assert.equal(new URL(desktop.url()).pathname, '/');
+    await desktop.getByRole('link', { name: 'الاستمرار كزائر بلا حساب', exact: true }).click();
+    await desktop.waitForURL('**/library');
     assert.equal(new URL(desktop.url()).pathname, '/library');
     assert.equal(await desktop.locator('.brand[href="/library"]').count(), 1);
     assert.equal(await desktop.getByRole('link', { name: 'الرئيسية' }).count(), 0);
     report.checks.push(
-      'Root redirects permanently to the canonical library, with no Home navigation.',
+      'Root renders the guest-first access gateway; choosing guest access opens the canonical library.',
     );
 
-    for (const width of [320, 375, 768, 1024, 1440, 1920]) {
+    for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1920]) {
       await desktop.setViewportSize({ width, height: 900 });
       for (const route of ['/library', '/collections', '/collections/students', '/r/YR-0001']) {
         await load(desktop, route);
@@ -116,7 +118,8 @@ let browser,
                 badgeHeight: box?.height,
                 badgeRight: box ? Math.round(visual.right - box.right) : null,
                 menuWidth: button?.getBoundingClientRect().width,
-                titleLines: style.whiteSpace,
+                titleClamp: style.getPropertyValue('-webkit-line-clamp'),
+                titleWhiteSpace: style.whiteSpace,
                 titleText: title.textContent,
                 extra: !!card.querySelector('.card-caption,.save-button,.card-expand,.card-shade'),
               };
@@ -132,8 +135,9 @@ let browser,
                 item.badgeRight <= 12,
               JSON.stringify({ width, item }),
             );
-            assert.equal(item.menuWidth, 34);
-            assert.equal(item.titleLines, 'nowrap');
+            assert.equal(item.menuWidth, 44);
+            assert.equal(item.titleClamp, '2');
+            assert.equal(item.titleWhiteSpace, 'normal');
             assert.equal(item.extra, false);
           }
           if (width <= 375) {
@@ -156,6 +160,7 @@ let browser,
           assert.ok((await desktop.locator('.detail-page .card-duration').count()) > 0); // related cards only, never on main media
           assert.equal(await desktop.locator('.detail-media-stage .card-duration').count(), 0);
           assert.equal(await desktop.locator('.detail-meta .character-chip').count(), 1);
+          assert.equal(await desktop.locator('.detail-meta-description').count(), 0);
           assert.equal(
             await desktop.locator('.character-chip a, .character-chip button').count(),
             0,
@@ -182,21 +187,58 @@ let browser,
               .count(),
             1,
           );
-          const positions = await desktop
+          const bounds = await desktop
             .locator(
               '.detail-titlebar h1, .detail-controls .reaction-actions button, .detail-menu .reaction-menu-trigger',
             )
-            .evaluateAll((nodes) => nodes.map((el) => Math.round(el.getBoundingClientRect().top)));
-          assert.ok(
-            positions.every((position) => Math.abs(position - positions[0]) <= 3),
-            `H1/actions different rows: ${width} ${positions}`,
-          );
+            .evaluateAll((nodes) =>
+              nodes.map((el) => {
+                const rect = el.getBoundingClientRect();
+                return { top: Math.round(rect.top), bottom: Math.round(rect.bottom) };
+              }),
+            );
+          if (width <= 650) {
+            assert.ok(
+              bounds.slice(1).every((item) => item.top >= bounds[0].bottom - 2),
+              `Mobile controls must follow the title: ${width} ${JSON.stringify(bounds)}`,
+            );
+            const actions = await desktop
+              .locator('.detail-controls .reaction-actions .btn')
+              .evaluateAll((buttons) =>
+                buttons.map((button) => {
+                  const rect = button.getBoundingClientRect();
+                  const label = button.querySelector('span')?.getBoundingClientRect();
+                  return {
+                    width: rect.width,
+                    height: rect.height,
+                    labelWidth: label?.width ?? 0,
+                    labelHeight: label?.height ?? 0,
+                  };
+                }),
+              );
+            assert.equal(actions.length, 3);
+            assert.ok(
+              actions.every(
+                (item) =>
+                  item.width >= 44 &&
+                  item.height >= 44 &&
+                  item.labelWidth > 0 &&
+                  item.labelHeight > 0,
+              ),
+              `Mobile action labels/touch targets: ${width} ${JSON.stringify(actions)}`,
+            );
+          } else {
+            assert.ok(
+              bounds.every((item) => Math.abs(item.top - bounds[0].top) <= 3),
+              `Desktop H1/actions should share a row: ${width} ${JSON.stringify(bounds)}`,
+            );
+          }
         }
         report.widths.push({ width, route, noOverflow: true });
       }
     }
     report.checks.push(
-      'Six viewport widths: no horizontal overflow, all 12 cards rendered immediately, top-right 32×20s-only video badges and 34×34 menus; details have a same-row H1/action group and optional sections.',
+      'Eight viewport widths: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.',
     );
 
     await desktop.setViewportSize({ width: 1440, height: 900 });
@@ -209,7 +251,8 @@ let browser,
         document.querySelector('.detail-titlebar h1') || document.querySelector('h1'),
       ).fontFamily,
     }));
-    assert.match(font.body, /^Inter, "IBM Plex Sans Arabic"/);
+    assert.match(font.body, /^Inter,/);
+    assert.match(font.body, /"IBM Plex Sans Arabic"/);
     assert.match(font.logo, /Lalezar/);
     assert.match(font.mono, /IBM Plex Mono/);
     assert.doesNotMatch(font.h1, /Lalezar/);
@@ -273,7 +316,8 @@ let browser,
     await reportForm.getByRole('button', { name: 'إرسال البلاغ' }).click();
     await desktop.waitForFunction(() => !document.querySelector('dialog[open]'));
     await load(desktop, '/saved');
-    assert.equal(await desktop.locator('.reaction-card').count(), 1);
+    assert.equal(new URL(desktop.url()).pathname, '/account');
+    assert.equal(await desktop.locator('.account-row-list .account-row').count(), 1);
     const touchscreen = await browser.newContext({
       serviceWorkers: 'block',
       hasTouch: true,
@@ -283,7 +327,9 @@ let browser,
     });
     const mobile = await touchscreen.newPage();
     mobile.on('pageerror', (error) => report.errors.push(error.message));
-    await load(mobile, '/library');
+    await load(mobile, '/');
+    await mobile.getByRole('link', { name: 'الاستمرار كزائر بلا حساب', exact: true }).click();
+    await mobile.waitForURL('**/library');
     await mobile.locator('.card-preview[href="/r/YR-0001"]').tap();
     await mobile.waitForURL('**/r/YR-0001');
     assert.ok((await mobile.locator('.card-hover-video').count()) > 0); // related cards exist, none auto-play
@@ -301,17 +347,19 @@ let browser,
     const verifiedImage = JSON.parse(
       fs.readFileSync(path.join(__dirname, '../src/lib/seed-media.json'), 'utf8'),
     )['/media/portrait-1.webp'];
+    const longCaption =
+      'وصف عربي طويل لاختبار بقاء الأزرار بمحاذاة العنوان على شاشة الهاتف الضيقة. '
+        .repeat(2)
+        .slice(0, 100);
     db.prepare('INSERT INTO reactions(code,data) VALUES (?,?)').run(
       imageCode,
       JSON.stringify({
         ...original,
         ...verifiedImage,
         code: imageCode,
-        caption: 'وصف عربي طويل لاختبار بقاء الأزرار بمحاذاة العنوان على شاشة الهاتف الضيقة. '
-          .repeat(2)
-          .slice(0, 100),
-        situation: '',
-        characterName: '',
+        caption: longCaption,
+        situation: longCaption,
+        characterName: 'شخصية اختبارية',
         media: '/media/portrait-1.webp',
         poster: '/media/portrait-1.webp',
         isDemo: true,
@@ -323,28 +371,57 @@ let browser,
     const imageCard = imagePage.locator(`[data-media-type="image"]:has(a[href="/r/${imageCode}"])`);
     assert.equal(await imageCard.count(), 1);
     assert.equal(await imageCard.locator('.card-duration,video').count(), 0);
-    assert.ok(
-      await imageCard
-        .locator('.card-title')
-        .evaluate((element) => element.scrollWidth > element.clientWidth),
-    );
+    const cardTitle = await imageCard.locator('.card-title').evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        clamp: style.getPropertyValue('-webkit-line-clamp'),
+        height: element.getBoundingClientRect().height,
+        lineHeight: parseFloat(style.lineHeight),
+        textLength: element.textContent.trim().length,
+      };
+    });
+    assert.equal(cardTitle.clamp, '2');
+    assert.ok(cardTitle.height <= cardTitle.lineHeight * 2 + 1, JSON.stringify(cardTitle));
+    assert.equal(cardTitle.textLength, 100);
     await imageCard.locator('.card-preview').click();
     await imagePage.waitForURL(`**/r/${imageCode}`);
     await imagePage.setViewportSize({ width: 320, height: 800 });
     assert.ok(await imagePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-    const titleRow = await imagePage
-      .locator('.detail-titlebar h1, .detail-controls button')
-      .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().top));
+    const mobileDetail = await imagePage.evaluate(() => {
+      const title = document.querySelector('.detail-titlebar h1').getBoundingClientRect();
+      const controls = document.querySelector('.detail-controls').getBoundingClientRect();
+      const actions = [...document.querySelectorAll('.detail-controls .reaction-actions .btn')].map(
+        (button) => {
+          const rect = button.getBoundingClientRect();
+          const label = button.querySelector('span').getBoundingClientRect();
+          return {
+            width: rect.width,
+            height: rect.height,
+            labelWidth: label.width,
+            labelHeight: label.height,
+          };
+        },
+      );
+      return { titleBottom: title.bottom, controlsTop: controls.top, actions };
+    });
     assert.ok(
-      titleRow.every((top) => Math.abs(top - titleRow[0]) < 4),
-      JSON.stringify(titleRow),
+      mobileDetail.controlsTop >= mobileDetail.titleBottom - 1,
+      JSON.stringify(mobileDetail),
+    );
+    assert.equal(mobileDetail.actions.length, 3);
+    assert.ok(
+      mobileDetail.actions.every(
+        (item) =>
+          item.width >= 44 && item.height >= 44 && item.labelWidth > 0 && item.labelHeight > 0,
+      ),
+      JSON.stringify(mobileDetail.actions),
     );
     assert.equal(await imagePage.locator('.detail-media-stage .clip-still').count(), 1);
     assert.equal(await imagePage.locator('.detail-media-stage video').count(), 0);
-    assert.equal(
-      await imagePage.locator('.detail-secondary,.detail-meta,.detail-collections').count(),
-      0,
-    );
+    assert.equal(await imagePage.locator('.detail-secondary').count(), 0);
+    assert.equal(await imagePage.locator('.detail-meta').count(), 1);
+    assert.equal(await imagePage.locator('.detail-meta-description').count(), 0);
+    assert.equal(await imagePage.locator('.detail-collections').count(), 0);
     assert.ok((await imagePage.locator('.detail-demo-note').innerText()).includes('صورة مولّدة'));
     const downloadPromise = imagePage.waitForEvent('download');
     await imagePage.getByRole('button', { name: 'تنزيل', exact: true }).click();
@@ -359,7 +436,7 @@ let browser,
     await imagePage.close();
     db.prepare('DELETE FROM reactions WHERE code=?').run(imageCode);
     report.checks.push(
-      'Verified static image has no video badge/player, a long title stays on the H1/action row at 320px, absent fields are omitted, and downloaded bytes match SHA-256; the local fixture is deleted.',
+      'Verified static image has no video badge/player, its two-line card title stays clamped, mobile action labels follow the long H1 with 44px targets, duplicate descriptions are omitted, and downloaded bytes match SHA-256; the local fixture is deleted.',
     );
 
     const adminContext = await browser.newContext({
@@ -379,7 +456,13 @@ let browser,
     report.axe.push({
       route: '/admin (collections, mobile)',
       theme: 'light',
-      violations: adminAudit.violations.map((item) => ({ id: item.id, nodes: item.nodes.length })),
+      violations: adminAudit.violations.map((item) => ({
+        id: item.id,
+        nodes: item.nodes.map((node) => ({
+          target: node.target,
+          failureSummary: node.failureSummary,
+        })),
+      })),
     });
     assert.equal(adminAudit.violations.length, 0, JSON.stringify(report.axe.at(-1)));
     await admin.screenshot({
@@ -399,7 +482,13 @@ let browser,
     report.axe.push({
       route: '/admin (collection editor, mobile)',
       theme: 'light',
-      violations: dialogAudit.violations.map((item) => ({ id: item.id, nodes: item.nodes.length })),
+      violations: dialogAudit.violations.map((item) => ({
+        id: item.id,
+        nodes: item.nodes.map((node) => ({
+          target: node.target,
+          failureSummary: node.failureSummary,
+        })),
+      })),
     });
     assert.equal(dialogAudit.violations.length, 0, JSON.stringify(report.axe.at(-1)));
     await admin.screenshot({ path: path.join(__dirname, 'stage4', 'admin-editor-mobile.png') });
