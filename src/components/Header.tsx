@@ -302,6 +302,18 @@ export function Header({
             </span>
           </Link>
 
+          <nav className="desktop-nav" aria-label="التنقل الرئيسي">
+            {primaryLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                aria-current={isCurrent(path, href) ? 'page' : undefined}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
           <form
             className="library-search"
             role="search"
@@ -327,18 +339,6 @@ export function Header({
               <ArrowLeft size={17} aria-hidden="true" />
             </button>
           </form>
-
-          <nav className="desktop-nav" aria-label="التنقل الرئيسي">
-            {primaryLinks.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                aria-current={isCurrent(path, href) ? 'page' : undefined}
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
 
           <div className="header-actions">
             <UploadQuickAction />
