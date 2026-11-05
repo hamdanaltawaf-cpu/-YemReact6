@@ -162,7 +162,8 @@ function renderSurface({
 test('Guest sees welcome, sign-in, direct actions and his local saves — with zero counters', () => {
   const html = renderSurface({ saved: ['YR-0012', 'YR-0007'], google: true });
   assert.match(html, /أنت زائر/);
-  assert.match(html, /href="https:\/\/accounts\.auth\/api\/auth\/oauth\/google"/);
+  assert.match(html, /href="\/login"[^>]*>.*تسجيل الدخول<\/a>/);
+  assert.doesNotMatch(html, /api\/auth\/oauth|تسجيل الدخول بـ Google/);
   assert.match(html, /<a(?=[^>]*aria-label="إرسال رياكشن")(?=[^>]*href="\/contribute")[^>]*><\/a>/);
   assert.match(html, /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*><\/a>/);
   assert.doesNotMatch(html, /href="\/help"/);
@@ -175,6 +176,18 @@ test('Guest sees welcome, sign-in, direct actions and his local saves — with z
   assert.doesNotMatch(html, /تحرير الهوية/);
   assert.doesNotMatch(html, /ما عندك مساهمات/);
   assert.doesNotMatch(html, /ردّة فعل أولى|account-status/);
+});
+
+test('Guest account sign-in links open the login page with and without Google configured', () => {
+  for (const google of [false, true]) {
+    for (const tab of ['saved', 'contributions']) {
+      const html = renderSurface({ google, demoStates: { tab } });
+      const links = html.match(/<a[^>]*href="\/login"[^>]*>[\s\S]*?<\/a>/g) || [];
+      assert.ok(links.length > 0, `login link for ${tab}, Google configured: ${google}`);
+      for (const link of links) assert.match(link, /تسجيل الدخول/);
+      assert.doesNotMatch(html, /api\/auth\/oauth|accounts\.auth|تسجيل الدخول بـ Google/);
+    }
+  }
 });
 
 test('Guest with an empty local save list gets a clear state ending in a browse-library action', () => {
