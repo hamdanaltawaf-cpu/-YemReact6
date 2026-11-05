@@ -71,9 +71,9 @@ export function AccountSurface({
   const googleReady = readyProviders.includes('google') && !!googleAuthOrigin;
   const signInEntry = (className: string) =>
     googleReady ? (
-      <a className={className} href={`${googleAuthOrigin}/api/auth/oauth/google`}>
-        <SocialIcon provider="google" /> تسجيل الدخول بـ Google
-      </a>
+      <Link className={className} href="/login" onClick={onNavigate}>
+        <SocialIcon provider="google" /> تسجيل الدخول
+      </Link>
     ) : (
       /* نفس عقد القائمة بحذافيره: دخول قيد التجهيز لا يفضي إلى رابط OAuth ميت إطلاقًا */
       <Link
