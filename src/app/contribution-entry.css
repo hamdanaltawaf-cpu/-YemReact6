@@ -129,7 +129,7 @@
   color: var(--muted);
 }
 .contribute-workspace-error > svg {
-  color: #a54841;
+  color: var(--error-text);
 }
 .contribute-workspace-error .text-button {
   grid-column: 2;
