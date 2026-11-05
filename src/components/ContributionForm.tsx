@@ -109,7 +109,7 @@ export function ContributionForm({
     setUrl(object);
     setFileState('ready');
   }
-  function onDrop(event: DragEvent<HTMLDivElement>) {
+  function onDrop(event: DragEvent<HTMLLabelElement>) {
     event.preventDefault();
     setDragging(false);
     void choose(event.dataTransfer.files[0]);
@@ -141,8 +141,8 @@ export function ContributionForm({
           <input
             ref={fileInput}
             className="contribution-file-input"
+            id="contribution-file"
             type="file"
-            tabIndex={-1}
             accept=".mp4,.mov,.webm,.jpg,.jpeg,.png,.webp,video/mp4,video/quicktime,video/webm,image/jpeg,image/png,image/webp"
             aria-label="اختيار ملف الرياكشن"
             onChange={(event) => void choose(event.target.files?.[0])}
@@ -190,8 +190,9 @@ export function ContributionForm({
               <small>الفحص داخل المتصفح فقط؛ لا يبدأ أي رفع.</small>
             </div>
           ) : (
-            <div
+            <label
               className={`contribution-drop-area${dragging ? ' is-dragging' : ''}${fileState === 'error' ? ' has-error' : ''}`}
+              htmlFor="contribution-file"
               onDragOver={(event) => {
                 event.preventDefault();
                 setDragging(true);
@@ -207,16 +208,12 @@ export function ContributionForm({
                 <UploadCloud size={27} aria-hidden="true" />
               )}
               <strong>{fileState === 'error' ? 'اختر ملفًا آخر' : 'اختر فيديو أو صورة'}</strong>
-              <span>اسحب الملف هنا أو اضغط للاختيار</span>
-              <button
-                type="button"
-                className="btn btn-outline contribution-pick"
-                onClick={() => fileInput.current?.click()}
-              >
+              <span>اسحب الملف هنا أو اضغط في أي مكان للاختيار</span>
+              <span className="btn btn-outline contribution-pick" aria-hidden="true">
                 {fileState === 'error' ? 'جرب ملفًا آخر' : 'اختيار ملف'}
-              </button>
+              </span>
               <small>JPG / PNG / WebP · MP4 / MOV / WebM · حتى 80MB · فيديو 2–60s</small>
-            </div>
+            </label>
           )}
         </div>
         <label className="contribution-field" htmlFor="contribution-title">

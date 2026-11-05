@@ -73,6 +73,7 @@ function headerHtml(pathname) {
     'next/navigation': {
       usePathname: () => pathname,
       useRouter: () => ({ push: () => {}, replace: () => {} }),
+      useSearchParams: () => ({ get: () => null }),
     },
     'next/link': {
       __esModule: true,

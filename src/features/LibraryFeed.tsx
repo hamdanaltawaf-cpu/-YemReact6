@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useApp } from '@/components/AppProvider';
@@ -15,10 +16,33 @@ export default function LibraryFeed() {
     () => filterReactions(reactions, query, category),
     [reactions, query, category],
   );
+  const emptyHref = query.trim()
+    ? (() => {
+        const remaining = new URLSearchParams(params.toString());
+        remaining.delete('q');
+        const search = remaining.toString();
+        return search ? `/library?${search}` : '/library';
+      })()
+    : '/library';
   return (
     <section className="container library-feed" aria-label="المكتبة">
       <h1 className="sr-only">المكتبة</h1>
       {items.length > 0 && <ReactionMasonry items={items} />}
+      {items.length === 0 && (
+        <div className="library-empty-state" role="status" aria-live="polite">
+          <h2>
+            {query.trim() ? `ما لقينا نتائج لـ «${query.trim()}»` : 'ما فيه رياكشنات هنا حاليًا'}
+          </h2>
+          <p>
+            {query.trim()
+              ? 'جرّب كلمات ثانية أو امسح البحث للعودة إلى نتائج المكتبة.'
+              : 'غيّر الاختيار أو ارجع للمكتبة كاملة لاستكشاف الرياكشنات.'}
+          </p>
+          <Link className="btn btn-outline" href={emptyHref}>
+            {query.trim() ? 'مسح البحث' : 'عرض المكتبة كاملة'}
+          </Link>
+        </div>
+      )}
     </section>
   );
 }

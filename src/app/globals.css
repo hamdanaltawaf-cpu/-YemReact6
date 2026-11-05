@@ -2536,6 +2536,29 @@ kbd {
   padding-block: 24px 36px;
   min-height: 70vh;
 }
+.library-empty-state {
+  min-height: min(54vh, 420px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding: 40px 18px;
+  text-align: center;
+}
+.library-empty-state h2 {
+  max-width: 100%;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.5;
+}
+.library-empty-state p {
+  max-width: 440px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.library-empty-state .btn {
+  margin-top: 4px;
+}
 .library-masonry {
   --pin-gap: 20px;
   display: grid;
