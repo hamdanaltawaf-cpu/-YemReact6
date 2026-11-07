@@ -29,13 +29,8 @@ export default function SubmissionsPage() {
   const contribution = useContribution();
   const [selected, setSelected] = useState<MockSubmission | null>(null);
   const [previewEmpty, setPreviewEmpty] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const loading = !contribution.ready || !app.authReady;
   const authorized = !!app.user || contribution.mockSignedIn;
-  useEffect(() => {
-    if (!contribution.ready || !app.authReady) return;
-    const timer = setTimeout(() => setLoading(false), 260);
-    return () => clearTimeout(timer);
-  }, [contribution.ready, app.authReady]);
   useEffect(() => setPreviewEmpty(false), [contribution.records.length]);
   const items = previewEmpty ? [] : contribution.records;
   return (

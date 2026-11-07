@@ -443,6 +443,29 @@ await check('header-navigation-order', 'روابط الهيدر تسبق الب�
   return 'المكتبة والمجموعات: الشعار ← التنقل ← البحث ← الأدوات في DOM باتجاه RTL';
 });
 
+await check(
+  'feedback-states-live',
+  'حالات عدم الاتصال والفراغ و404 مميزة في الواجهة الحية',
+  async () => {
+    const cases = [
+      ['/offline', 200, 'offline', 'أنت دون اتصال'],
+      ['/library?q=__yr_state_contract_no_result_20261107__', 200, 'empty', 'مسح البحث'],
+      ['/__yr_state_contract_missing_20261107__', 404, 'not-found', 'الصفحة غير موجودة'],
+    ];
+    for (const [pagePath, status, kind, text] of cases) {
+      const response = await request(`${origin}${pagePath}`, {
+        headers: { 'user-agent': BROWSER_UA, Accept: 'text/html', cookie: 'yr_guest=1' },
+      });
+      const html = await response.text();
+      expect(response.status === status, `${pagePath}: ${response.status} بدل ${status}`);
+      expect(html.includes(`state-panel--${kind}`), `${pagePath}: حالة ${kind} مفقودة`);
+      expect(html.includes(text), `${pagePath}: نص الحالة أو الإجراء مفقود`);
+      expect(/href="\/library(?:\?|"|&)/.test(html), `${pagePath}: رابط المكتبة مفقود`);
+    }
+    return 'offline ونتائج فارغة: 200؛ صفحة مجهولة: 404؛ حالات وإجراءات منفصلة';
+  },
+);
+
 await check('media-delivery', 'تسليم الوسائط من القرص الدائم', async () => {
   const catalog = await (await request(`${origin}/api/reactions`)).json();
   const reaction = catalog.reactions.find((item) => item.media);

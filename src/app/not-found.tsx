@@ -1,15 +1,19 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { StatePanel } from '@/components/ui/StatePanel';
+
 export default function NotFound() {
   return (
-    <section className="container page-section empty-state">
-      <ArrowRight size={32} aria-hidden="true" />
-      <span className="mono">404 / NOT FOUND</span>
-      <h1>عاد وين راحت؟</h1>
-      <p>الصفحة أو اللقطة مش موجودة. يمكن تغيّر رابطها، بس في المكتبة ردود كثيرة.</p>
-      <Link className="btn btn-dark" href="/library">
-        ارجع للمكتبة
-      </Link>
+    <section className="container page-section">
+      <StatePanel
+        kind="not-found"
+        title="الصفحة غير موجودة"
+        description="لم نجد الصفحة أو الرياكشن بهذا الرابط. يمكنك العودة إلى المكتبة."
+        action={
+          <Link className="btn btn-dark" href="/library">
+            العودة إلى المكتبة
+          </Link>
+        }
+      />
     </section>
   );
 }

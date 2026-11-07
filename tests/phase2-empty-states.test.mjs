@@ -28,8 +28,13 @@ function load(file, overrides = {}) {
   return module.exports;
 }
 
+const stateModule = load('src/components/ui/StatePanel.tsx', {
+  '@/components/AppProvider': { useApp: () => ({ reduced: false }) },
+});
+
 function renderLibrary(search, reactions = []) {
   const { default: LibraryFeed } = load('src/features/LibraryFeed.tsx', {
+    '@/components/ui/StatePanel': stateModule,
     'next/link': {
       __esModule: true,
       default: ({ children, ...props }) => React.createElement('a', props, children),
