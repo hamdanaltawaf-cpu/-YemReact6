@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useApp } from '@/components/AppProvider';
 import { ReactionMasonry } from '@/components/ReactionMasonry';
+import { StatePanel } from '@/components/ui/StatePanel';
 import { filterReactions } from '@/lib/reactions';
 
 /** A content-first, non-paginated masonry view. Old search URLs still resolve. */
@@ -28,21 +29,22 @@ export default function LibraryFeed() {
     <section className="container library-feed" aria-label="المكتبة">
       <h1 className="sr-only">المكتبة</h1>
       {items.length > 0 && <ReactionMasonry items={items} />}
-      {items.length === 0 && (
-        <div className="library-empty-state" role="status" aria-live="polite">
-          <h2>
-            {query.trim() ? `ما لقينا نتائج لـ «${query.trim()}»` : 'ما فيه رياكشنات هنا حاليًا'}
-          </h2>
-          <p>
-            {query.trim()
-              ? 'جرّب كلمات ثانية أو امسح البحث للعودة إلى نتائج المكتبة.'
-              : 'غيّر الاختيار أو ارجع للمكتبة كاملة لاستكشاف الرياكشنات.'}
-          </p>
+      <StatePanel
+        kind="empty"
+        visible={items.length === 0}
+        heading="h2"
+        title={query.trim() ? `ما لقينا نتائج لـ «${query.trim()}»` : 'ما فيه رياكشنات هنا حاليًا'}
+        description={
+          query.trim()
+            ? 'جرّب كلمات ثانية أو امسح البحث للعودة إلى نتائج المكتبة.'
+            : 'غيّر الاختيار أو ارجع للمكتبة كاملة لاستكشاف الرياكشنات.'
+        }
+        action={
           <Link className="btn btn-outline" href={emptyHref}>
             {query.trim() ? 'مسح البحث' : 'عرض المكتبة كاملة'}
           </Link>
-        </div>
-      )}
+        }
+      />
     </section>
   );
 }
