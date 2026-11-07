@@ -45,6 +45,12 @@ function renderLibrary(search, reactions = []) {
       ReactionMasonry: ({ items }) =>
         React.createElement('div', { 'data-testid': 'reaction-masonry' }, String(items.length)),
     },
+    '@/lib/categories': {
+      CAT_BY_ID: {
+        laugh: { name: 'ضحك' },
+        memes: { name: 'ميمز' },
+      },
+    },
     '@/lib/reactions': {
       filterReactions: (items, query, category) =>
         items.filter(
@@ -70,24 +76,74 @@ function renderCollections(collections) {
   return renderToStaticMarkup(React.createElement(CollectionsPage));
 }
 
-test('Library renders a recoverable empty search state and preserves other query parameters', () => {
-  const html = renderLibrary('q=لا+يوجد&cat=memes');
+async function renderCollectionDetail(members) {
+  const { default: CollectionPage } = load('src/app/collections/[slug]/page.tsx', {
+    'next/link': {
+      __esModule: true,
+      default: ({ children, ...props }) => React.createElement('a', props, children),
+    },
+    'next/navigation': {
+      notFound: () => {
+        throw new Error('not found');
+      },
+    },
+    '@/server/collections': {
+      collectionBySlug: (slug) => ({ slug, title: 'مجموعة اختبار', description: 'وصف المجموعة' }),
+    },
+    '@/server/db': { listReactions: () => [] },
+    '@/lib/collections': { collectionMembers: () => members },
+    '@/components/ReactionMasonry': {
+      ReactionMasonry: ({ items }) =>
+        React.createElement('div', { 'data-testid': 'reaction-masonry' }, String(items.length)),
+    },
+    '@/components/ui/StatePanel': stateModule,
+  });
+  const page = await CollectionPage({ params: Promise.resolve({ slug: 'test' }) });
+  return renderToStaticMarkup(page);
+}
+
+test('Library labels an empty search/category state and clears both while preserving unrelated parameters', () => {
+  const html = renderLibrary('q=لا+يوجد&cat=memes&sort=oldest');
   assert.match(html, /role="status" aria-live="polite"/);
-  assert.match(html, /ما لقينا نتائج لـ «لا يوجد»/);
-  assert.match(html, /href="\/library\?cat=memes"/);
-  assert.match(html, /مسح البحث/);
+  assert.match(html, /ما لقينا نتائج لـ «لا يوجد» ضمن تصنيف «ميمز»/);
+  assert.match(html, /البحث: «لا يوجد»/);
+  assert.match(html, /التصنيف: ميمز/);
+  assert.match(html, /عدد النتائج: 0/);
+  assert.match(html, /href="\/library\?sort=oldest"/);
+  assert.match(html, /مسح البحث والفلاتر/);
   assert.doesNotMatch(html, /data-testid="reaction-masonry"/);
 });
 
-test('Library keeps results visible and offers a route back when a filter has no matches', () => {
-  const results = renderLibrary('q=ضحكة', [{ title: 'ضحكة صباحية', category: 'memes' }]);
-  assert.match(results, /data-testid="reaction-masonry">1<\/div>/);
-  assert.doesNotMatch(results, /library-empty-state/);
+test('Library reports query, category and result count, with an obvious way to clear active filters', () => {
+  const results = renderLibrary('q=ضحكة&cat=laugh&sort=oldest', [
+    { title: 'ضحكة صباحية', category: 'laugh' },
+    { title: 'ضحكة ثانية', category: 'laugh' },
+  ]);
+  assert.match(results, /البحث: «ضحكة»/);
+  assert.match(results, /التصنيف: ضحك/);
+  assert.match(results, /عدد النتائج: 2/);
+  assert.match(results, /href="\/library\?sort=oldest"/);
+  assert.match(results, /data-testid="reaction-masonry">2<\/div>/);
+  assert.match(results, /library-results-clear/);
 
   const filtered = renderLibrary('cat=missing');
-  assert.match(filtered, /ما فيه رياكشنات هنا حاليًا/);
+  assert.match(filtered, /ما لقينا نتائج ضمن هذا التصنيف/);
   assert.match(filtered, /href="\/library"/);
-  assert.match(filtered, /عرض المكتبة كاملة/);
+  assert.match(filtered, /مسح البحث والفلاتر/);
+  assert.match(filtered, /عدد النتائج: 0/);
+});
+
+test('An empty collection detail offers an in-context route back to the library', async () => {
+  const empty = await renderCollectionDetail([]);
+  assert.match(empty, /href="\/collections"/);
+  assert.match(empty, /ما فيه رياكشنات في هذه المجموعة حاليًا/);
+  assert.match(empty, /href="\/library"/);
+  assert.match(empty, /استكشف المكتبة/);
+  assert.doesNotMatch(empty, /data-testid="reaction-masonry"/);
+
+  const populated = await renderCollectionDetail([{}]);
+  assert.match(populated, /data-testid="reaction-masonry">1<\/div>/);
+  assert.doesNotMatch(populated, /ما فيه رياكشنات في هذه المجموعة حاليًا/);
 });
 
 test('Collections page explains an empty public listing and links to the library', () => {

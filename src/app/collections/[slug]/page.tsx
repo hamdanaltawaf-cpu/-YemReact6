@@ -5,6 +5,7 @@ import { collectionBySlug } from '@/server/collections';
 import { listReactions } from '@/server/db';
 import { collectionMembers } from '@/lib/collections';
 import { ReactionMasonry } from '@/components/ReactionMasonry';
+import { StatePanel } from '@/components/ui/StatePanel';
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
@@ -32,7 +33,21 @@ export default async function CollectionPage({ params }: Props) {
         <h1 id="collection-title">{collection.title}</h1>
         {collection.description && <p>{collection.description}</p>}
       </header>
-      {members.length > 0 && <ReactionMasonry items={members} />}
+      {members.length > 0 ? (
+        <ReactionMasonry items={members} />
+      ) : (
+        <StatePanel
+          kind="empty"
+          heading="h2"
+          title="ما فيه رياكشنات في هذه المجموعة حاليًا"
+          description="قد تتغير المجموعة مع الوقت. استكشف المكتبة أو عُد إلى قائمة المجموعات."
+          action={
+            <Link className="btn btn-outline" href="/library">
+              استكشف المكتبة
+            </Link>
+          }
+        />
+      )}
     </section>
   );
 }

@@ -2562,6 +2562,43 @@ kbd {
   padding-block: 24px 36px;
   min-height: 70vh;
 }
+.library-results-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+}
+.library-results-context p {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.library-results-context strong {
+  color: var(--ink);
+}
+.library-results-clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: 10px;
+  border-radius: 9px;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.library-results-clear:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
 .library-empty-state {
   min-height: min(54vh, 420px);
   display: grid;
@@ -2635,6 +2672,10 @@ kbd {
 @media (max-width: 600px) {
   .library-feed {
     padding-block: 16px 24px;
+  }
+  .library-results-context {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .library-masonry {
     grid-template-columns: repeat(2, minmax(0, 1fr));
