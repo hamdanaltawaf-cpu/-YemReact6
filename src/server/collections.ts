@@ -53,7 +53,7 @@ export function listCollections(includeDrafts = false): Collection[] {
     .filter((collection) => includeDrafts || (collection.active && collection.count > 0));
 }
 export const collectionBySlug = (slug: string) =>
-  listCollections().find((collection) => collection.slug === slug);
+  listCollections(true).find((collection) => collection.slug === slug && collection.active);
 export const collectionsForReaction = (code: string) =>
   listCollections().filter((collection) => collection.memberCodes.includes(code));
 
