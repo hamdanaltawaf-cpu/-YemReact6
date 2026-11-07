@@ -54,6 +54,11 @@ test('Account surfaces use theme-aware backgrounds rather than white in dark mod
 test('Important touch targets are at least 44px in account, search and reaction detail controls', () => {
   assert.match(navigation, /\.library-search button\s*\{[^}]*width: 44px;[^}]*height: 44px;/s);
   assert.match(navigation, /\.account-tabs \[role='tab'\]\s*\{[^}]*min-height: 44px;/s);
+  assert.match(
+    navigation,
+    /\.account-icon-action\s*\{[^}]*width: 48px;[^}]*height: 48px;[^}]*flex: 0 0 48px;/s,
+  );
+  assert.match(navigation, /\.account-icon-action:focus-visible\s*\{[^}]*outline: 3px solid/s);
   assert.match(navigation, /\.account-utilities a,[\s\S]*?min-height: 44px;/);
   assert.match(stage4, /\.reaction-menu-trigger\s*\{[^}]*width: 44px;[^}]*height: 44px;/s);
   assert.match(stage4, /\.reaction-menu-panel button\s*\{[^}]*min-height: 44px;/s);

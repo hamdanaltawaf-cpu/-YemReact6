@@ -162,8 +162,11 @@ function renderSurface({
 test('Guest sees welcome, sign-in, direct actions and his local saves — with zero counters', () => {
   const html = renderSurface({ saved: ['YR-0012', 'YR-0007'], google: true });
   assert.match(html, /أنت زائر/);
-  assert.match(html, /href="https:\/\/accounts\.auth\/api\/auth\/oauth\/google"/);
-  assert.match(html, /class="btn btn-dark" href="\/contribute"[^>]*>.*إرسال رياكشن/);
+  assert.match(html, /href="\/login"[^>]*>.*تسجيل الدخول<\/a>/);
+  assert.doesNotMatch(html, /api\/auth\/oauth|تسجيل الدخول بـ Google/);
+  assert.match(html, /<a(?=[^>]*aria-label="إرسال رياكشن")(?=[^>]*href="\/contribute")[^>]*><\/a>/);
+  assert.match(html, /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*><\/a>/);
+  assert.doesNotMatch(html, /href="\/help"/);
   assert.match(html, /الإعدادات/);
   assert.match(html, /المحفوظات/);
   assert.match(html, /مساهماتي/);
@@ -173,6 +176,18 @@ test('Guest sees welcome, sign-in, direct actions and his local saves — with z
   assert.doesNotMatch(html, /تحرير الهوية/);
   assert.doesNotMatch(html, /ما عندك مساهمات/);
   assert.doesNotMatch(html, /ردّة فعل أولى|account-status/);
+});
+
+test('Guest account sign-in links open the login page with and without Google configured', () => {
+  for (const google of [false, true]) {
+    for (const tab of ['saved', 'contributions']) {
+      const html = renderSurface({ google, demoStates: { tab } });
+      const links = html.match(/<a[^>]*href="\/login"[^>]*>[\s\S]*?<\/a>/g) || [];
+      assert.ok(links.length > 0, `login link for ${tab}, Google configured: ${google}`);
+      for (const link of links) assert.match(link, /تسجيل الدخول/);
+      assert.doesNotMatch(html, /api\/auth\/oauth|accounts\.auth|تسجيل الدخول بـ Google/);
+    }
+  }
 });
 
 test('Guest with an empty local save list gets a clear state ending in a browse-library action', () => {
@@ -328,7 +343,7 @@ test('Settings destination in every UI entry point is the /settings page; publis
   assert.match(fs.readFileSync('src/app/settings/page.tsx', 'utf8'), /title: 'الإعدادات'/);
 });
 
-test('Account page renders its head and hands the surface the same server-decided Google props as the header did', () => {
+test('Account page omits its display heading and hands the surface the same server-decided Google props as the header did', () => {
   let seenProps = null;
   const page = load('src/app/account/page.tsx', {
     'next/navigation': {},
@@ -345,8 +360,8 @@ test('Account page renders its head and hands the surface the same server-decide
     '@/lib/social': { SOCIAL_PROVIDERS: ['google', 'github'] },
   });
   const html = renderToStaticMarkup(React.createElement(page.default));
-  assert.match(html, /<h1 id="account-title">حسابك<\/h1>/);
-  assert.match(html, /aria-labelledby="account-title"/);
+  assert.match(html, /<h1 class="sr-only">الحساب<\/h1>/);
+  assert.doesNotMatch(html, /<h1[^>]*>حسابك<\/h1>|مساحتك الشخصية|account-title/);
   assert.match(html, /data-stub="surface">https:\/\/identity\.test/);
   assert.equal(seenProps.googleAuthOrigin, 'https://identity.test');
   assert.deepEqual(seenProps.readyProviders, ['google']);
@@ -384,16 +399,23 @@ test('SettingsPanel keeps all five sections working on the page; the legacy moda
         open ? React.createElement('div', { role: 'dialog', 'aria-label': title }, children) : null,
     },
     'next/navigation': {},
+    'next/link': {
+      __esModule: true,
+      default: ({ children, ...props }) => React.createElement('a', props, children),
+    },
     'lucide-react': new Proxy({}, { get: () => () => null }),
   };
   const mod = load('src/components/Settings.tsx', overrides, { window: undefined });
   // المحتوى نفسه حي في مستويي العرض: الصفحة (SettingsPanel) والنافذة المحفوظة (Settings)
   const panel = renderToStaticMarkup(React.createElement(mod.SettingsPanel));
+  assert.equal((panel.match(/<h2\b/g) || []).length, 4);
+  assert.doesNotMatch(panel, /<h3\b/);
   for (const section of [
     /المظهر/,
     /لونك المفضّل/,
     /تخفيف الحركة/,
     /المكتبة معك/,
+    /مركز المساعدة/,
     /استعادة الإعدادات/,
   ])
     assert.match(panel, section);
@@ -404,6 +426,7 @@ test('SettingsPanel keeps all five sections working on the page; the legacy moda
 
   const source = fs.readFileSync('src/components/Settings.tsx', 'utf8');
   assert.match(source, /export function SettingsPanel\(\)/);
+  assert.match(panel, /class="settings-help-link" href="\/help"/);
   // الدفعة 4: لوحة «لونك المفضّل» بلا بنفسجي — كهرماني (الافتراضي القائم)
   // وأخضر فقط، بلا توسيع ولا لون بديل، واستعادة الإعدادات ترجع الكهرماني كما كانت.
   assert.deepEqual(

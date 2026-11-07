@@ -176,3 +176,12 @@ test('SSR: header navigation precedes search in RTL reading and keyboard order',
     assert.match(links, new RegExp(`href="${pathname}" aria-current="page"`));
   }
 });
+
+test('SSR: header brand keeps the Arabic name without the English subtitle', () => {
+  const html = headerHtml('/library');
+  const brand = html.match(/<a[^>]*class="brand"[\s\S]*?<\/a>/)?.[0];
+  assert.ok(brand);
+  assert.match(brand, /يمن رياكت<span class="brand-dot">/);
+  assert.match(brand, /href="\/library"/);
+  assert.doesNotMatch(brand, /<small[\s>]/);
+});

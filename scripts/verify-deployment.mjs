@@ -331,8 +331,26 @@ await check(
   'صفحتا حسابك والإعدادات تقدّمان محتواهما الخاص في المعاينة',
   async () => {
     for (const [pagePath, markers] of [
-      ['/account', [/<h1 id="account-title">حسابك/, /مساهماتي/, /href="\/settings"/]],
-      ['/settings', [/<h1 id="settings-title">الإعدادات/, /المظهر/, /استعادة الإعدادات/]],
+      [
+        '/account',
+        [
+          /<h1 class="sr-only">الحساب<\/h1>/,
+          /مساهماتي/,
+          /href="\/settings"/,
+          /aria-label="إرسال رياكشن"/,
+          /aria-label="الإعدادات"/,
+          /<a[^>]+href="\/login"[^>]*>[\s\S]*?تسجيل الدخول/,
+        ],
+      ],
+      [
+        '/settings',
+        [
+          /<h1 id="settings-title">الإعدادات/,
+          /المظهر/,
+          /استعادة الإعدادات/,
+          /class="settings-help-link" href="\/help"/,
+        ],
+      ],
     ]) {
       const anon = await request(`${origin}${pagePath}`, {
         headers: { 'user-agent': BROWSER_UA, Accept: 'text/html' },
@@ -343,6 +361,10 @@ await check(
         for (const marker of markers)
           expect(marker.test(html), `/account بلا كوكي لا يعرض ${marker.source}`);
         expect(!/account-profile-email/.test(html), '/account بلا كوكي يعرض بريد حساب');
+        expect(
+          !/href="[^"]*\/api\/auth\/oauth\/google|تسجيل الدخول بـ Google/.test(html),
+          '/account يبدأ Google مباشرة بدل صفحة الدخول',
+        );
       } else {
         expect(
           [301, 302, 303, 307, 308].includes(anon.status),
@@ -368,7 +390,7 @@ await check(
   'الحساب والإرسال بلا تذييل، وواجهة المحفوظات محمية من الزائر',
   async () => {
     for (const [pagePath, marker, cookie] of [
-      ['/account', /<h1 id="account-title">حسابك/, ''],
+      ['/account', /<h1 class="sr-only">الحساب<\/h1>/, ''],
       ['/contribute', /<h1>المساهمة<\/h1>/, 'yr_guest=1'],
     ]) {
       const response = await request(`${origin}${pagePath}`, {
@@ -401,6 +423,10 @@ await check('header-navigation-order', 'روابط الهيدر تسبق الب�
     expect(response.status === 200, `${pagePath} أعاد ${response.status} بدل 200`);
     expect(/<html[^>]*dir="rtl"/.test(html), `${pagePath} لا يستخدم اتجاه RTL`);
     const brand = html.indexOf('class="brand"');
+    expect(
+      !html.includes('<small>YEMREACT</small>'),
+      `${pagePath}: ما زال الشعار يعرض العنوان الإنجليزي`,
+    );
     const navigation = html.indexOf('class="desktop-nav"');
     const search = html.indexOf('class="library-search"');
     const actions = html.indexOf('class="header-actions"');
