@@ -2,12 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Eye } from 'lucide-react';
 import type { Reaction } from '@/lib/reactions';
 import { verifiedMediaType, videoSeconds } from '@/lib/media';
 import { useApp } from './AppProvider';
 import { ReactionMenu } from './ReactionMenu';
 
-/** A card is only media, verified video seconds, its primary title and an actions menu. */
+/** A card keeps preview on the media and its single details link on the title. */
 export function ReactionCard({
   reaction,
   savedView = false,
@@ -34,7 +35,7 @@ export function ReactionCard({
       setPlaying(false);
     }
   }, [hovered, app.reduced]);
-  function startPreview(event: React.PointerEvent<HTMLAnchorElement>) {
+  function startPreview(event: React.PointerEvent<HTMLButtonElement>) {
     if (
       isVideo &&
       event.pointerType === 'mouse' &&
@@ -47,10 +48,11 @@ export function ReactionCard({
   return (
     <article className={`reaction-card${savedView ? ' saved-card' : ''}`} data-media-type={kind}>
       <div className="card-visual" style={savedView && ratio ? { aspectRatio: ratio } : undefined}>
-        <Link
+        <button
+          type="button"
           className="card-preview"
-          href={`/r/${encodeURIComponent(reaction.code)}`}
-          aria-label={`${reaction.caption} — عرض التفاصيل`}
+          aria-label={`معاينة ${reaction.caption}`}
+          onClick={() => app.setPreview(reaction.code)}
           onPointerEnter={startPreview}
           onPointerLeave={() => {
             setHovered(false);
@@ -100,7 +102,11 @@ export function ReactionCard({
               {videoSeconds(reaction.duration)}
             </span>
           )}
-        </Link>
+          <span className="card-preview-label" aria-hidden="true">
+            <Eye size={16} />
+            <span>معاينة</span>
+          </span>
+        </button>
       </div>
       <div className="card-info">
         <Link

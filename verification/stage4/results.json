@@ -4,8 +4,8 @@
     "Three curated groups have correct membership and public counts; admin-only collection and report APIs reject guests.",
     "Root renders the guest-first access gateway; choosing guest access opens the canonical library.",
     "Eleven viewport widths from 320px to 1920px: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.",
-    "Video hover actually plays muted on desktop, stops on exit, click opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.",
-    "Keyboard menu, guest save, link copy, report form, mobile detail navigation and reduced-motion no-hover playback pass.",
+    "Card video hover remains intact; the independent preview button opens by keyboard, Escape restores focus, one title link opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.",
+    "Touch opens the card preview, dragging from an action button does not change the item, one title link still opens details, and reduced-motion prevents card hover playback.",
     "Verified static image has no video badge/player, its two-line card title stays clamped, mobile action labels follow the long H1 with 44px targets, duplicate descriptions are omitted, and downloaded bytes match SHA-256; the local fixture is deleted.",
     "Admin studio creates a curated collection with two members, renders its public page, and sees the submitted report; guest APIs remain blocked.",
     "Eleven axe audits plus live color-pair, placeholder and focus-ring checks across public pages, admin collections and the collection editor in light/dark + reduced-motion contexts: no violations."
