@@ -39,8 +39,14 @@ test('Reaction card titles can occupy up to two lines without losing their secon
 });
 
 test('Detail action labels are visible on mobile while each touch target remains at least 44px', () => {
-  assert.match(css, /\.detail-controls \.reaction-actions \.btn\s*\{[^}]*min-height:\s*44px;/s);
-  assert.match(css, /\.detail-controls \.reaction-actions \.btn\s*\{[^}]*min-width:\s*44px;/s);
+  assert.match(
+    css,
+    /\.detail-controls \.reaction-actions \.btn\s*\{[^}]*min-height:\s*var\(--button-height\);/s,
+  );
+  assert.match(
+    css,
+    /\.detail-controls \.reaction-actions \.btn\s*\{[^}]*min-width:\s*var\(--button-height\);/s,
+  );
   assert.match(
     css,
     /\.detail-controls \.reaction-actions \.btn span\s*\{[^}]*position:\s*static;/s,

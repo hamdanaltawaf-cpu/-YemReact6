@@ -1,11 +1,4 @@
-/* Stage 4 typography and content primitives; interface-foundation.css applies I08/I10. */
-body {
-  font-family: var(--f-latin), var(--f-body), sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0;
-}
+/* Shared type sizes and rhythm live in globals.css; local exceptions stay here. */
 :lang(en),
 .latin-ui,
 .footer-wordmark,
@@ -43,41 +36,31 @@ h1,
 .admin-heading h1,
 .auth-story h1,
 .empty-state h1 {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-leading);
 }
 h2,
 .social-panel h2,
 .empty-state h2 {
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-leading);
 }
 h3,
 .preview-copy h3,
 .step-card h3,
 .collection-callout h3 {
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.social-auth .auth-story h1 {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-.social-panel h2 {
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--text-h3-size);
+  font-weight: var(--text-h3-weight);
+  line-height: var(--text-h3-leading);
 }
 .eyebrow,
 .social-panel > .eyebrow,
 .social-auth .auth-story .eyebrow {
-  font-size: 11px;
+  font-size: var(--text-eyebrow-size);
   font-weight: 500;
-  line-height: 1.4;
+  line-height: var(--text-small-leading);
   letter-spacing: 0;
 }
 :lang(en) h1,
@@ -86,16 +69,16 @@ h3,
 }
 .brand b {
   font-family: var(--f-display), sans-serif;
-  font-size: 27px;
+  font-size: var(--text-brand-size);
   font-weight: 400;
-  line-height: 1.15;
+  line-height: var(--text-brand-leading);
   letter-spacing: 0;
 }
 .brand small {
   letter-spacing: 0.12em;
 }
 .site-header .desktop-nav a {
-  font-size: 13px;
+  font-size: var(--text-compact-size);
   font-weight: 500;
 }
 .site-header .header-row {
@@ -114,9 +97,9 @@ h3,
   margin-bottom: 22px;
 }
 .detail-section-heading h2 {
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-leading);
   margin-top: 5px;
 }
 .detail-section-heading .text-button {
@@ -127,7 +110,7 @@ h3,
   display: block;
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-media);
   overflow: hidden;
   background: var(--surface);
   transition:
@@ -137,7 +120,7 @@ h3,
 .collection-card:hover,
 .collection-card:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  box-shadow: 0 9px 24px #00000014;
+  box-shadow: var(--shadow-card-hover);
 }
 .collection-cover {
   display: block;
@@ -156,9 +139,9 @@ h3,
 }
 .collection-card-title {
   display: block;
-  font-size: 20px;
+  font-size: var(--text-h3-size);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: var(--text-h3-leading);
 }
 .collection-card-meta {
   display: flex;
@@ -166,11 +149,11 @@ h3,
   justify-content: space-between;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: var(--text-small-size);
+  line-height: var(--text-small-leading);
 }
 .collection-card-meta .mono {
-  font-size: 11px;
+  font-size: var(--text-eyebrow-size);
 }
 .collections-page,
 .collection-page {
@@ -183,16 +166,16 @@ h3,
   border-bottom: 1px solid var(--line);
 }
 .collections-intro h1 {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: var(--text-h1-size);
+  font-weight: var(--text-h1-weight);
+  line-height: var(--text-h1-leading);
   margin: 6px 0 0;
 }
 .collections-intro p {
   margin-top: 11px;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
 }
 .collections-grid {
   display: grid;
@@ -207,17 +190,17 @@ h3,
   margin-inline: auto;
   padding: 32px clamp(18px, 5vw, 40px);
   border: 1px dashed var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-panel);
   background: var(--soft);
 }
 .collections-empty-state h2 {
-  font-size: 20px;
-  line-height: 1.5;
+  font-size: var(--text-h3-size);
+  line-height: var(--text-body-leading);
 }
 .collections-empty-state p {
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
+  font-size: var(--text-compact-size);
+  line-height: var(--text-relaxed-leading);
 }
 .collections-empty-state .btn {
   margin-top: 3px;
@@ -230,7 +213,7 @@ h3,
   align-items: center;
   gap: 8px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-compact-size);
   min-height: 40px;
   margin-bottom: 17px;
 }
@@ -253,18 +236,18 @@ h3,
 .reaction-card .card-visual,
 .library-pin .card-visual,
 .saved-gallery .library-pin .card-visual {
-  border-radius: 12px;
+  border-radius: var(--radius-media);
   background: var(--soft);
   border: 0;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
 }
 .reaction-card:hover .card-visual {
-  box-shadow: 0 12px 24px #00000022;
+  box-shadow: var(--shadow-media-hover);
 }
 .reaction-card .card-preview {
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius-media);
 }
 .reaction-card .card-image {
   object-fit: cover;
@@ -299,12 +282,12 @@ h3,
   height: 20px;
   padding: 0 4px;
   border: 1px solid #ffffff40;
-  border-radius: 4px;
+  border-radius: var(--radius-badge);
   background: #161616d9;
   color: #fff;
-  font-size: 11px;
+  font-size: var(--text-eyebrow-size);
   font-weight: 500;
-  line-height: 1;
+  line-height: var(--text-tight-leading);
   opacity: 1;
   pointer-events: none;
   direction: ltr;
@@ -316,7 +299,7 @@ h3,
   justify-content: space-between;
   gap: 6px;
   padding: 8px 0 3px;
-  min-height: 44px;
+  min-height: var(--button-height);
   color: var(--ink);
 }
 .reaction-card .card-info .card-title,
@@ -331,9 +314,9 @@ h3,
   line-clamp: 2;
   white-space: normal;
   font-family: var(--f-latin), var(--f-body), sans-serif;
-  font-size: 14px;
+  font-size: var(--text-body-size);
   font-weight: 500;
-  line-height: 1.5;
+  line-height: var(--text-body-leading);
   color: var(--ink);
 }
 .reaction-card .card-title:hover {
@@ -346,11 +329,11 @@ h3,
 .reaction-menu-trigger {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--button-height);
+  height: var(--button-height);
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-control-small);
   background: transparent;
   color: var(--muted);
 }
@@ -369,21 +352,21 @@ h3,
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: 0 14px 32px #00000030;
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-menu);
 }
 .reaction-menu-panel button {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-menu-item);
   text-align: right;
   background: transparent;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--text-compact-size);
+  line-height: var(--text-body-leading);
 }
 .reaction-menu-panel button:hover,
 .reaction-menu-panel button:focus-visible {
@@ -395,7 +378,7 @@ h3,
   background: var(--surface);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: var(--radius-control-small);
 }
 
 /* Detail: back control lives on media, not in a breadcrumb or on its duration. */
@@ -412,7 +395,7 @@ h3,
   margin-inline: auto;
 }
 .detail-media-stage .clip-player {
-  border-radius: 12px;
+  border-radius: var(--radius-media);
 }
 .detail-back {
   position: absolute;
@@ -423,14 +406,14 @@ h3,
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 7px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-soft);
   background: #171717df;
   color: #fff;
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 3px 12px #0003;
+  font-size: var(--text-compact-size);
+  line-height: var(--text-body-leading);
+  box-shadow: var(--shadow-control-overlay);
 }
 .detail-back:hover {
   background: #171717;
@@ -448,8 +431,8 @@ h3,
 .detail-titlebar h1 {
   flex: 1;
   min-width: 0;
-  font-size: 32px;
-  line-height: 1.2;
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-leading);
   font-weight: 700;
   overflow-wrap: anywhere;
 }
@@ -465,13 +448,13 @@ h3,
   gap: 6px;
 }
 .detail-controls .reaction-actions .btn {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--button-height);
+  min-height: var(--button-height);
   padding: 6px 10px;
   gap: 7px;
-  font-size: 12px;
+  font-size: var(--text-small-size);
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--radius-soft);
   box-shadow: none;
   transform: none;
 }
@@ -484,8 +467,8 @@ h3,
 }
 .detail-controls .reaction-menu-trigger {
   border-color: var(--line);
-  height: 44px;
-  width: 44px;
+  height: var(--button-height);
+  width: var(--button-height);
 }
 .detail-controls .reaction-menu-panel {
   top: calc(100% + 8px);
@@ -495,8 +478,8 @@ h3,
   align-items: center;
   gap: 9px;
   margin-top: 17px;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
   color: var(--muted);
 }
 .character-chip {
@@ -505,16 +488,16 @@ h3,
   max-width: 150px;
   height: 22px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #0f8b8d1b;
   color: #076c70;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--f-latin), var(--f-body), sans-serif;
-  font-size: 12px;
+  font-size: var(--text-small-size);
   font-weight: 500;
-  line-height: 16px;
+  line-height: var(--text-chip-leading);
   cursor: default;
   user-select: text;
 }
@@ -533,10 +516,10 @@ h3,
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
+  min-height: var(--button-height);
   list-style: none;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--text-compact-size);
   font-weight: 500;
 }
 .detail-secondary summary::-webkit-details-marker {
@@ -550,17 +533,17 @@ h3,
 }
 .detail-secondary p {
   padding: 0 0 16px;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--text-body-size);
+  line-height: var(--text-body-leading);
   color: var(--muted);
 }
 .detail-collections {
   margin-top: 24px;
 }
 .detail-collections h2 {
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--text-h2-size);
+  font-weight: var(--text-h2-weight);
+  line-height: var(--text-h2-leading);
   margin-bottom: 12px;
 }
 .detail-collections > div {
@@ -571,12 +554,12 @@ h3,
 .detail-collections a {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: var(--button-height);
   border: 1px solid var(--line);
   background: var(--surface);
   padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: var(--radius-soft);
+  font-size: var(--text-compact-size);
 }
 .detail-collections a:hover {
   border-color: var(--accent-text);
@@ -584,8 +567,8 @@ h3,
 .detail-demo-note {
   margin-top: 20px;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: var(--text-small-size);
+  line-height: var(--text-small-leading);
 }
 .detail-recommendations {
   border-top: 1px solid var(--line);
@@ -599,9 +582,9 @@ h3,
   margin-top: -7px;
 }
 .preview-copy h3 {
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: var(--text-h3-size);
+  font-weight: var(--text-h3-weight);
+  line-height: var(--text-h3-leading);
 }
 
 /* Studio manages curated membership and reads submitted reports, never exposed in library UI. */
@@ -610,7 +593,7 @@ h3,
 }
 .collection-studio .admin-subtoolbar p {
   max-width: 50ch;
-  font-size: 13px;
+  font-size: var(--text-compact-size);
 }
 .admin-collections-grid {
   display: grid;
@@ -620,7 +603,7 @@ h3,
 .admin-collection {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-media);
   overflow: hidden;
 }
 .admin-collection-cover {
@@ -637,10 +620,10 @@ h3,
   gap: 4px;
 }
 .admin-collection-copy strong {
-  font-size: 14px;
+  font-size: var(--text-body-size);
 }
 .admin-collection-copy > span {
-  font-size: 12px;
+  font-size: var(--text-small-size);
   color: var(--muted);
 }
 .admin-collection-copy > div {
@@ -652,11 +635,11 @@ h3,
 .collection-form .collection-members {
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-soft);
   padding: 10px;
 }
 .collection-members legend {
-  font-size: 13px;
+  font-size: var(--text-compact-size);
   font-weight: 600;
   padding-inline: 6px;
 }
@@ -668,13 +651,13 @@ h3,
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 4px 7px;
-  font-size: 13px;
+  font-size: var(--text-compact-size);
 }
 .collection-members label:hover {
   background: var(--soft);
-  border-radius: 5px;
+  border-radius: var(--radius-hover);
 }
 .collection-members input {
   width: 16px;
@@ -689,7 +672,7 @@ h3,
 }
 .reports-studio .audit-list p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-compact-size);
   margin-top: 6px;
   overflow-wrap: anywhere;
 }
@@ -708,13 +691,13 @@ h3,
     height: 66px;
   }
   .brand b {
-    font-size: 24px;
+    font-size: var(--text-brand-compact-size);
   }
   .detail-section-heading {
     align-items: center;
   }
   .detail-section-heading .text-button {
-    font-size: 11px;
+    font-size: var(--text-eyebrow-size);
   }
   .collections-page,
   .collection-page {
@@ -730,19 +713,19 @@ h3,
     padding: 11px 12px;
   }
   .collection-card-title {
-    font-size: 16px;
+    font-size: var(--text-card-title-compact-size);
   }
   .collection-card-meta {
-    font-size: 11px;
+    font-size: var(--text-eyebrow-size);
   }
   .reaction-card .card-duration,
   .library-pin .card-duration {
     top: 10px;
     right: 10px;
-    font-size: 11px;
+    font-size: var(--text-eyebrow-size);
   }
   .reaction-card .card-info .card-title {
-    font-size: 14px;
+    font-size: var(--text-body-size);
   }
   .detail-page {
     padding-block: 16px 55px;
@@ -776,8 +759,8 @@ h3,
   .detail-controls .reaction-actions .btn {
     width: auto;
     height: auto;
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--button-height);
+    min-height: var(--button-height);
     padding: 6px 9px;
     justify-content: center;
   }
@@ -794,11 +777,11 @@ h3,
     height: 16px;
   }
   .detail-controls .reaction-menu-trigger {
-    width: 44px;
-    height: 44px;
+    width: var(--button-height);
+    height: var(--button-height);
   }
   .detail-titlebar h1 {
-    font-size: 32px;
+    font-size: var(--text-h1-size);
   }
   .detail-recommendations {
     margin-top: 45px;
@@ -809,8 +792,8 @@ h3,
     grid-template-columns: 1fr;
   }
   .detail-controls .reaction-menu-trigger {
-    width: 44px;
-    height: 44px;
+    width: var(--button-height);
+    height: var(--button-height);
   }
 }
 .reaction-menu-panel[data-align='right'] {

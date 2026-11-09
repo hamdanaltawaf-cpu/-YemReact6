@@ -170,8 +170,8 @@ test('Contribution file drop zone matches its click promise and stays keyboard r
   assert.doesNotMatch(form, /tabIndex=\{-1\}/);
   assert.match(styles, /contribution-file-input:focus-visible \+ \.contribution-drop-area/);
   assert.match(styles, /contribution-drop-area:hover:not\(\.is-dragging\)/);
-  assert.match(styles, /\.contribution-pick\s*\{[^}]*min-height: 44px/s);
-  assert.match(styles, /\.contribution-remove\s*\{[^}]*width: 44px/s);
+  assert.match(styles, /\.contribution-pick\s*\{[^}]*min-height: var\(--button-height\)/s);
+  assert.match(styles, /\.contribution-remove\s*\{[^}]*width: var\(--button-height\)/s);
 });
 
 test('Header mirrors URL search changes so clearing q also clears the controlled input', () => {

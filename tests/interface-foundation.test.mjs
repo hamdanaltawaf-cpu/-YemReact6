@@ -10,14 +10,15 @@ test('I08 uses the approved light and warm dark surface tokens', () => {
   const globals = read('src/app/globals.css');
   for (const token of ['#fafaf8', '#ffffff', '#121214', '#18140f', '#221c16', '#f3ece2'])
     assert.ok(globals.includes(token), token);
-  assert.match(css, /1120px/);
+  assert.match(globals, /--container-max-width:\s*1120px/);
   assert.match(read('src/app/layout.tsx'), /import '\.\/interface-foundation\.css'/);
 });
 
 test('I10 separates pressed, focus, disabled and real loading states', () => {
+  const globals = read('src/app/globals.css');
   assert.match(css, /:active\s*:not\(\s*:disabled\s*\)/);
   assert.match(css, /:focus-visible/);
-  assert.match(css, /outline: 2px solid var\(--accent\)/);
+  assert.match(globals, /outline: 2px solid var\(--accent-text\)/);
   assert.match(css, /\[aria-busy='true'\]::before/);
   assert.match(css, /width: 16px/);
   assert.match(css, /prefers-reduced-motion: reduce/);

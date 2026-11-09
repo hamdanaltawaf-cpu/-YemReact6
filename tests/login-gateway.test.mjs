@@ -127,11 +127,11 @@ test('Gateway HTML errors and identity tokens stay on-brand', () => {
     /\.social-guest-card\b/,
   ])
     assert.match(globals, selector);
-  // البطاقات بنصف قطر الهوية (9px) والشارات كبسولة (999px) — لا ألوان دخيلة
+  // البطاقات والشارات تستخدم رموز أنصاف الأقطار المركزية — لا ألوان دخيلة
   const guestBlock = globals.match(/\.social-guest-card \{[^}]+\}/s)[0];
-  assert.match(guestBlock, /border-radius: 9px;/);
+  assert.match(guestBlock, /border-radius: var\(--radius-compact\);/);
   const badgeBlock = globals.match(/\.social-provider-badge \{[^}]+\}/s)[0];
-  assert.match(badgeBlock, /border-radius: 999px;/);
+  assert.match(badgeBlock, /border-radius: var\(--radius-pill\);/);
   const nav = fs.readFileSync('src/app/navigation.css', 'utf8');
   assert.match(nav, /\.account-google-pending\b/);
   assert.match(nav, /\.account-pending-chip\b/);
