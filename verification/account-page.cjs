@@ -126,6 +126,15 @@ const redirectsToLoginKeeping = (res, pathFor) =>
     ) && /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*><svg/.test(account.body),
   );
   check(
+    'كل إجراء أيقوني يربط اسم الوصول بتلميح hover/focus',
+    /aria-describedby="account-action-contribute-tooltip"[\s\S]*?role="tooltip">إرسال رياكشن<\/span>/.test(
+      account.body,
+    ) &&
+      /aria-describedby="account-action-settings-tooltip"[\s\S]*?role="tooltip">الإعدادات<\/span>/.test(
+        account.body,
+      ),
+  );
+  check(
     'المبدّل الوحيد بلسانيه «المحفوظات» و«مساهماتي»',
     /role="tablist"/.test(account.body) &&
       /المحفوظات/.test(account.body) &&
@@ -326,33 +335,34 @@ const redirectsToLoginKeeping = (res, pathFor) =>
     ) && !/api\/auth\/oauth\/|الاستمرار كزائر|account-google-pending/.test(headerSource),
   );
 
-  // ١٠ز: عقد العدّادات (حسم حمدان 2026-10-18): بطاقة «المساهمات المنشورة» مخفية
-  // مؤقتًا بلا بديلٍ مضلّل، والملخّص للمسجَّل الحقيقي فقط (mockSignedIn بلا أرقام)
+  // ١٠ز: لا عداد مضلل للمساهمات؛ عداد المحفوظات داخل تبويبه، بلا هدف ملخص مكرر.
   const surface = require('node:fs').readFileSync('src/components/AccountSurface.tsx', 'utf8');
   check(
-    'مصدر السطح: «المالك»= app.user فقط، ولا بطاقة رقمية للمساهمات في الملخّص',
+    'مصدر السطح: «المالك»= app.user فقط، ولا عداد مساهمات أو بطاقة ملخص مكررة',
     /const owner = !!app\.user;/.test(surface) &&
       !/<b>\{contribution\.records\.length\}<\/b>/.test(surface) &&
-      !/\{owner && \([\s\S]*?<span>مساهماتي<\/span>/m.test(
-        surface.slice(surface.indexOf('account-summary'), surface.indexOf('account-actions-row')),
+      !/account-summary/.test(surface) &&
+      /المحفوظات\{owner && <span className="account-tab-count">\{savedItems\.length\}<\/span>\}/.test(
+        surface,
       ),
   );
   const cssPage = require('node:fs').readFileSync('src/app/navigation.css', 'utf8');
   check(
-    'شبكة الملخّص عمودٌ واحد: بطاقة المحفوظات كاملة العرض بلا فراغ',
-    /\.account-summary \{\s*display: grid;\s*grid-template-columns: 1fr;/.test(cssPage),
+    'عدد المحفوظات له تنسيق متوافق مع التبويب النشط',
+    /\.account-tab-count\s*\{[^}]*background: var\(--surface\)/s.test(cssPage),
   );
 
-  // ١١: كتلة أنماط سطح الحساب تتبع هوية الرمز — نصف قطر 9 وبلا خانة بنفسجية قديمة
+  // ١١: كتلة الحساب تتبع رموز التصميم الحالية دون تثبيت قيمة نصف قطر رقمية.
   const css = cssPage;
   const surfaceStart = css.indexOf('سطح الحساب داخل صفحته');
   const surfaceBlock = css.slice(surfaceStart, css.indexOf('@media (min-width: 640px)'));
   check(
-    'كتلة أنماط السطح قائمة بنصف قطر 9px وبلا بنفسجيات قديمة تحت نطاقها',
+    'كتلة السطح تستخدم رموز نصف القطر والسطح الحالية',
     surfaceStart >= 0 &&
       surfaceBlock.includes('.account-surface') &&
-      surfaceBlock.includes('border-radius: 9px') &&
-      !/(#7c3aed|#8b5cf6|#a855f7|purple)/i.test(surfaceBlock),
+      surfaceBlock.includes('border-radius: var(--radius-compact)') &&
+      surfaceBlock.includes('.account-icon-tooltip') &&
+      surfaceBlock.includes('background: var(--surface)'),
   );
 
   console.log(`\n${pass}/${pass + failures.length} ✅`);

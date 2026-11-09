@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   ArrowLeft,
@@ -29,7 +28,6 @@ export default function Auth({
   next?: string;
 }) {
   const app = useApp();
-  const router = useRouter();
   // Native new-tab links avoid blocked top navigation in embedded previews.
   // The server supplies only the canonical public origin, never provider secrets.
   const [embedded, setEmbedded] = useState(true);
@@ -88,7 +86,6 @@ export default function Auth({
   function continueAsGuest() {
     const secure = window.location.protocol === 'https:' ? '; Secure' : '';
     document.cookie = `${GUEST_COOKIE}=1; path=/; SameSite=Lax${secure}`; // كوكي جلسة: بلا Max-Age
-    router.push(next);
   }
   async function copyLoginLink() {
     if (!attempt) return;
