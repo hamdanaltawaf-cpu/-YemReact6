@@ -19,8 +19,8 @@ import type { SocialProvider } from '@/lib/social';
 
 /**
  * صفحة الحساب كاملة (يفتحها تبويب «الحساب» من الشريط السفلي على الهاتف) — الترتيب
- * من الأعلى للأسفل: الهوية ← إجراءات الحساب الأيقونية ← ملخّص النشاط (للجلسة
- * المسجَّلة الحقيقية فقط) ← مبدّل واحد (المحفوظات / مساهماتي).
+ * من الأعلى للأسفل: الهوية ← إجراءات الحساب الأيقونية ← مبدّل واحد
+ * (المحفوظات / مساهماتي؛ ويتضمن تبويب المحفوظات عدّاده للعضو).
  * بريد Google لا يُعرض هنا إطلاقًا — لا للزائر ولا لصاحب الحساب. لا ملفات عامة
  * ولا إحصاءات اجتماعية — مكتبة لا شبكة.
  *
@@ -67,6 +67,18 @@ export function AccountSurface({
       }),
     );
   }
+  function selectTabFromKeyboard(next: 'saved' | 'contributions') {
+    setTab(next);
+    requestAnimationFrame(() => {
+      panelRef.current?.scrollIntoView({
+        behavior: app.reduced ? 'auto' : 'smooth',
+        block: 'start',
+      });
+      document
+        .getElementById(next === 'saved' ? 'account-tab-saved' : 'account-tab-contributions')
+        ?.focus();
+    });
+  }
   const googleReady = readyProviders.includes('google') && !!googleAuthOrigin;
   const signInEntry = (className: string) =>
     googleReady ? (
@@ -86,15 +98,21 @@ export function AccountSurface({
     );
 
   function tabsKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-    event.preventDefault();
-    const next = tab === 'saved' ? 'contributions' : 'saved';
-    setTab(next);
-    requestAnimationFrame(() =>
-      document
-        .getElementById(next === 'saved' ? 'account-tab-saved' : 'account-tab-contributions')
-        ?.focus(),
+    const tabIds = ['account-tab-saved', 'account-tab-contributions'] as const;
+    const currentIndex = tabIds.indexOf(
+      (event.target as HTMLElement).id as (typeof tabIds)[number],
     );
+    if (currentIndex < 0) return;
+    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
+    let nextIndex: number;
+    if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabIds.length - 1;
+    else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      const forward = (event.key === 'ArrowRight') !== rtl;
+      nextIndex = (currentIndex + (forward ? 1 : tabIds.length - 1)) % tabIds.length;
+    } else return;
+    event.preventDefault();
+    selectTabFromKeyboard(nextIndex === 0 ? 'saved' : 'contributions');
   }
 
   return (
@@ -128,39 +146,39 @@ export function AccountSurface({
       <div className="account-actions-row" role="group" aria-label="إجراءات الحساب">
         <Link
           aria-label="إرسال رياكشن"
+          aria-describedby="account-action-contribute-tooltip"
           className="account-icon-action account-icon-action-primary"
           href="/contribute"
           onClick={onNavigate}
         >
           <Send size={19} aria-hidden="true" />
+          <span
+            className="account-icon-tooltip"
+            id="account-action-contribute-tooltip"
+            role="tooltip"
+          >
+            إرسال رياكشن
+          </span>
         </Link>
         <Link
           aria-label="الإعدادات"
+          aria-describedby="account-action-settings-tooltip"
           className="account-icon-action"
           href="/settings"
           onClick={onNavigate}
         >
           <Settings2 size={19} aria-hidden="true" />
+          <span
+            className="account-icon-tooltip"
+            id="account-action-settings-tooltip"
+            role="tooltip"
+          >
+            الإعدادات
+          </span>
         </Link>
       </div>
 
-      {/* ٢ — ملخّص النشاط: بطاقة المحفوظات وحدها للمسجَّل الحقيقي فقط (بطاقة
-             المساهمات مخفية مؤقتًا لحين مصدر «منشور» موثوق — لا بطاقات فارغة) */}
-      {owner && (
-        <div className="account-summary" aria-label="ملخص نشاطك">
-          <button
-            type="button"
-            className="account-summary-card"
-            data-active={tab === 'saved'}
-            onClick={() => selectTab('saved')}
-          >
-            <b>{savedItems.length}</b>
-            <span>المحفوظات</span>
-          </button>
-        </div>
-      )}
-
-      {/* ٣ — مبدّل واحد بقسمين، وتحته محتوى المختار */}
+      {/* ٢ — مبدّل واحد بقسمين، وعدد المحفوظات داخل تبويبه بدل بطاقة مكررة. */}
       <div className="account-tabs" role="tablist" aria-label="محتوى حسابك" onKeyDown={tabsKeyDown}>
         <button
           type="button"
@@ -168,9 +186,10 @@ export function AccountSurface({
           id="account-tab-saved"
           aria-selected={tab === 'saved'}
           aria-controls="account-tab-panel"
+          tabIndex={tab === 'saved' ? 0 : -1}
           onClick={() => selectTab('saved')}
         >
-          المحفوظات
+          المحفوظات{owner && <span className="account-tab-count">{savedItems.length}</span>}
         </button>
         <button
           type="button"
@@ -178,6 +197,7 @@ export function AccountSurface({
           id="account-tab-contributions"
           aria-selected={tab === 'contributions'}
           aria-controls="account-tab-panel"
+          tabIndex={tab === 'contributions' ? 0 : -1}
           onClick={() => selectTab('contributions')}
         >
           مساهماتي

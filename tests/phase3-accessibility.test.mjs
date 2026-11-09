@@ -169,7 +169,8 @@ test('Account surfaces use theme-aware backgrounds rather than white in dark mod
     navigation,
     /\.account-surface > \.account-identity \.account-google-pending,[\s\S]*?background: var\(--surface\)/,
   );
-  assert.match(navigation, /\.account-summary-card\s*\{[^}]*background: var\(--surface\)/s);
+  assert.match(navigation, /\.account-tabs \[role='tab'\]\s*\{[^}]*display: inline-flex/s);
+  assert.match(navigation, /\.account-tab-count\s*\{[^}]*background: var\(--surface\)/s);
 });
 
 test('Important touch targets are at least 44px in account, search and reaction detail controls', () => {

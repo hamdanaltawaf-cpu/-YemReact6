@@ -164,8 +164,14 @@ test('Guest sees welcome, sign-in, direct actions and his local saves — with z
   assert.match(html, /أنت زائر/);
   assert.match(html, /href="\/login"[^>]*>.*تسجيل الدخول<\/a>/);
   assert.doesNotMatch(html, /api\/auth\/oauth|تسجيل الدخول بـ Google/);
-  assert.match(html, /<a(?=[^>]*aria-label="إرسال رياكشن")(?=[^>]*href="\/contribute")[^>]*><\/a>/);
-  assert.match(html, /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*><\/a>/);
+  assert.match(
+    html,
+    /<a(?=[^>]*aria-label="إرسال رياكشن")(?=[^>]*href="\/contribute")[^>]*>[\s\S]*?account-action-contribute-tooltip[\s\S]*?<\/a>/,
+  );
+  assert.match(
+    html,
+    /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*>[\s\S]*?account-action-settings-tooltip[\s\S]*?<\/a>/,
+  );
   assert.doesNotMatch(html, /href="\/help"/);
   assert.match(html, /الإعدادات/);
   assert.match(html, /المحفوظات/);
@@ -206,24 +212,37 @@ test('Guest cannot be shown contribution records; مساهماتي explains the 
   assert.doesNotMatch(html, /account-status/);
 });
 
-test('Owner summary is ONE truthful card — saved only; the contributions number is hidden until a trusted published source exists', () => {
+test('Owner saved count appears in the Saved tab; the duplicate summary target is removed', () => {
   const html = renderSurface({ user: MEMBER, saved: ['YR-0012', 'YR-0007'], records: RECORDS });
   assert.match(
     html,
-    /"account-summary-card"[^>]*data-active="true"[^>]*><b>2<\/b><span>المحفوظات<\/span>/,
+    /id="account-tab-saved"[\s\S]*?aria-selected="true"[\s\S]*?tabindex="0"[\s\S]*?المحفوظات<span class="account-tab-count">2<\/span>/,
   );
-  // بطاقة واحدة في الملخّص: لا بطاقة فارغة ولا إجمالي سجلات يدّعي «منشورًا»
-  assert.equal((html.match(/class="account-summary-card"/g) || []).length, 1);
-  const summary = html.slice(
-    html.indexOf('class="account-summary"'),
-    html.indexOf('account-actions-row'),
-  );
-  assert.doesNotMatch(summary, /مساهماتي/);
-  assert.doesNotMatch(summary, /<b>3<\/b>|<b>0<\/b>/);
+  assert.doesNotMatch(html, /account-summary/);
+  assert.match(html, /id="account-tab-contributions"[\s\S]*?tabindex="-1"/);
+  assert.equal((html.match(/class="account-tab-count"/g) || []).length, 1);
   assert.doesNotMatch(html, /المساهمات المنشورة/);
   // الحارس المصدري: لا يمكن أن تعود بطاقة رقمية للمساهمات عبر إجمالي السجلات
   const source = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
   assert.doesNotMatch(source, /<b>\{contribution\.records\.length\}<\/b>/);
+  assert.match(source, /event\.key === 'Home'/);
+  assert.match(source, /event\.key === 'End'/);
+  assert.match(source, /selectTabFromKeyboard\(nextIndex === 0 \? 'saved' : 'contributions'\)/);
+});
+
+test('Account icon actions keep accessible names and reference hover/focus tooltip text', () => {
+  const html = renderSurface();
+  assert.match(
+    html,
+    /aria-label="إرسال رياكشن" aria-describedby="account-action-contribute-tooltip"[\s\S]*?role="tooltip">إرسال رياكشن<\/span>/,
+  );
+  assert.match(
+    html,
+    /aria-label="الإعدادات" aria-describedby="account-action-settings-tooltip"[\s\S]*?role="tooltip">الإعدادات<\/span>/,
+  );
+  const css = fs.readFileSync('src/app/navigation.css', 'utf8');
+  assert.match(css, /\.account-icon-action:hover \.account-icon-tooltip/);
+  assert.match(css, /\.account-icon-action:focus-visible \.account-icon-tooltip/);
 });
 
 test('Owner identity shows avatar initial and name — read-only since batch 3: no edit entry, no Google email anywhere', () => {

@@ -7,7 +7,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ts from 'typescript';
 const require = createRequire(import.meta.url);
-function load(file, overrides) {
+function load(file, overrides, globals = {}) {
   const module = { exports: {} };
   vm.runInNewContext(
     ts.transpileModule(fs.readFileSync(file, 'utf8'), {
@@ -22,6 +22,7 @@ function load(file, overrides) {
       module,
       exports: module.exports,
       require: (name) => (name in overrides ? overrides[name] : require(name)),
+      ...globals,
     },
   );
   return module.exports;
@@ -37,19 +38,29 @@ function transpile(file) {
   return exports;
 }
 
-function renderAuth(props = {}, { user = null } = {}) {
-  const { default: Auth } = load('src/features/Auth.tsx', {
-    'next/navigation': { useRouter: () => ({ push: () => {} }) },
-    'next/link': {
-      __esModule: true,
-      default: ({ children, ...rest }) => React.createElement('a', rest, children),
+function renderAuth(
+  props = {},
+  { user = null, onGuestLink = () => {}, routerPushes = [], globals = {} } = {},
+) {
+  const { default: Auth } = load(
+    'src/features/Auth.tsx',
+    {
+      'next/navigation': { useRouter: () => ({ push: (target) => routerPushes.push(target) }) },
+      'next/link': {
+        __esModule: true,
+        default: ({ children, ...rest }) => {
+          if (rest.className === 'social-guest-card') onGuestLink(rest);
+          return React.createElement('a', rest, children);
+        },
+      },
+      '@/components/AppProvider': { useApp: () => ({ user, logout: () => {}, toast: () => {} }) },
+      '@/components/SocialIcon': { SocialIcon: () => null },
+      '@/lib/gate': transpile('src/lib/gate.ts'),
+      '@/lib/social': transpile('src/lib/social.ts'),
+      'lucide-react': new Proxy({}, { get: () => () => null }),
     },
-    '@/components/AppProvider': { useApp: () => ({ user, logout: () => {}, toast: () => {} }) },
-    '@/components/SocialIcon': { SocialIcon: () => null },
-    '@/lib/gate': transpile('src/lib/gate.ts'),
-    '@/lib/social': transpile('src/lib/social.ts'),
-    'lucide-react': new Proxy({}, { get: () => () => null }),
-  });
+    globals,
+  );
   return renderToStaticMarkup(React.createElement(Auth, props));
 }
 
@@ -102,13 +113,39 @@ test('Guest choice follows an available provider and precedes providers still in
   );
 });
 
-test('Guest click sets a first-party SameSite=Lax session cookie only — never a persistent one', () => {
+test('Guest click sets a session cookie and delegates the sole route transition to Link', () => {
+  let guestLink;
+  let cookie = '';
+  const routerPushes = [];
+  const html = renderAuth(
+    { next: '/account' },
+    {
+      onGuestLink: (props) => (guestLink = props),
+      routerPushes,
+      globals: {
+        window: { location: { protocol: 'https:' } },
+        document: {
+          set cookie(value) {
+            cookie = value;
+          },
+        },
+      },
+    },
+  );
+  assert.match(
+    html,
+    /class="social-guest-card"[^>]*href="\/account"|href="\/account"[^>]*class="social-guest-card"/,
+  );
+  guestLink.onClick();
+  assert.match(cookie, /^yr_guest=1; path=\/; SameSite=Lax; Secure$/);
+  assert.deepEqual(routerPushes, [], 'custom handler must not start a second navigation');
+
   const source = fs.readFileSync('src/features/Auth.tsx', 'utf8');
   assert.match(source, /GUEST_COOKIE\}=1; path=\/; SameSite=Lax\$\{secure\}/);
   assert.match(source, /'https:' \? '; Secure' : ''/);
   // لا صلاحية زمنية على الكوكي: كوكي جلسة صرفة (ذكر الاسم في تعليق ليس تعيينًا)
   assert.doesNotMatch(source, /Max-Age\s*=|Expires\s*=/i);
-  assert.match(source, /router\.push\(next\)/);
+  assert.doesNotMatch(source, /router\.push\(next\)/);
   // النسخة السابقة (رابط نصّي صغير) لم تعد موجودة — البطاقة بديلها
   assert.doesNotMatch(source, /className="social-guest"/);
   assert.doesNotMatch(source, /كمّل بدون حساب/);
