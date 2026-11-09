@@ -8,7 +8,7 @@
 }
 .site-header .brand {
   flex: none;
-  min-height: 44px;
+  min-height: var(--button-height);
 }
 .site-header .desktop-nav {
   gap: clamp(16px, 2vw, 28px);
@@ -32,18 +32,14 @@
   min-width: 0;
   max-width: 560px;
   margin-inline: auto;
-  height: 44px;
+  height: var(--button-height);
   padding-inline: 12px 4px;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
   transition:
     border-color var(--motion-micro) var(--ease-standard),
     box-shadow var(--motion-micro) var(--ease-standard);
-}
-.library-search:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 .library-search > svg {
   flex: none;
@@ -65,10 +61,10 @@
 .library-search button {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--button-height);
+  height: var(--button-height);
   flex: none;
-  border-radius: 7px;
+  border-radius: var(--radius-control-small);
   background: var(--soft);
   color: var(--ink);
 }
@@ -80,11 +76,11 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 11px;
+  width: var(--button-height);
+  height: var(--button-height);
+  border-radius: var(--radius-header-action);
   background: var(--accent-text);
-  color: white;
+  color: var(--bg);
   transition:
     background var(--motion-micro) var(--ease-standard),
     box-shadow var(--motion-micro) var(--ease-standard);
@@ -103,11 +99,11 @@
 .account-avatar {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--button-height);
+  height: var(--button-height);
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   background: var(--soft);
   color: var(--ink);
   font-size: 17px;
@@ -119,18 +115,18 @@
     background var(--motion-micro) var(--ease-standard);
 }
 .account-avatar:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-text);
   background: var(--accent-soft);
 }
 /* دفعة 2: سهم قائمة الحساب — عنصر مستقل، حاسوب ≥1024px فقط (الصورة تفتح /account) */
 .account-menu-trigger {
   display: none;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--button-height);
+  height: var(--button-height);
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-soft);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -140,7 +136,7 @@
 }
 .account-menu-trigger:hover,
 .account-menu-trigger[aria-expanded='true'] {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-soft);
 }
 @media (min-width: 1024px) {
@@ -156,7 +152,7 @@
   width: 258px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-panel);
   background: var(--surface);
   box-shadow: 0 18px 44px #0002;
 }
@@ -184,7 +180,7 @@
   width: 38px;
   height: 38px;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   background: var(--soft);
   color: var(--ink);
   font-size: 16px;
@@ -239,7 +235,7 @@
   width: 100%;
   min-height: 46px;
   padding: 8px 11px;
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: transparent;
   color: var(--ink);
   font-size: 13px;
@@ -268,7 +264,7 @@
   flex-shrink: 0;
   margin-inline-start: auto;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 10px;
   font-size: 10px;
   font-weight: 600;
@@ -297,7 +293,7 @@
     --header-offset: 74px;
   }
   .library-search {
-    height: 44px;
+    height: var(--button-height);
     max-width: none;
     margin-inline: 0;
   }
@@ -372,7 +368,7 @@
   min-height: 56px;
   padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
@@ -419,7 +415,7 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: var(--soft);
 }
 .account-identity-copy {
@@ -444,7 +440,7 @@
 .account-identity .account-signin {
   flex-shrink: 0;
   width: auto;
-  min-height: 44px;
+  min-height: var(--button-height);
   gap: 8px;
   padding: 9px 14px;
   font-size: 12px;
@@ -460,10 +456,10 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 9px 14px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: var(--surface);
   color: var(--ink);
   font-size: 12px;
@@ -480,10 +476,10 @@
 .account-summary-card {
   display: grid;
   gap: 2px;
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: var(--surface);
   text-align: start;
   cursor: pointer;
@@ -525,12 +521,12 @@
 }
 .account-icon-action {
   display: grid;
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: var(--button-height-large);
+  height: var(--button-height-large);
+  flex: 0 0 var(--button-height-large);
   place-items: center;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-media);
   background: var(--surface);
   color: var(--ink);
   text-decoration: none;
@@ -560,13 +556,13 @@
   border-bottom: 1px solid var(--line);
 }
 .account-tabs [role='tab'] {
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 9px 13px;
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
   border: 0;
-  border-radius: 9px 9px 0 0;
+  border-radius: var(--radius-compact) var(--radius-compact) 0 0;
   background: transparent;
   cursor: pointer;
 }
@@ -592,7 +588,7 @@
   width: 100%;
   min-height: 52px;
   padding: 8px;
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: transparent;
   border: 1px solid transparent;
   text-align: start;
@@ -639,7 +635,7 @@
 .account-status {
   flex-shrink: 0;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 10px;
   font-size: 10px;
   font-weight: 600;
@@ -657,7 +653,7 @@
   justify-items: start;
   padding: 18px 14px;
   border: 1px dashed var(--line);
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: var(--soft);
 }
 .account-empty strong {
@@ -669,7 +665,7 @@
   color: var(--muted);
 }
 .account-empty .btn {
-  min-height: 44px;
+  min-height: var(--button-height);
   margin-top: 4px;
   gap: 8px;
 }
@@ -685,9 +681,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 6px 8px;
-  border-radius: 9px;
+  border-radius: var(--radius-compact);
   background: transparent;
   color: var(--muted);
   font-size: 11px;
@@ -718,7 +714,7 @@
     display: block;
   }
   .library-search {
-    height: 44px;
+    height: var(--button-height);
   }
 }
 /* زر الرفع يعود من 768px */
@@ -778,8 +774,8 @@
     height: 17px;
   }
   .library-search button {
-    width: 44px;
-    height: 44px;
+    width: var(--button-height);
+    height: var(--button-height);
   }
 }
 @media (prefers-reduced-motion: reduce) {

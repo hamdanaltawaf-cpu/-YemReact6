@@ -48,7 +48,7 @@
   border: 1px solid var(--line);
   border-radius: 9px;
   padding: 11px 14px;
-  min-height: 44px;
+  min-height: var(--button-height);
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -136,7 +136,7 @@
   color: var(--error-text);
 }
 .contribution-pick {
-  min-height: 44px;
+  min-height: var(--button-height);
   padding: 5px 16px;
   font-size: 12px;
 }
@@ -221,9 +221,9 @@
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: var(--button-height);
+  height: var(--button-height);
+  border-radius: var(--radius-circle);
   background: #151515de;
   color: #fff;
   transition:
@@ -238,7 +238,7 @@
 }
 .contribution-submit {
   width: 100%;
-  min-height: 48px;
+  min-height: var(--button-height-large);
   font-size: 14px;
 }
 .contribution-error-dialog {
@@ -297,7 +297,7 @@
 }
 .contribution-signin .mock-google-btn,
 .contribution-success-actions .btn {
-  min-height: 44px;
+  min-height: var(--button-height);
 }
 .contribution-signin .mock-google-btn {
   width: 100%;

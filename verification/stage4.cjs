@@ -12,10 +12,207 @@ const report = {
   scope: 'Local disposable preview; no live-site mutations',
   checks: [],
   widths: [],
+  contrast: [],
   axe: [],
   errors: [],
   completed: false,
 };
+function cssColorToHex(value) {
+  const srgb = value.match(/color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*[\d.]+)?\s*\)/i);
+  if (srgb) {
+    return `#${srgb
+      .slice(1, 4)
+      .map((channel) =>
+        Math.round(Math.min(1, Math.max(0, Number(channel))) * 255)
+          .toString(16)
+          .padStart(2, '0'),
+      )
+      .join('')}`;
+  }
+  const match = value.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
+  assert.ok(match, `unsupported computed color: ${value}`);
+  return `#${match
+    .slice(1, 4)
+    .map((channel) => Math.round(Number(channel)).toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+function contrastRatio(first, second) {
+  const luminance = (hex) => {
+    const channels = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255);
+    const linear = channels.map((channel) =>
+      channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+    );
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+  const [lighter, darker] = [luminance(first), luminance(second)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+async function assertPageStructure(page, route) {
+  const structure = await page.evaluate(() => {
+    const visible = (element) =>
+      element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden';
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6'))
+      .filter(visible)
+      .map((heading) => Number(heading.tagName.slice(1)));
+    const landmarks = Array.from(
+      document.querySelectorAll(
+        'main,[role="main"],header[role="banner"],footer[role="contentinfo"],nav,[role="navigation"]',
+      ),
+    )
+      .filter(visible)
+      .map((element) => ({
+        role:
+          element.getAttribute('role') ||
+          (element.tagName === 'MAIN'
+            ? 'main'
+            : element.tagName === 'NAV'
+              ? 'navigation'
+              : element.tagName === 'HEADER'
+                ? 'banner'
+                : 'contentinfo'),
+        name:
+          element.getAttribute('aria-label') ||
+          (element.getAttribute('aria-labelledby') &&
+            document
+              .getElementById(element.getAttribute('aria-labelledby'))
+              ?.textContent?.trim()) ||
+          '',
+      }));
+    const duplicateUnnamed = [...new Set(landmarks.map((item) => item.role))].filter((role) => {
+      const sameRole = landmarks.filter((item) => item.role === role);
+      return (
+        sameRole.length > 1 &&
+        (sameRole.some((item) => !item.name) ||
+          new Set(sameRole.map((item) => item.name)).size !== sameRole.length)
+      );
+    });
+    return {
+      mainCount: landmarks.filter((item) => item.role === 'main').length,
+      headings,
+      duplicateUnnamed,
+    };
+  });
+  assert.equal(structure.mainCount, 1, `${route}: expected exactly one main landmark`);
+  assert.deepEqual(structure.duplicateUnnamed, [], `${route}: duplicate unnamed landmarks`);
+  assert.ok(structure.headings.length > 0, `${route}: page has no visible headings`);
+  assert.equal(structure.headings[0], 1, `${route}: first visible heading must be h1`);
+  for (let index = 1; index < structure.headings.length; index++) {
+    assert.ok(
+      structure.headings[index] <= structure.headings[index - 1] + 1,
+      `${route}: skipped heading level ${structure.headings[index - 1]} → ${structure.headings[index]}`,
+    );
+  }
+}
+async function assertRenderedContrast(page, route, theme) {
+  const samples = await page.evaluate(() => {
+    const selectors = [
+      ['text', 'h1'],
+      ['text', '.collection-card-title'],
+      ['text', '.collection-card-meta'],
+      ['text', '.admin-collection-copy strong'],
+      ['text', '.admin-collection-copy > span'],
+      ['placeholder', '.stack-form input[placeholder]'],
+      ['icon', '.reaction-menu-trigger'],
+      ['border', '.library-search'],
+    ];
+    const backgroundOf = (element) => {
+      for (let current = element; current; current = current.parentElement) {
+        const value = getComputedStyle(current).backgroundColor;
+        const alpha =
+          value.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/i) ||
+          value.match(/color\(srgb\s+[\d.]+\s+[\d.]+\s+[\d.]+\s*\/\s*([\d.]+)\s*\)/i);
+        if (!alpha || Number(alpha[1]) > 0.98) return value;
+      }
+      return getComputedStyle(document.body).backgroundColor;
+    };
+    return selectors.flatMap(([kind, selector]) =>
+      Array.from(document.querySelectorAll(selector))
+        .filter((element) => element.getClientRects().length > 0)
+        .slice(0, 3)
+        .map((element) => ({
+          kind,
+          selector,
+          foreground:
+            kind === 'border'
+              ? getComputedStyle(element).borderTopColor
+              : kind === 'placeholder'
+                ? getComputedStyle(element, '::placeholder').color
+                : getComputedStyle(element).color,
+          background: backgroundOf(element),
+        })),
+    );
+  });
+  assert.ok(samples.length > 0, `${route}: no rendered contrast samples`);
+  if (route.includes('collection editor')) {
+    assert.ok(
+      samples.some((sample) => sample.kind === 'placeholder'),
+      `${route}: no rendered placeholder contrast sample`,
+    );
+  }
+  const measured = samples.map((sample) => ({
+    ...sample,
+    ratio: Number(
+      contrastRatio(cssColorToHex(sample.foreground), cssColorToHex(sample.background)).toFixed(2),
+    ),
+  }));
+  for (const sample of measured) {
+    const minimum = ['text', 'placeholder'].includes(sample.kind) ? 4.5 : 3;
+    assert.ok(
+      sample.ratio >= minimum,
+      `${theme} ${route} ${sample.kind} ${sample.selector}: ${sample.ratio}:1 < ${minimum}:1`,
+    );
+  }
+  if (await page.locator('.reaction-menu-trigger').count()) {
+    await page.keyboard.press('Tab');
+    await page.locator('.reaction-menu-trigger').first().focus();
+    const focus = await page
+      .locator('.reaction-menu-trigger')
+      .first()
+      .evaluate((element) => {
+        const style = getComputedStyle(element);
+        let background = 'rgb(255, 255, 255)';
+        for (let current = element; current; current = current.parentElement) {
+          const value = getComputedStyle(current).backgroundColor;
+          const alpha =
+            value.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/i) ||
+            value.match(/color\(srgb\s+[\d.]+\s+[\d.]+\s+[\d.]+\s*\/\s*([\d.]+)\s*\)/i);
+          if (!alpha || Number(alpha[1]) > 0.98) {
+            background = value;
+            break;
+          }
+        }
+        return {
+          visible: element.matches(':focus-visible'),
+          outlineStyle: style.outlineStyle,
+          outlineWidth: parseFloat(style.outlineWidth),
+          outlineColor: style.outlineColor,
+          background,
+        };
+      });
+    assert.ok(
+      focus.visible && focus.outlineStyle !== 'none' && focus.outlineWidth >= 2,
+      `${theme} ${route} focus indicator: ${JSON.stringify(focus)}`,
+    );
+    const ratio = contrastRatio(cssColorToHex(focus.outlineColor), cssColorToHex(focus.background));
+    assert.ok(ratio >= 3, `${theme} ${route} focus indicator contrast ${ratio.toFixed(2)}:1`);
+  }
+  const disabled = await page.evaluate(() => {
+    const button = document.createElement('button');
+    button.className = 'btn';
+    button.disabled = true;
+    button.textContent = 'اختبار معطّل';
+    document.body.append(button);
+    const style = getComputedStyle(button);
+    const result = { opacity: Number(style.opacity), cursor: style.cursor };
+    button.remove();
+    return result;
+  });
+  assert.ok(
+    disabled.opacity < 1 && disabled.cursor === 'not-allowed',
+    `${theme} disabled control: ${JSON.stringify(disabled)}`,
+  );
+  report.contrast.push({ route, theme, samples: measured });
+}
 const userId = randomUUID(),
   token = randomBytes(32).toString('hex');
 const slug = `stage4-qa-${Date.now()}`;
@@ -91,10 +288,11 @@ let browser,
       'Root renders the guest-first access gateway; choosing guest access opens the canonical library.',
     );
 
-    for (const width of [320, 375, 640, 768, 1024, 1280, 1440, 1920]) {
+    for (const width of [320, 360, 375, 414, 640, 768, 850, 1024, 1280, 1440, 1920]) {
       await desktop.setViewportSize({ width, height: 900 });
       for (const route of ['/library', '/collections', '/collections/students', '/r/YR-0001']) {
         await load(desktop, route);
+        if (width === 320) await assertPageStructure(desktop, route);
         assert.equal(
           await desktop.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
           true,
@@ -238,7 +436,7 @@ let browser,
       }
     }
     report.checks.push(
-      'Eight viewport widths: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.',
+      'Eleven viewport widths from 320px to 1920px: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.',
     );
 
     await desktop.setViewportSize({ width: 1440, height: 900 });
@@ -553,10 +751,37 @@ let browser,
       ['/library', 'dark', desktop],
       ['/r/YR-0001', 'dark', desktop],
       ['/library', 'light', mobile],
+      ['/admin', 'light', admin],
+      ['/admin', 'dark', admin],
     ]) {
       await page.addInitScript((t) => localStorage.setItem('yr:theme', JSON.stringify(t)), theme);
       await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
       await load(page, route);
+      if (route === '/admin') {
+        await page.getByRole('button', { name: 'المجموعات', exact: true }).click();
+        await page.locator('.admin-collection').first().waitFor();
+        await page.getByRole('button', { name: 'مجموعة جديدة' }).click();
+        const editorRoute = `${route} collection editor`;
+        await assertPageStructure(page, editorRoute);
+        await assertRenderedContrast(page, editorRoute, theme);
+        const editorAudit = await new AxeBuilder({ page }).analyze();
+        report.axe.push({
+          route: editorRoute,
+          theme,
+          violations: editorAudit.violations.map((item) => ({
+            id: item.id,
+            nodes: item.nodes.map((node) => ({
+              target: node.target,
+              failureSummary: node.failureSummary,
+            })),
+          })),
+        });
+        assert.equal(editorAudit.violations.length, 0, JSON.stringify(report.axe.at(-1)));
+        await page.keyboard.press('Escape');
+        await page.locator('dialog[open]').waitFor({ state: 'detached' });
+      }
+      await assertPageStructure(page, route);
+      await assertRenderedContrast(page, route, theme);
       const audit = await new AxeBuilder({ page }).analyze();
       report.axe.push({
         route,
@@ -570,7 +795,7 @@ let browser,
       assert.equal(audit.violations.length, 0, JSON.stringify(report.axe.at(-1)));
     }
     report.checks.push(
-      'Seven axe audits across public pages and the admin collection studio/editor in light/dark + reduced-motion contexts: no violations.',
+      'Eleven axe audits plus live color-pair, placeholder and focus-ring checks across public pages, admin collections and the collection editor in light/dark + reduced-motion contexts: no violations.',
     );
     await desktop.setViewportSize({ width: 375, height: 900 });
     for (const [route, filename] of [

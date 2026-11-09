@@ -3,12 +3,12 @@
   "checks": [
     "Three curated groups have correct membership and public counts; admin-only collection and report APIs reject guests.",
     "Root renders the guest-first access gateway; choosing guest access opens the canonical library.",
-    "Eight viewport widths: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.",
+    "Eleven viewport widths from 320px to 1920px: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.",
     "Video hover actually plays muted on desktop, stops on exit, click opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.",
     "Keyboard menu, guest save, link copy, report form, mobile detail navigation and reduced-motion no-hover playback pass.",
     "Verified static image has no video badge/player, its two-line card title stays clamped, mobile action labels follow the long H1 with 44px targets, duplicate descriptions are omitted, and downloaded bytes match SHA-256; the local fixture is deleted.",
     "Admin studio creates a curated collection with two members, renders its public page, and sees the submitted report; guest APIs remain blocked.",
-    "Seven axe audits across public pages and the admin collection studio/editor in light/dark + reduced-motion contexts: no violations."
+    "Eleven axe audits plus live color-pair, placeholder and focus-ring checks across public pages, admin collections and the collection editor in light/dark + reduced-motion contexts: no violations."
   ],
   "widths": [
     {
@@ -32,6 +32,26 @@
       "noOverflow": true
     },
     {
+      "width": 360,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 360,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 360,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 360,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
       "width": 375,
       "route": "/library",
       "noOverflow": true
@@ -48,6 +68,26 @@
     },
     {
       "width": 375,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 414,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 414,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 414,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 414,
       "route": "/r/YR-0001",
       "noOverflow": true
     },
@@ -88,6 +128,26 @@
     },
     {
       "width": 768,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 850,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 850,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 850,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 850,
       "route": "/r/YR-0001",
       "noOverflow": true
     },
@@ -172,6 +232,510 @@
       "noOverflow": true
     }
   ],
+  "contrast": [
+    {
+      "route": "/library",
+      "theme": "light",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 17.9
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(140, 138, 128)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 3.46
+        }
+      ]
+    },
+    {
+      "route": "/collections",
+      "theme": "light",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 17.9
+        },
+        {
+          "kind": "text",
+          "selector": ".collection-card-title",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".collection-card-title",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".collection-card-title",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".collection-card-meta",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "text",
+          "selector": ".collection-card-meta",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "text",
+          "selector": ".collection-card-meta",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(140, 138, 128)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 3.46
+        }
+      ]
+    },
+    {
+      "route": "/library",
+      "theme": "dark",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 15.63
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(121, 117, 109)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 3.68
+        }
+      ]
+    },
+    {
+      "route": "/r/YR-0001",
+      "theme": "dark",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 15.63
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(121, 117, 109)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 3.68
+        }
+      ]
+    },
+    {
+      "route": "/library",
+      "theme": "light",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 17.9
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "icon",
+          "selector": ".reaction-menu-trigger",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(140, 138, 128)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 3.46
+        }
+      ]
+    },
+    {
+      "route": "/admin collection editor",
+      "theme": "light",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 17.9
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "placeholder",
+          "selector": ".stack-form input[placeholder]",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "placeholder",
+          "selector": ".stack-form input[placeholder]",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 6.6
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(140, 138, 128)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 3.46
+        }
+      ]
+    },
+    {
+      "route": "/admin",
+      "theme": "light",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(250, 250, 248)",
+          "ratio": 17.9
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(18, 18, 20)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 18.71
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(89, 91, 82)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 6.9
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(140, 138, 128)",
+          "background": "rgb(255, 255, 255)",
+          "ratio": 3.46
+        }
+      ]
+    },
+    {
+      "route": "/admin collection editor",
+      "theme": "dark",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 15.63
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 14.38
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 14.38
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 14.38
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 7.91
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 7.91
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 7.91
+        },
+        {
+          "kind": "placeholder",
+          "selector": ".stack-form input[placeholder]",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "placeholder",
+          "selector": ".stack-form input[placeholder]",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 8.6
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(121, 117, 109)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 3.68
+        }
+      ]
+    },
+    {
+      "route": "/admin",
+      "theme": "dark",
+      "samples": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(24, 20, 15)",
+          "ratio": 15.63
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 14.38
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 14.38
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy strong",
+          "foreground": "rgb(243, 236, 226)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 14.38
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 7.91
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 7.91
+        },
+        {
+          "kind": "text",
+          "selector": ".admin-collection-copy > span",
+          "foreground": "rgb(176, 179, 167)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 7.91
+        },
+        {
+          "kind": "border",
+          "selector": ".library-search",
+          "foreground": "rgb(121, 117, 109)",
+          "background": "rgb(34, 28, 22)",
+          "ratio": 3.68
+        }
+      ]
+    }
+  ],
   "axe": [
     {
       "route": "/admin (collections, mobile)",
@@ -206,6 +770,26 @@
     {
       "route": "/library",
       "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/admin collection editor",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/admin",
+      "theme": "light",
+      "violations": []
+    },
+    {
+      "route": "/admin collection editor",
+      "theme": "dark",
+      "violations": []
+    },
+    {
+      "route": "/admin",
+      "theme": "dark",
       "violations": []
     }
   ],
