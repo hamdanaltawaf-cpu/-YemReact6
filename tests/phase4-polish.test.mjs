@@ -16,6 +16,7 @@ function transpile(file) {
 const css = fs.readFileSync('src/app/stage4.css', 'utf8');
 const detail = fs.readFileSync('src/features/Detail.tsx', 'utf8');
 const preview = fs.readFileSync('src/components/Preview.tsx', 'utf8');
+const reactionCard = fs.readFileSync('src/components/ReactionCard.tsx', 'utf8');
 const designSystem = fs.readFileSync('docs/DESIGN-SYSTEM.md', 'utf8');
 
 test('A situation is omitted only when its normalized text duplicates the title', () => {
@@ -59,6 +60,33 @@ test('Detail and Preview share duplicate-description suppression; title is not r
   assert.match(detail, /distinctSituation\(reaction\.caption, reaction\.situation\)/);
   assert.match(preview, /distinctSituation\(r\.caption, r\.situation\)/);
   assert.doesNotMatch(detail, /detail-meta-description/);
+});
+
+test('Reaction cards expose an independent preview button and a single details link', () => {
+  assert.match(reactionCard, /<button[\s\S]*?className="card-preview"/);
+  assert.match(
+    reactionCard,
+    /aria-label=\{`معاينة \$\{reaction\.caption\}`}[\s\S]*?onClick=\{\(\) => app\.setPreview\(reaction\.code\)\}/,
+  );
+  assert.equal(
+    (reactionCard.match(/href=\{`\/r\/\$\{encodeURIComponent\(reaction\.code\)\}`\}/g) || [])
+      .length,
+    1,
+  );
+  assert.match(reactionCard, /className="card-title"/);
+  assert.match(
+    css,
+    /\.reaction-card \.card-preview-label\s*\{[^}]*min-height:\s*var\(--button-height\);/s,
+  );
+});
+
+test('Preview swipes start in media and are cancelled by interactive controls', () => {
+  assert.match(preview, /startsOnMedia[\s\S]*?startsOnControl/);
+  assert.match(
+    preview,
+    /document\.elementFromPoint\([\s\S]*?target\.closest\(interactiveTouchTarget\)/,
+  );
+  assert.match(preview, /onTouchCancel=\{\(\) =>\s*\{\s*touch\.current = null;/);
 });
 
 test('Design-system guidance matches implemented colors, titles, controls, and masonry behavior', () => {

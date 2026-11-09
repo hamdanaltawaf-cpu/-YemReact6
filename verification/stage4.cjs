@@ -454,12 +454,21 @@ let browser,
     assert.match(font.logo, /Lalezar/);
     assert.match(font.mono, /IBM Plex Mono/);
     assert.doesNotMatch(font.h1, /Lalezar/);
-    const anchor = desktop.locator('.card-preview[href="/r/YR-0001"]');
-    const movie = anchor.locator('video');
-    await anchor.hover();
+    const card = desktop
+      .locator('.reaction-card')
+      .filter({ has: desktop.locator('a.card-title[href="/r/YR-0001"]') });
+    const previewTrigger = card.locator('button.card-preview');
+    const detailLink = card.locator('a.card-title[href="/r/YR-0001"]');
+    assert.equal(await card.locator('a[href="/r/YR-0001"]').count(), 1);
+    assert.equal(await previewTrigger.count(), 1);
+    const movie = previewTrigger.locator('video');
+    await previewTrigger.hover();
     await desktop.waitForFunction(
       () => {
-        const video = document.querySelector('.card-preview[href="/r/YR-0001"] .card-hover-video');
+        const card = document
+          .querySelector('.card-title[href="/r/YR-0001"]')
+          ?.closest('.reaction-card');
+        const video = card?.querySelector('.card-hover-video');
         return video && video.muted && !video.paused && video.currentTime > 0;
       },
       undefined,
@@ -467,7 +476,19 @@ let browser,
     );
     await desktop.mouse.move(0, 0);
     assert.equal(await movie.evaluate((video) => video.paused), true);
-    await anchor.click();
+    await previewTrigger.focus();
+    await desktop.keyboard.press('Enter');
+    await desktop.locator('dialog[open] .preview-copy h3').waitFor();
+    assert.equal(await desktop.locator('dialog[open] .preview-copy h3').textContent(), 'يا ساتر!');
+    assert.equal(new URL(desktop.url()).pathname, '/library');
+    await desktop.keyboard.press('Escape');
+    await desktop.locator('dialog[open]').waitFor({ state: 'hidden' });
+    assert.equal(
+      await previewTrigger.evaluate((element) => element === document.activeElement),
+      true,
+      'closing the keyboard-opened preview restores focus to its card button',
+    );
+    await detailLink.click();
     await desktop.waitForURL('**/r/YR-0001');
     assert.equal(await desktop.locator('.detail-media-stage video[controls]').count(), 1);
     assert.equal(await desktop.locator('.detail-back').count(), 1);
@@ -476,7 +497,7 @@ let browser,
     await desktop.getByRole('button', { name: 'رجوع إلى الصفحة السابقة' }).click();
     await desktop.waitForURL('**/library');
     report.checks.push(
-      'Video hover actually plays muted on desktop, stops on exit, click opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.',
+      'Card video hover remains intact; the independent preview button opens by keyboard, Escape restores focus, one title link opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.',
     );
 
     await desktop.getByRole('button', { name: 'خيارات يا ساتر!' }).click();
@@ -528,12 +549,41 @@ let browser,
     await load(mobile, '/');
     await mobile.getByRole('link', { name: 'الاستمرار كزائر بلا حساب', exact: true }).click();
     await mobile.waitForURL('**/library');
-    await mobile.locator('.card-preview[href="/r/YR-0001"]').tap();
+    const mobileCard = mobile
+      .locator('.reaction-card')
+      .filter({ has: mobile.locator('a.card-title[href="/r/YR-0001"]') });
+    const mobilePreview = mobileCard.locator('button.card-preview');
+    await mobilePreview.tap();
+    await mobile.locator('dialog[open] .preview-copy h3').waitFor();
+    const mobilePreviewLabel = await mobilePreview.locator('.card-preview-label').boundingBox();
+    assert.ok(mobilePreviewLabel && mobilePreviewLabel.height >= 44);
+    const previewTitle = await mobile.locator('dialog[open] .preview-copy h3').textContent();
+    const actionButton = mobile.locator('dialog[open] .reaction-actions button').first();
+    await actionButton.scrollIntoViewIfNeeded();
+    const actionBounds = await actionButton.boundingBox();
+    assert.ok(actionBounds);
+    const touchSession = await touchscreen.newCDPSession(mobile);
+    const touchX = actionBounds.x + actionBounds.width / 2;
+    const touchY = actionBounds.y + actionBounds.height / 2;
+    await touchSession.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: touchX, y: touchY, id: 1 }],
+    });
+    await touchSession.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: Math.max(1, touchX - 120), y: touchY, id: 1 }],
+    });
+    await touchSession.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    assert.equal(await mobile.locator('dialog[open] .preview-copy h3').textContent(), previewTitle);
+    await mobile.keyboard.press('Escape');
+    await mobile.locator('dialog[open]').waitFor({ state: 'hidden' });
+    assert.equal(await mobileCard.locator('a[href="/r/YR-0001"]').count(), 1);
+    await mobileCard.locator('a.card-title[href="/r/YR-0001"]').tap();
     await mobile.waitForURL('**/r/YR-0001');
     assert.ok((await mobile.locator('.card-hover-video').count()) > 0); // related cards exist, none auto-play
     assert.equal(await mobile.locator('.card-hover-video.is-playing').count(), 0);
     report.checks.push(
-      'Keyboard menu, guest save, link copy, report form, mobile detail navigation and reduced-motion no-hover playback pass.',
+      'Touch opens the card preview, dragging from an action button does not change the item, one title link still opens details, and reduced-motion prevents card hover playback.',
     );
 
     // Temporarily publish a real, file-verified static image in the disposable database.
@@ -581,7 +631,7 @@ let browser,
     assert.equal(cardTitle.clamp, '2');
     assert.ok(cardTitle.height <= cardTitle.lineHeight * 2 + 1, JSON.stringify(cardTitle));
     assert.equal(cardTitle.textLength, 100);
-    await imageCard.locator('.card-preview').click();
+    await imageCard.locator('.card-title').click();
     await imagePage.waitForURL(`**/r/${imageCode}`);
     await imagePage.setViewportSize({ width: 320, height: 800 });
     assert.ok(await imagePage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

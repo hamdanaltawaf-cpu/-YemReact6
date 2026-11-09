@@ -34,6 +34,7 @@ const context = {
     if (name === 'lucide-react')
       return {
         Bookmark: () => null,
+        Eye: () => null,
         Play: () => null,
         ArrowUpLeft: () => null,
         Expand: () => null,
@@ -82,7 +83,9 @@ test('Verified video cards restore the original seconds-only duration badge', ()
     assert.match(html, /class="card-duration mono" dir="ltr" aria-hidden="true">3s<\/span>/);
     assert.doesNotMatch(html, /media-kind-badge|<span>فيديو<\/span>/);
 
-    assert.match(html, /عرض التفاصيل/);
+    assert.match(html, /aria-label="معاينة لقطة"/);
+    assert.match(html, /class="card-preview"/);
+    assert.match(html, /class="card-title"/);
     assert.match(html, /reaction-menu-trigger/);
     assert.doesNotMatch(html, /save-button|card-caption|card-play/);
     assert.doesNotMatch(html, /card-code|card-tag|category-label/);
@@ -92,7 +95,7 @@ test('Images never inherit video duration or playback from names, posters or sta
   for (const url of ['/photo.jpg', '/photo.png?file=.mp4', '/file', '/clip.mp4']) {
     const html = render(url, 999, image);
     assert.doesNotMatch(html, /card-duration|999s|تشغيل الفيديو/);
-    assert.match(html, /عرض التفاصيل/);
+    assert.match(html, /aria-label="معاينة لقطة"/);
     assert.doesNotMatch(html, /<video|card-expand|save-button/);
   }
 });

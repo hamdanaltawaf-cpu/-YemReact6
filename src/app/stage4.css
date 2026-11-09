@@ -221,7 +221,7 @@ h3,
   color: var(--ink);
 }
 
-/* Card: image/video, seconds-only badge, two-line title and 44x44 menu. */
+/* Card: media preview button, seconds-only badge, two-line title and 44x44 menu. */
 .reaction-card {
   position: relative;
   min-width: 0;
@@ -246,8 +246,34 @@ h3,
   box-shadow: var(--shadow-media-hover);
 }
 .reaction-card .card-preview {
+  color: inherit;
+  border: 0;
   overflow: hidden;
   border-radius: var(--radius-media);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+.reaction-card .card-preview-label {
+  position: absolute;
+  inset-inline-start: 10px;
+  bottom: 10px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: var(--button-height);
+  padding-inline: 13px;
+  border: 1px solid #ffffff40;
+  border-radius: var(--radius-pill);
+  background: #161616e8;
+  color: #fff;
+  font-size: var(--text-small-size);
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
 }
 .reaction-card .card-image {
   object-fit: cover;
