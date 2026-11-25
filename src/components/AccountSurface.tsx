@@ -1,311 +1,402 @@
 'use client';
+
 import Link from 'next/link';
-import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import {
   ArrowLeft,
-  Clapperboard,
-  FileImage,
-  FileVideo2,
-  LogOut,
+  Bookmark,
+  BookmarkMinus,
+  Clock3,
+  LogIn,
   Send,
-  Settings2,
   UserRound,
+  X,
 } from 'lucide-react';
 import { useApp } from './AppProvider';
-import { useContribution } from './ContributionProvider';
-import { SocialIcon } from './SocialIcon';
+import { AccountContributions } from './AccountContributions';
+import { AccountEmptyArt } from './AccountEmptyArt';
 import { savedReactions } from '@/lib/saved';
 import type { SocialProvider } from '@/lib/social';
 
-/**
- * صفحة الحساب كاملة (يفتحها تبويب «الحساب» من الشريط السفلي على الهاتف) — الترتيب
- * من الأعلى للأسفل: الهوية ← إجراءات الحساب الأيقونية ← مبدّل واحد
- * (المحفوظات / مساهماتي؛ ويتضمن تبويب المحفوظات عدّاده للعضو).
- * بريد Google لا يُعرض هنا إطلاقًا — لا للزائر ولا لصاحب الحساب. لا ملفات عامة
- * ولا إحصاءات اجتماعية — مكتبة لا شبكة.
- *
- * تعريف «صاحب الحساب» هنا صارم: جلسة التطبيق المسجَّلة app.user فقط. الزائر
- * وجلسة تجربة contribution (mockSignedIn) ليسا حسابًا مسجَّلًا ولا صاحبَ
- * بيانات: بلا عدّادات ولا سجلات مساهمات ولا حالات — تعاملهما الصفحة كزائر.
- *
- * الدفعة 3: تبديل تسمية الحساب وتعديل الهوية أُزيلا من الواجهة نهائيًّا
- * (عرض فقط)، ومعهما ذهب PATCH /api/auth من الخادم (أي طلب عليه ⇒ 405).
- * الأسماء والسجلات القائمة كما هي بلا أي مساس، وقاعدة البيانات ومخططها لم
- * يتغيّرا.
- */
-const STATUS_TEXT = { pending: 'قيد المراجعة', approved: 'مقبولة', rejected: 'مرفوضة' } as const;
+type AccountTab = 'saved' | 'contributions';
+type UndoSave = { code: string; caption: string; scope: string };
 
+/** A private, self-service account surface for the verified user or the current guest. */
 export function AccountSurface({
   googleAuthOrigin = '',
   readyProviders = [],
   onNavigate = () => {},
+  initialTab = 'saved',
 }: {
-  /** يقررا على الخادم حصرًا — كما في قائمة الحساب على الحاسوب. */
   googleAuthOrigin?: string;
   readyProviders?: readonly SocialProvider[];
-  /** اختياري: انتقال داخلي إضافي قبل المتابعة (يتوفر مسبقًا كـ() => {}). */
   onNavigate?: () => void;
+  initialTab?: AccountTab;
 }) {
   const app = useApp();
-  const contribution = useContribution();
-  /* «المالك»= الجلسة المسجَّلة الحقيقية فقط؛ لا تعامل جلسة التجربة كحساب له بيانات. */
-  const owner = !!app.user;
-  const [tab, setTab] = useState<'saved' | 'contributions'>('saved');
-  const panelRef = useRef<HTMLDivElement>(null);
-  const savedItems = savedReactions(app.reactions, app.saved);
-  /* عدّاد «المساهمات المنشورة» مؤجّل (بلاغ قرار حمدان 2026-10-18): لا يوجد مسار
-     نشر فعلي لمساهمات المستخدمين اليوم، و«مقبولة» لا تثبت «منشورة» — لذلك أُخفيت
-     بطاقة رقم المساهمات من الملخّص كليًّا (لا إجمالي السجلات بدلًا عنها ولا بطاقة
-     فارغة). يعود طرفًا صادقًا عندما يتوفر مصدرٌ موثوق للنشر. */
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const tab: AccountTab =
+    requestedTab === 'saved' || requestedTab === 'contributions' ? requestedTab : initialTab;
+  const owner = app.authReady && !app.authError && !!app.user;
 
-  function selectTab(next: 'saved' | 'contributions') {
-    setTab(next);
-    requestAnimationFrame(() =>
-      panelRef.current?.scrollIntoView({
-        behavior: app.reduced ? 'auto' : 'smooth',
-        block: 'start',
-      }),
-    );
-  }
-  function selectTabFromKeyboard(next: 'saved' | 'contributions') {
-    setTab(next);
-    requestAnimationFrame(() => {
-      panelRef.current?.scrollIntoView({
-        behavior: app.reduced ? 'auto' : 'smooth',
-        block: 'start',
-      });
-      document
-        .getElementById(next === 'saved' ? 'account-tab-saved' : 'account-tab-contributions')
-        ?.focus();
-    });
-  }
+  const savedItems = savedReactions(app.reactions, app.saved);
   const googleReady = readyProviders.includes('google') && !!googleAuthOrigin;
-  const signInEntry = (className: string) =>
-    googleReady ? (
-      <Link className={className} href="/login" onClick={onNavigate}>
-        <SocialIcon provider="google" /> تسجيل الدخول
-      </Link>
-    ) : (
-      /* نفس عقد القائمة بحذافيره: دخول قيد التجهيز لا يفضي إلى رابط OAuth ميت إطلاقًا */
-      <Link
-        href="/login"
-        className="account-google-action account-google-pending"
-        onClick={onNavigate}
-      >
-        <SocialIcon provider="google" /> تسجيل الدخول
-        <span className="account-pending-chip">قيد التجهيز</span>
-      </Link>
-    );
+  const scope = app.user?.id || 'guest';
+  const scopeRef = useRef(scope);
+  const undoButton = useRef<HTMLButtonElement>(null);
+  scopeRef.current = scope;
+  const [undo, setUndo] = useState<UndoSave | null>(null);
+  const [busyCode, setBusyCode] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
+
+  useEffect(() => {
+    setUndo(null);
+    setBusyCode(null);
+    setActionError('');
+  }, [scope]);
+  useEffect(() => {
+    // If removing a focused row displaced focus, offer its undo without stealing focus elsewhere.
+    if (undo && document.activeElement === document.body) undoButton.current?.focus();
+  }, [undo]);
+  function selectTab(next: AccountTab) {
+    if (next === tab) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', next);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   function tabsKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    const tabIds = ['account-tab-saved', 'account-tab-contributions'] as const;
-    const currentIndex = tabIds.indexOf(
-      (event.target as HTMLElement).id as (typeof tabIds)[number],
-    );
-    if (currentIndex < 0) return;
-    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
-    let nextIndex: number;
-    if (event.key === 'Home') nextIndex = 0;
-    else if (event.key === 'End') nextIndex = tabIds.length - 1;
-    else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-      const forward = (event.key === 'ArrowRight') !== rtl;
-      nextIndex = (currentIndex + (forward ? 1 : tabIds.length - 1)) % tabIds.length;
-    } else return;
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    selectTabFromKeyboard(nextIndex === 0 ? 'saved' : 'contributions');
+    const next =
+      event.key === 'Home'
+        ? 'saved'
+        : event.key === 'End'
+          ? 'contributions'
+          : tab === 'saved'
+            ? 'contributions'
+            : 'saved';
+    selectTab(next);
+    requestAnimationFrame(() =>
+      document
+        .getElementById(next === 'saved' ? 'account-tab-saved' : 'account-tab-contributions')
+        ?.focus(),
+    );
   }
 
+  async function removeSaved(code: string, caption: string) {
+    if (busyCode) return;
+    const requestScope = scope;
+    setActionError('');
+    setBusyCode(code);
+    const removed = await app.toggleSave(code, { silent: true, saved: false });
+    if (scopeRef.current !== requestScope) return;
+    setBusyCode(null);
+    if (removed) setUndo({ code, caption, scope: requestScope });
+    else setActionError('تعذّرت إزالة المحفوظ. تحقق من الاتصال وحاول مجددًا.');
+  }
+
+  async function restoreSaved() {
+    if (!undo || busyCode || undo.scope !== scope) return;
+    if (app.saved.includes(undo.code)) {
+      setUndo(null);
+      return;
+    }
+    const requestScope = scope;
+    setActionError('');
+    setBusyCode(undo.code);
+    const restored = await app.toggleSave(undo.code, { silent: true, saved: true });
+    if (scopeRef.current !== requestScope) return;
+    setBusyCode(null);
+    if (restored) {
+      const restoredCode = undo.code;
+      setUndo(null);
+      requestAnimationFrame(() => {
+        if (document.activeElement !== document.body) return;
+        const row = Array.from(document.querySelectorAll<HTMLElement>('[data-saved-code]')).find(
+          (element) => element.dataset.savedCode === restoredCode,
+        );
+        row?.querySelector<HTMLButtonElement>('.account-remove-save')?.focus();
+      });
+    } else setActionError('تعذّرت استعادة المحفوظ. حاول مرة أخرى.');
+  }
+
+  const signInEntry = (
+    <Link href="/login" className="account-signin" onClick={onNavigate}>
+      <LogIn size={18} aria-hidden="true" /> تسجيل الدخول
+    </Link>
+  );
+
   return (
-    <section className="account-surface" aria-label="صفحة الحساب">
-      {/* ١ — الهوية: عرض فقط (الدفعة 3 ألغت تعديلها من الواجهة والمسار) */}
-      {app.user ? (
-        <div className="account-identity">
-          <span className="account-profile-avatar" aria-hidden="true">
-            {app.user.name.trim().slice(0, 1) || <UserRound size={18} />}
-          </span>
-          <div className="account-identity-copy">
-            <strong>{app.user.name}</strong>
-            <small>حسابك على يمن رياكت؛ لا يُعرض بريدُك هنا.</small>
-          </div>
-          {app.user.role === 'admin' && <span className="account-role-badge">ADMIN</span>}
-        </div>
-      ) : (
-        <div className="account-identity account-identity-guest">
-          <UserRound size={22} aria-hidden="true" />
-          <div className="account-identity-copy">
-            <strong>أنت زائر</strong>
-            <p className="account-identity-note">
-              سجّل دخولك لحفظ رياكشناتك على حسابك والوصول إليها من أي جهاز.
-            </p>
-          </div>
-          {signInEntry('btn btn-dark account-signin')}
-        </div>
-      )}
-
-      {/* إجراءان مباشران في مقدمة السطح؛ أسماء الوصول تبقى لقارئات الشاشة. */}
-      <div className="account-actions-row" role="group" aria-label="إجراءات الحساب">
-        <Link
-          aria-label="إرسال رياكشن"
-          aria-describedby="account-action-contribute-tooltip"
-          className="account-icon-action account-icon-action-primary"
-          href="/contribute"
-          onClick={onNavigate}
-        >
-          <Send size={19} aria-hidden="true" />
-          <span
-            className="account-icon-tooltip"
-            id="account-action-contribute-tooltip"
-            role="tooltip"
-          >
-            إرسال رياكشن
-          </span>
-        </Link>
-        <Link
-          aria-label="الإعدادات"
-          aria-describedby="account-action-settings-tooltip"
-          className="account-icon-action"
-          href="/settings"
-          onClick={onNavigate}
-        >
-          <Settings2 size={19} aria-hidden="true" />
-          <span
-            className="account-icon-tooltip"
-            id="account-action-settings-tooltip"
-            role="tooltip"
-          >
-            الإعدادات
-          </span>
-        </Link>
-      </div>
-
-      {/* ٢ — مبدّل واحد بقسمين، وعدد المحفوظات داخل تبويبه بدل بطاقة مكررة. */}
-      <div className="account-tabs" role="tablist" aria-label="محتوى حسابك" onKeyDown={tabsKeyDown}>
-        <button
-          type="button"
-          role="tab"
-          id="account-tab-saved"
-          aria-selected={tab === 'saved'}
-          aria-controls="account-tab-panel"
-          tabIndex={tab === 'saved' ? 0 : -1}
-          onClick={() => selectTab('saved')}
-        >
-          المحفوظات{owner && <span className="account-tab-count">{savedItems.length}</span>}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="account-tab-contributions"
-          aria-selected={tab === 'contributions'}
-          aria-controls="account-tab-panel"
-          tabIndex={tab === 'contributions' ? 0 : -1}
-          onClick={() => selectTab('contributions')}
-        >
-          مساهماتي
-        </button>
-      </div>
-      <div
-        className="account-panel"
-        role="tabpanel"
-        id="account-tab-panel"
-        ref={panelRef}
-        aria-labelledby={tab === 'saved' ? 'account-tab-saved' : 'account-tab-contributions'}
-      >
-        {tab === 'saved' ? (
-          savedItems.length ? (
-            <ul className="account-row-list">
-              {savedItems.map((item) => (
-                <li key={item.code}>
-                  <button
-                    type="button"
-                    className="account-row"
-                    onClick={() => {
-                      onNavigate();
-                      app.setPreview(item.code);
-                    }}
-                    aria-label={`معاينة ${item.caption}`}
-                  >
-                    <img src={item.poster} alt="" loading="lazy" />
-                    <span className="account-row-copy">
-                      <b>{item.caption}</b>
-                      <small>{item.situation || 'من محفوظاتك'}</small>
-                    </span>
-                    <ArrowLeft size={16} aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="account-empty">
-              <strong>{app.user ? 'لا محفوظات بعد.' : 'ما عندك محفوظات محلية بعد.'}</strong>
-              <p>من المكتبة، زر «حفظ» على أي رياكشن يُبقيه هنا وقت ما تحتاجه.</p>
-              <Link className="btn btn-dark" href="/library" onClick={onNavigate}>
-                <ArrowLeft size={16} aria-hidden="true" /> تصفح المكتبة
-              </Link>
+    <div className="account-surface">
+      <div className="account-profile-card">
+        {app.authError ? (
+          <div className="account-identity account-identity-error" role="alert">
+            <span className="account-profile-avatar" aria-hidden="true">
+              <UserRound size={20} />
+            </span>
+            <div className="account-identity-copy">
+              <strong>تعذّر التحقق من الحساب</strong>
+              <p className="account-identity-note">تحقق من الاتصال ثم حاول مجددًا.</p>
             </div>
-          )
-        ) : !owner ? (
-          <div className="account-empty">
-            <strong>إرسال المساهمات ومتابعتها يتطلب تسجيل الدخول.</strong>
-            <p>سجّل أو ابقَ زائرًا للتصفح — المكتبة كاملة لك كما هي.</p>
-            {signInEntry('btn btn-dark account-signin')}
           </div>
-        ) : contribution.records.length ? (
-          <ul className="account-row-list">
-            {contribution.records.map((record) => (
-              <li key={record.id}>
-                <Link className="account-row" href="/account/submissions" onClick={onNavigate}>
-                  {record.kind === 'video' ? (
-                    <FileVideo2 size={20} aria-hidden="true" />
-                  ) : (
-                    <FileImage size={20} aria-hidden="true" />
-                  )}
-                  <span className="account-row-copy">
-                    <b>{record.title}</b>
-                    <small>{record.createdAt}</small>
-                  </span>
-                  <span className={`account-status account-status-${record.status}`}>
-                    {STATUS_TEXT[record.status]}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        ) : !app.authReady ? (
+          <div className="account-identity" role="status">
+            <span className="account-profile-avatar" aria-hidden="true">
+              <UserRound size={20} />
+            </span>
+            <div className="account-identity-copy">
+              <strong>جارٍ التحقق من الحساب…</strong>
+              <p className="account-identity-note">لحظة واحدة.</p>
+            </div>
+          </div>
+        ) : app.user ? (
+          <div className="account-identity">
+            <span className="account-profile-avatar" aria-hidden="true">
+              {app.user.name.trim().slice(0, 1) || <UserRound size={20} />}
+            </span>
+            <div className="account-identity-copy">
+              <strong>{app.user.name}</strong>
+              <p className="account-identity-note">حسابك على يمن رياكت.</p>
+            </div>
+            {app.user.role === 'admin' && <span className="account-role-badge">مشرف</span>}
+          </div>
         ) : (
-          <div className="account-empty">
-            <strong>ما عندك مساهمات حتى الآن</strong>
-            <p>ساهم بأول رياكشن في إثراء المكتبة اليمنية.</p>
-            <Link className="btn btn-dark" href="/contribute" onClick={onNavigate}>
-              <Send size={16} aria-hidden="true" /> إرسال رياكشن
-            </Link>
+          <div className="account-identity account-identity-guest">
+            <span className="account-profile-avatar" aria-hidden="true">
+              <UserRound size={20} />
+            </span>
+            <div className="account-identity-copy">
+              <strong>أنت زائر</strong>
+              <p className="account-identity-note">يمكنك التصفح دون حساب.</p>
+            </div>
           </div>
+        )}
+
+        <div className="account-profile-actions">
+          {app.authError && (
+            <button type="button" className="account-retry" onClick={() => void app.syncUser()}>
+              إعادة المحاولة
+            </button>
+          )}
+          {app.authReady && !app.authError && !app.user && signInEntry}
+        </div>
+        {app.authReady && !app.authError && !app.user && !googleReady && (
+          <p className="account-auth-note">
+            خدمة Google غير مهيّأة حاليًا. التصفح والحفظ المحلي متاحان.
+          </p>
         )}
       </div>
 
-      {/* مرافق قائمة الحساب المعتادة تبقى متاحة أسفل السطح بلا مبدّل إضافي */}
-      <div className="account-utilities">
-        {app.user?.role === 'admin' && (
-          <Link href="/admin" onClick={onNavigate}>
-            <Clapperboard size={17} aria-hidden="true" /> الاستوديو
-          </Link>
-        )}
-        {(app.user || contribution.mockSignedIn) && (
+      <div className="account-content">
+        <div
+          className="account-tabs"
+          role="tablist"
+          aria-label="محتوى حسابك"
+          onKeyDown={tabsKeyDown}
+        >
           <button
             type="button"
-            className="account-signout"
-            onClick={async () => {
-              onNavigate();
-              if (app.user) {
-                if (await app.logout()) contribution.endMockSession();
-              } else {
-                contribution.endMockSession();
-              }
-            }}
+            role="tab"
+            id="account-tab-saved"
+            aria-selected={tab === 'saved'}
+            aria-controls="account-tab-panel"
+            tabIndex={tab === 'saved' ? 0 : -1}
+            onClick={() => selectTab('saved')}
           >
-            <LogOut size={17} aria-hidden="true" />{' '}
-            {app.user ? 'تسجيل الخروج' : 'إنهاء جلسة التجربة'}
+            <Bookmark size={16} aria-hidden="true" />
+            المحفوظات
+            {app.authReady && !app.authError && app.savedReady && (
+              <span className="account-tab-count" aria-label={`${savedItems.length} محفوظات`}>
+                {savedItems.length}
+              </span>
+            )}
           </button>
-        )}
+          <button
+            type="button"
+            role="tab"
+            id="account-tab-contributions"
+            aria-selected={tab === 'contributions'}
+            aria-controls="account-tab-panel"
+            tabIndex={tab === 'contributions' ? 0 : -1}
+            onClick={() => selectTab('contributions')}
+          >
+            <Send size={16} aria-hidden="true" />
+            مساهماتي
+          </button>
+        </div>
+
+        <div
+          className="account-panel"
+          role="tabpanel"
+          id="account-tab-panel"
+          aria-labelledby={tab === 'saved' ? 'account-tab-saved' : 'account-tab-contributions'}
+          tabIndex={0}
+        >
+          {tab === 'saved' && app.authReady && !app.authError && app.savedReady && (
+            <div className="account-storage-status" role="status">
+              <Bookmark size={16} aria-hidden="true" />
+              <span>
+                مصدر المحفوظات المعروضة: <strong>{app.user ? 'حسابك' : 'هذا الجهاز'}</strong>
+              </span>
+            </div>
+          )}
+          {tab === 'saved' &&
+            app.authReady &&
+            !app.authError &&
+            app.savedReady &&
+            savedItems.length > 0 && (
+              <div className="account-panel-toolbar">
+                <Link className="account-panel-link" href="/library" onClick={onNavigate}>
+                  تصفح المكتبة <ArrowLeft size={16} aria-hidden="true" />
+                </Link>
+              </div>
+            )}
+
+          {app.authError ? (
+            <div className="account-empty account-error" role="alert">
+              <strong>تعذّر التحقق من الحساب.</strong>
+              <p>لم نتمكن من معرفة حالة الدخول. تحقق من الاتصال وحاول مجددًا.</p>
+              <button type="button" className="account-retry" onClick={() => void app.syncUser()}>
+                إعادة المحاولة
+              </button>
+            </div>
+          ) : !app.authReady ? (
+            <div className="account-empty account-loading" role="status">
+              <span className="account-state-heading">
+                <Clock3 size={19} aria-hidden="true" /> جارٍ التحقق من الحساب…
+              </span>
+              <p>لن نعرض المحفوظات حتى تتضح حالة الحساب.</p>
+            </div>
+          ) : tab === 'saved' ? (
+            <>
+              {app.savedError && (
+                <div className="account-sync-warning" role="alert">
+                  <p>
+                    {app.user
+                      ? app.savedError
+                      : 'تعذّرت قراءة المحفوظات المحلية. تحقق من تخزين المتصفح ثم حاول مجددًا.'}
+                  </p>
+                  <button
+                    type="button"
+                    className="account-retry"
+                    onClick={() => void app.syncUser()}
+                  >
+                    إعادة المحاولة
+                  </button>
+                </div>
+              )}
+              {actionError && (
+                <p className="account-action-error" role="alert">
+                  {actionError}
+                </p>
+              )}
+              {undo && undo.scope === scope && (
+                <div className="account-undo" role="status" aria-live="polite">
+                  <span>أُزيل «{undo.caption}» من المحفوظات.</span>
+                  <button
+                    ref={undoButton}
+                    type="button"
+                    disabled={!!busyCode}
+                    onClick={() => void restoreSaved()}
+                  >
+                    {busyCode === undo.code ? 'جارٍ الاستعادة…' : 'تراجع'}
+                  </button>
+                  <button
+                    type="button"
+                    className="account-undo-close"
+                    aria-label="إغلاق رسالة التراجع"
+                    onClick={() => setUndo(null)}
+                  >
+                    <X size={17} aria-hidden="true" />
+                  </button>
+                </div>
+              )}
+              {!app.savedReady ? (
+                app.savedError ? (
+                  <div className="account-empty account-error">
+                    <strong>المحفوظات غير متاحة الآن.</strong>
+                    <p>يمكنك إعادة المحاولة من التنبيه أعلاه.</p>
+                  </div>
+                ) : (
+                  <div className="account-empty account-loading" role="status">
+                    <span className="account-state-heading">
+                      <Clock3 size={19} aria-hidden="true" /> جارٍ تحميل المحفوظات…
+                    </span>
+                    <p>يرجى الانتظار حتى يكتمل التحميل.</p>
+                  </div>
+                )
+              ) : savedItems.length ? (
+                <ul className="account-row-list">
+                  {savedItems.map((item) => (
+                    <li className="account-saved-item" key={item.code} data-saved-code={item.code}>
+                      <Link
+                        className="account-row"
+                        href={`/r/${encodeURIComponent(item.code)}`}
+                        onClick={() => {
+                          onNavigate();
+                        }}
+                        aria-label={`تفاصيل ${item.caption}`}
+                      >
+                        <span className="account-row-media">
+                          <img src={item.poster} alt="" loading="lazy" />
+                        </span>
+                        <span className="account-row-copy">
+                          <b>{item.caption}</b>
+                          <small>{item.isDemo ? 'نموذج تجريبي' : 'من محفوظاتك'}</small>
+                        </span>
+                        <ArrowLeft className="account-row-arrow" size={17} aria-hidden="true" />
+                      </Link>
+                      <button
+                        type="button"
+                        className="account-remove-save"
+                        title="إزالة من المحفوظات"
+                        aria-label={`إزالة ${item.caption} من المحفوظات`}
+                        disabled={!!busyCode}
+                        onClick={() => void removeSaved(item.code, item.caption)}
+                      >
+                        <BookmarkMinus size={19} aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="account-empty account-empty-feature">
+                  <div className="account-empty-copy">
+                    <span className="account-empty-kicker">ابدأ بجمع لقطاتك</span>
+                    <strong>
+                      {app.user ? 'لا محفوظات في الحساب بعد.' : 'ما عندك محفوظات محلية بعد.'}
+                    </strong>
+                    <p>إذا أعجبك رياكشن، احفظه من المكتبة وستجده هنا وقت ما تحتاجه.</p>
+                    <Link className="btn btn-dark" href="/library" onClick={onNavigate}>
+                      تصفح المكتبة <ArrowLeft size={16} aria-hidden="true" />
+                    </Link>
+                  </div>
+                  <AccountEmptyArt kind="saved" />
+                </div>
+              )}
+            </>
+          ) : !owner ? (
+            <div className="account-empty account-empty-feature">
+              <div className="account-empty-copy">
+                <span className="account-empty-kicker">عندك لقطة تستاهل؟</span>
+                <strong>مساهماتك تبدأ من هنا.</strong>
+                <p>يمكنك تجهيز رياكشن في التجربة المحلية؛ لن يُرفع الملف أو يُنشر فعليًا.</p>
+                <Link className="btn btn-dark" href="/contribute" onClick={onNavigate}>
+                  جهّز رياكشن <ArrowLeft size={16} aria-hidden="true" />
+                </Link>
+              </div>
+              <AccountEmptyArt kind="contributions" />
+            </div>
+          ) : (
+            <AccountContributions />
+          )}
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

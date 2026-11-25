@@ -11,9 +11,8 @@ export default function SettingsPage() {
   return (
     <section className="container settings-page" aria-labelledby="settings-title">
       <div className="page-head">
-        <span className="eyebrow">تفضيلاتك</span>
         <h1 id="settings-title">الإعدادات</h1>
-        <p>المكتبة نفسها. الجوّ اللي يناسبك — تُحفظ على جهازك دون أي تسجيل.</p>
+        <p>خصّص طريقة عرض المكتبة بما يناسبك.</p>
       </div>
       <SettingsPanel />
     </section>

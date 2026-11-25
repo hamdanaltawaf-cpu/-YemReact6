@@ -15,7 +15,11 @@ type AppState = {
   reactions: Reaction[];
   refresh: () => Promise<void>;
   saved: string[];
-  toggleSave: (code: string) => Promise<void>;
+  toggleSave: (code: string, options?: { silent?: boolean; saved?: boolean }) => Promise<boolean>;
+  authError: string;
+  savedReady: boolean;
+  savedError: string;
+  preferencesError: boolean;
   user: Account | null;
   authReady: boolean;
   syncUser: () => Promise<void>;
@@ -23,11 +27,11 @@ type AppState = {
   preview: string | null;
   setPreview: (v: string | null) => void;
   theme: string;
-  setTheme: (v: string) => void;
+  setTheme: (v: string) => boolean;
   accent: string;
-  setAccent: (v: string) => void;
+  setAccent: (v: string) => boolean;
   reduced: boolean;
-  setReduced: (v: boolean) => void;
+  setReduced: (v: boolean) => boolean;
   settings: boolean;
   setSettings: (v: boolean) => void;
   toast: (text: string) => void;
@@ -35,13 +39,6 @@ type AppState = {
   clearNotices: () => void;
 };
 const AppContext = createContext<AppState | null>(null);
-function read<T>(key: string, fallback: T): T {
-  try {
-    return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
 export function AppProvider({ children, initial }: { children: ReactNode; initial: Reaction[] }) {
   const [reactions, setReactions] = useState(initial),
     [saved, setSaved] = useState<string[]>([]),
@@ -56,6 +53,29 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
     [message, setMessage] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pending = useRef(new Set<string>());
+  const [authError, setAuthError] = useState('');
+  const [savedReady, setSavedReady] = useState(false);
+  const [savedError, setSavedError] = useState('');
+  const [preferenceFailures, setPreferenceFailures] = useState<string[]>([]);
+  const generation = useRef(0);
+  const session = useRef<Account | null>(null);
+  const savedRef = useRef<string[]>([]);
+  const verified = useRef(false);
+  function publishSaved(codes: string[]) {
+    savedRef.current = codes;
+    setSaved(codes);
+  }
+  function writePreference(key: string, value: unknown) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      setPreferenceFailures((old) => old.filter((item) => item !== key));
+      return true;
+    } catch {
+      setPreferenceFailures((old) => [...new Set([...old, key])]);
+      return false;
+    }
+  }
+
   const toast = useCallback((text: string) => {
     setMessage(text);
     setNotices((old) =>
@@ -65,24 +85,62 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
     timer.current = setTimeout(() => setMessage(''), 4200);
   }, []);
   const syncUser = useCallback(async () => {
+    const request = ++generation.current;
+    verified.current = false;
+    setAuthReady(false);
+    setAuthError('');
+    setSavedReady(false);
+    setSavedError('');
+    session.current = null;
+    setUser(null);
+    publishSaved([]);
     try {
       const res = await fetch('/api/auth', { cache: 'no-store' });
+      if (!res.ok) throw Error();
       const data = await res.json();
-      setUser(data.user);
-      if (data.user) {
-        const r = await fetch('/api/saved');
-        if (r.ok) setSaved((await r.json()).saved);
-      } else setSaved(read('yr:guest-saved', []));
-    } catch {
-      /* Offline visitors retain their local collection. */ setSaved(read('yr:guest-saved', []));
-    } finally {
+      if (request !== generation.current) return;
+      if (!Object.hasOwn(data, 'user')) throw Error();
+      session.current = data.user || null;
+      setUser(session.current);
+      verified.current = true;
       setAuthReady(true);
+      try {
+        let codes: unknown;
+        if (data.user) {
+          const response = await fetch('/api/saved', { cache: 'no-store' });
+          if (!response.ok) throw Error();
+          codes = (await response.json()).saved;
+        } else {
+          codes = JSON.parse(localStorage.getItem('yr:guest-saved') || '[]');
+        }
+        if (!Array.isArray(codes) || !codes.every((code) => typeof code === 'string'))
+          throw Error();
+        if (request !== generation.current) return;
+        publishSaved([...new Set(codes)]);
+        setSavedReady(true);
+      } catch {
+        if (request === generation.current)
+          setSavedError('تعذّر تحميل المحفوظات. تحقق من الاتصال أو تخزين المتصفح وحاول مجددًا.');
+      }
+    } catch {
+      if (request === generation.current) {
+        setAuthError('تعذّر التحقق من الحساب.');
+        setAuthReady(true);
+      }
     }
   }, []);
   useEffect(() => {
-    setThemeState(read('yr:theme', 'system'));
-    setAccentState(read('yr:accent', '#c1592e'));
-    setReducedState(read('yr:motion', false));
+    function preference<T>(key: string, fallback: T): T {
+      try {
+        return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback;
+      } catch {
+        setPreferenceFailures((old) => [...new Set([...old, key])]);
+        return fallback;
+      }
+    }
+    setThemeState(preference('yr:theme', 'system'));
+    setAccentState(preference('yr:accent', '#c1592e'));
+    setReducedState(preference('yr:motion', false));
     syncUser();
     return () => {
       if (timer.current) clearTimeout(timer.current);
@@ -104,39 +162,55 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
   }, [accent, reduced]);
   const setTheme = (v: string) => {
     setThemeState(v);
-    localStorage.setItem('yr:theme', JSON.stringify(v));
+    return writePreference('yr:theme', v);
   };
   const setAccent = (v: string) => {
     if (/^#[a-f0-9]{6}$/i.test(v)) {
       setAccentState(v);
-      localStorage.setItem('yr:accent', JSON.stringify(v));
+      return writePreference('yr:accent', v);
     }
+    return false;
   };
   const setReduced = (v: boolean) => {
     setReducedState(v);
-    localStorage.setItem('yr:motion', JSON.stringify(v));
+    return writePreference('yr:motion', v);
   };
-  async function toggleSave(code: string) {
-    if (pending.current.has(code)) return;
-    pending.current.add(code);
-    const exists = saved.includes(code),
-      next = exists ? saved.filter((c) => c !== code) : [...saved, code];
-    setSaved(next);
+  async function toggleSave(code: string, options: { silent?: boolean; saved?: boolean } = {}) {
+    if (!verified.current || !savedReady) return false;
+    const request = generation.current;
+    const pendingKey = `${request}:${code}`;
+    if (pending.current.has(pendingKey)) return false;
+    pending.current.add(pendingKey);
+    const exists = savedRef.current.includes(code);
+    const target = options.saved ?? !exists;
+    if (exists === target) {
+      pending.current.delete(pendingKey);
+      return true;
+    }
     try {
-      if (user) {
-        const r = await fetch('/api/saved', {
+      if (session.current) {
+        const response = await fetch('/api/saved', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, saved: !exists }),
+          body: JSON.stringify({ code, saved: target }),
         });
-        if (!r.ok) throw Error();
-      } else localStorage.setItem('yr:guest-saved', JSON.stringify(next));
-      toast(exists ? 'أُزيل من المحفوظات' : 'حفظناه لك. ارجع له وقت ما تحتاج.');
+        if (!response.ok) throw Error();
+      }
+      if (request !== generation.current) return false;
+      const next = target
+        ? [...savedRef.current, code]
+        : savedRef.current.filter((item) => item !== code);
+      if (!session.current) localStorage.setItem('yr:guest-saved', JSON.stringify(next));
+      publishSaved([...new Set(next)]);
+      if (!options.silent)
+        toast(target ? 'حفظناه لك. ارجع له وقت ما تحتاج.' : 'أُزيل من المحفوظات');
+      return true;
     } catch {
-      setSaved(saved);
-      toast('تعذّر الحفظ. تحقق من الاتصال.');
+      if (request === generation.current && !options.silent)
+        toast('تعذّر الحفظ. تحقق من الاتصال أو تخزين المتصفح.');
+      return false;
     } finally {
-      pending.current.delete(code);
+      pending.current.delete(pendingKey);
     }
   }
   async function refresh() {
@@ -144,9 +218,11 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
     if (!r.ok) throw Error('تعذّر تحديث المكتبة');
     const items: Reaction[] = (await r.json()).reactions;
     setReactions(items);
-    setSaved((old) => old.filter((code) => items.some((item) => item.code === code)));
+    publishSaved(savedRef.current.filter((code) => items.some((item) => item.code === code)));
   }
   async function logout(): Promise<boolean> {
+    ++generation.current;
+    verified.current = false;
     try {
       const response = await fetch('/api/auth', { method: 'DELETE' });
       if (!response.ok) throw new Error('Logout failed');
@@ -154,6 +230,7 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
       toast('تم تسجيل الخروج');
       return true;
     } catch {
+      await syncUser();
       toast('تعذّر تسجيل الخروج');
       return false;
     }
@@ -167,6 +244,10 @@ export function AppProvider({ children, initial }: { children: ReactNode; initia
         toggleSave,
         user,
         authReady,
+        authError,
+        savedReady,
+        savedError,
+        preferencesError: preferenceFailures.length > 0,
         syncUser,
         logout,
         preview,

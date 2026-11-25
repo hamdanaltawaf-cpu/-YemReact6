@@ -116,7 +116,7 @@ function renderSurface({
   // بعد الدفعة 3 ذهب نموذج التحرير: تبقى useState وحيدة (المبدّل، فهرس 0) —
   // نزرع التجريبي على فهرسه فقط.
   const seeded = {};
-  if (demoStates.tab !== undefined) seeded[0] = demoStates.tab;
+
   const overrides = {
     react: {
       ...React,
@@ -129,10 +129,18 @@ function renderSurface({
       __esModule: true,
       default: ({ children, ...props }) => React.createElement('a', props, children),
     },
+    'next/navigation': {
+      useRouter: () => ({ push: () => {} }),
+      usePathname: () => '/account',
+      useSearchParams: () => new URLSearchParams(demoStates.tab ? { tab: demoStates.tab } : {}),
+    },
     './AppProvider': {
       useApp: () => ({
         user,
         authReady: true,
+        authError: '',
+        savedReady: true,
+        savedError: '',
         reactions: REACTIONS,
         saved,
         reduced: false,
@@ -149,6 +157,8 @@ function renderSurface({
     '@/lib/saved': load('src/lib/saved.ts', {}),
     'lucide-react': new Proxy({}, { get: () => () => null }),
   };
+  overrides['./AccountEmptyArt'] = load('src/components/AccountEmptyArt.tsx', overrides);
+  overrides['./AccountContributions'] = load('src/components/AccountContributions.tsx', overrides);
   const { AccountSurface } = load('src/components/AccountSurface.tsx', overrides);
   return renderToStaticMarkup(
     React.createElement(AccountSurface, {
@@ -159,31 +169,15 @@ function renderSurface({
   );
 }
 
-test('Guest sees welcome, sign-in, direct actions and his local saves — with zero counters', () => {
+test('Guest sees verified local saves, source and login without duplicate page tools', () => {
   const html = renderSurface({ saved: ['YR-0012', 'YR-0007'], google: true });
   assert.match(html, /أنت زائر/);
-  assert.match(html, /href="\/login"[^>]*>.*تسجيل الدخول<\/a>/);
-  assert.doesNotMatch(html, /api\/auth\/oauth|تسجيل الدخول بـ Google/);
-  assert.match(
-    html,
-    /<a(?=[^>]*aria-label="إرسال رياكشن")(?=[^>]*href="\/contribute")[^>]*>[\s\S]*?account-action-contribute-tooltip[\s\S]*?<\/a>/,
-  );
-  assert.match(
-    html,
-    /<a(?=[^>]*aria-label="الإعدادات")(?=[^>]*href="\/settings")[^>]*>[\s\S]*?account-action-settings-tooltip[\s\S]*?<\/a>/,
-  );
-  assert.doesNotMatch(html, /href="\/help"/);
-  assert.match(html, /الإعدادات/);
-  assert.match(html, /المحفوظات/);
-  assert.match(html, /مساهماتي/);
+  assert.match(html, /href="\/login"/);
   assert.match(html, /ضحكة فِرح/);
   assert.match(html, /تعجُّب مسرحي/);
-  assert.doesNotMatch(html, /account-summary/);
-  assert.doesNotMatch(html, /تحرير الهوية/);
-  assert.doesNotMatch(html, /ما عندك مساهمات/);
-  assert.doesNotMatch(html, /ردّة فعل أولى|account-status/);
+  assert.match(html, /هذا الجهاز/);
+  assert.doesNotMatch(html, /api\/auth\/oauth|account-summary|href="\/settings"/);
 });
-
 test('Guest account sign-in links open the login page with and without Google configured', () => {
   for (const google of [false, true]) {
     for (const tab of ['saved', 'contributions']) {
@@ -203,20 +197,17 @@ test('Guest with an empty local save list gets a clear state ending in a browse-
   assert.doesNotMatch(html, /ما عندك مساهمات حتى الآن/);
 });
 
-test('Guest cannot be shown contribution records; مساهماتي explains the login requirement clearly', () => {
+test('Guest contribution panel explains the local-only flow and never leaks mock records', () => {
   const html = renderSurface({ records: RECORDS, demoStates: { tab: 'contributions' } });
-  assert.match(html, /إرسال المساهمات ومتابعتها يتطلب تسجيل الدخول/);
-  assert.match(html, /قيد التجهيز|تسجيل الدخول بـ Google/);
-  assert.doesNotMatch(html, /ما عندك مساهمات حتى الآن/);
+  assert.match(html, /التجربة المحلية/);
+  assert.match(html, /href="\/contribute"/);
   assert.doesNotMatch(html, /ردّة فعل أولى|صورة معلّقة|مقطع مرفوض/);
-  assert.doesNotMatch(html, /account-status/);
 });
-
 test('Owner saved count appears in the Saved tab; the duplicate summary target is removed', () => {
   const html = renderSurface({ user: MEMBER, saved: ['YR-0012', 'YR-0007'], records: RECORDS });
   assert.match(
     html,
-    /id="account-tab-saved"[\s\S]*?aria-selected="true"[\s\S]*?tabindex="0"[\s\S]*?المحفوظات<span class="account-tab-count">2<\/span>/,
+    /id="account-tab-saved"[\s\S]*?aria-selected="true"[\s\S]*?tabindex="0"[\s\S]*?المحفوظات<span class="account-tab-count"[^>]*>2<\/span>/,
   );
   assert.doesNotMatch(html, /account-summary/);
   assert.match(html, /id="account-tab-contributions"[\s\S]*?tabindex="-1"/);
@@ -227,24 +218,18 @@ test('Owner saved count appears in the Saved tab; the duplicate summary target i
   assert.doesNotMatch(source, /<b>\{contribution\.records\.length\}<\/b>/);
   assert.match(source, /event\.key === 'Home'/);
   assert.match(source, /event\.key === 'End'/);
-  assert.match(source, /selectTabFromKeyboard\(nextIndex === 0 \? 'saved' : 'contributions'\)/);
+  assert.match(source, /params\.set\('tab', next\)/);
 });
 
-test('Account icon actions keep accessible names and reference hover/focus tooltip text', () => {
+test('Account tools are moved to the header and are not duplicated in content', () => {
   const html = renderSurface();
-  assert.match(
-    html,
-    /aria-label="إرسال رياكشن" aria-describedby="account-action-contribute-tooltip"[\s\S]*?role="tooltip">إرسال رياكشن<\/span>/,
-  );
-  assert.match(
-    html,
-    /aria-label="الإعدادات" aria-describedby="account-action-settings-tooltip"[\s\S]*?role="tooltip">الإعدادات<\/span>/,
-  );
-  const css = fs.readFileSync('src/app/navigation.css', 'utf8');
-  assert.match(css, /\.account-icon-action:hover \.account-icon-tooltip/);
-  assert.match(css, /\.account-icon-action:focus-visible \.account-icon-tooltip/);
+  assert.doesNotMatch(html, /account-icon-action|href="\/settings"/);
+  const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
+  assert.match(header, /account-header-tools/);
+  assert.match(header, /aria-label="إرسال رياكشن"/);
+  assert.match(header, /aria-label="الإعدادات"/);
+  assert.match(header, /closeAccountSearch/);
 });
-
 test('Owner identity shows avatar initial and name — read-only since batch 3: no edit entry, no Google email anywhere', () => {
   const html = renderSurface({ user: MEMBER });
   assert.match(html, /class="account-profile-avatar"[^>]*>ع</);
@@ -254,32 +239,24 @@ test('Owner identity shows avatar initial and name — read-only since batch 3: 
   assert.doesNotMatch(html, /account-profile-email/);
 });
 
-test('Owner contributions tab lists each item with its visible status chip', () => {
+test('Owner is told real contributions are unavailable; existing mock route is retained', () => {
   const html = renderSurface({
     user: MEMBER,
     records: RECORDS,
     demoStates: { tab: 'contributions' },
   });
-  assert.match(html, /ردّة فعل أولى[\s\S]*?id="account-tab-panel"|ردّة فعل أولى/);
-  for (const row of [
-    /ردّة فعل أولى[\s\S]*account-status account-status-pending">قيد المراجعة/,
-    /صورة معلّقة[\s\S]*account-status account-status-approved">مقبولة/,
-    /مقطع مرفوض[\s\S]*account-status account-status-rejected">مرفوضة/,
-  ])
-    assert.match(html, row);
+  assert.match(html, /الحقيقية غير متاحة/);
   assert.match(html, /href="\/account\/submissions"/);
+  assert.doesNotMatch(html, /ردّة فعل أولى|صورة معلّقة|مقطع مرفوض|account-contribution-status/);
 });
-
-test('Owner with no contributions gets the mandated copy followed by the publish action', () => {
-  const html = renderSurface({ user: MEMBER, records: [], demoStates: { tab: 'contributions' } });
-  assert.match(html, /ما عندك مساهمات حتى الآن/);
-  assert.match(html, /ساهم بأول رياكشن في إثراء المكتبة اليمنية\./);
-  assert.match(html, /href="\/contribute"[^>]*>.*إرسال رياكشن/);
+test('Missing contributions service is not misrepresented as an empty real account', () => {
+  const html = renderSurface({ user: MEMBER, demoStates: { tab: 'contributions' } });
+  assert.match(html, /تجربة محلية فقط/);
+  assert.doesNotMatch(html, /ما عندك مساهمات حتى الآن/);
 });
-
 test('Owner empty saves state explains the habit and ends with the library link', () => {
   const html = renderSurface({ user: MEMBER, saved: [] });
-  assert.match(html, /لا محفوظات بعد\./);
+  assert.match(html, /لا محفوظات في الحساب بعد\./);
   assert.match(html, /href="\/library"[^>]*>.*تصفح المكتبة/);
 });
 
@@ -289,37 +266,27 @@ test('Identity editing is fully retired in batch 3: no form, no edit state, no P
   assert.doesNotMatch(source, /setEditing|saveName|cancelEdit/);
   assert.doesNotMatch(source, /method:\s*'PATCH'|fetch\('\/api\/auth'/);
   // لا بند إدخال اسم ولا ربط مزامنة عمره منطق الحفظ القديم
-  assert.doesNotMatch(source, /syncUser\(\)|app\.toast\('تم حفظ اسم العرض\.'\)/);
+  assert.doesNotMatch(source, /app\.toast\('تم حفظ اسم العرض\.'\)/);
   const html = renderSurface({ user: MEMBER });
   assert.doesNotMatch(html, /<form|role="dialog"|<dialog|<input/);
 });
 
-test('Trial session is NOT an account owner: zero counters, zero records, a login explainer under مساهماتي', () => {
-  const html = renderSurface({ mockSignedIn: true, records: [RECORDS[0]], saved: ['YR-0007'] });
-  // بلا ملخّص ولا عدّادات كأنها صاحبة حساب
-  assert.doesNotMatch(html, /account-summary/);
-  // وفي قسم مساهماتي حتى مع بيانات تجريبية قائمة: توضيح تسجيل الدخول، لا سجلات ولا حالات
+test('Mock contribution login does not become a real account identity', () => {
+  const html = renderSurface({ mockSignedIn: true, records: RECORDS, saved: ['YR-0007'] });
+  assert.match(html, /أنت زائر/);
+  assert.match(html, /ضحكة فِرح/);
+  assert.doesNotMatch(html, /تسجيل الخروج|عضو المكتبة|account-summary/);
   const contributions = renderSurface({
     mockSignedIn: true,
-    records: [RECORDS[0]],
+    records: RECORDS,
     demoStates: { tab: 'contributions' },
   });
-  assert.match(contributions, /إرسال المساهمات ومتابعتها يتطلب تسجيل الدخول/);
-  assert.doesNotMatch(contributions, /ردّة فعل أولى|account-status/);
-  assert.doesNotMatch(contributions, /ما عندك مساهمات حتى الآن/);
-  // جلسة التجربة تبقى بإنهائها المعتاد أسفل الصفحة، بلا أي «حساب»
-  assert.match(html, /إنهاء جلسة التجربة/);
-  assert.doesNotMatch(html, /تحرير الهوية|تسجيل الخروج|member@site\.test/);
-  // محفوظاته المحلية — جهاز لا حساب — تبقى يظهرها مثل أي زائر
-  assert.match(html, /ضحكة فِرح/);
-  const source = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
-  assert.match(source, /const owner = !!app\.user;/);
+  assert.doesNotMatch(contributions, /ردّة فعل أولى|account-contribution-status/);
 });
-
 test('Header keeps the public top bar clean; avatar opens /account and the adjacent arrow owns the desktop popover', () => {
   const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
   // الرأس العام نفسه بلا زرّي «إرسال رياكشن»/«الإعدادات» — وحصة إعدادات القائمة تبقى الصفحة
-  assert.doesNotMatch(header, /إرسال رياكشن/);
+  assert.match(header, /accountPage \? \(/);
   // لا ورقة حساب بعد الآن: لا مكوّن سطح داخل الرأس، ولا حالة ورقة أساسًا
   assert.doesNotMatch(header, /AccountSurface/);
   assert.doesNotMatch(header, /accountSheet/);
@@ -350,9 +317,9 @@ test('Header keeps the public top bar clean; avatar opens /account and the adjac
 test('Settings destination in every UI entry point is the /settings page; publish destination stays /contribute', () => {
   const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
   const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
-  assert.match(surface, /href="\/settings"/);
+  assert.match(header, /href="\/settings"/);
   assert.match(surface, /href="\/contribute"/);
-  assert.doesNotMatch(surface, /setSettings|router\.push/s);
+  assert.doesNotMatch(surface, /setSettings/);
   assert.match(header, /<Link href="\/settings" onClick=\{dismiss\}>/);
   assert.doesNotMatch(header, /app\.setSettings\(true\)/);
   // صفحتا /account و/settings موجودتان فعلًا على نظام الملفات وتحملان العنوانين الصحيحين
@@ -428,24 +395,24 @@ test('SettingsPanel keeps all five sections working on the page; the legacy moda
   // المحتوى نفسه حي في مستويي العرض: الصفحة (SettingsPanel) والنافذة المحفوظة (Settings)
   const panel = renderToStaticMarkup(React.createElement(mod.SettingsPanel));
   assert.equal((panel.match(/<h2\b/g) || []).length, 4);
-  assert.doesNotMatch(panel, /<h3\b/);
+  assert.match(panel, /<h3\b/);
   for (const section of [
     /المظهر/,
-    /لونك المفضّل/,
+    /لون الواجهة/,
     /تخفيف الحركة/,
-    /المكتبة معك/,
+    /التطبيق/,
     /مركز المساعدة/,
-    /استعادة الإعدادات/,
+    /استعادة تفضيلات العرض/,
   ])
     assert.match(panel, section);
   const modal = renderToStaticMarkup(React.createElement(mod.Settings));
   assert.match(modal, /role="dialog" aria-label="على ذوقك"/);
   assert.match(modal, /المظهر/);
-  assert.match(modal, /استعادة الإعدادات/);
+  assert.match(modal, /استعادة تفضيلات العرض/);
 
   const source = fs.readFileSync('src/components/Settings.tsx', 'utf8');
   assert.match(source, /export function SettingsPanel\(\)/);
-  assert.match(panel, /class="settings-help-link" href="\/help"/);
+  assert.match(panel, /class="settings-utility" href="\/help"/);
   // الدفعة 4: لوحة «لونك المفضّل» بلا بنفسجي — كهرماني (الافتراضي القائم)
   // وأخضر فقط، بلا توسيع ولا لون بديل، واستعادة الإعدادات ترجع الكهرماني كما كانت.
   assert.deepEqual(

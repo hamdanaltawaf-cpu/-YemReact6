@@ -80,23 +80,22 @@ test('Batch 3: /saved redirects to /account where the saved section lives; guest
   // القسم قائم في صفحة الحساب فعلًا: مبدّل بلسانَي المحفوظات/مساهماتي يبدأ بالمحفوظات
   const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
   assert.match(surface, /id="account-tab-saved"/);
-  assert.match(surface, /useState<'saved' \| 'contributions'>\('saved'\)/);
+  assert.match(surface, /initialTab = 'saved'/);
   // الفضاءان منفصلان كما كان — ولا شيء في هذه الدفعة يغيّره: فضاء الحساب
   // (/api/saved) حصري لجلسة حقيقية (requireUser على القراءة والكتابة)،
   // والزائر على مخزنه المحلي يظهر له وحده ضمن الصفحة نفسها دون دمج أو رفع.
   const api = fs.readFileSync('src/app/api/saved/route.ts', 'utf8');
   assert.match(api, /requireUser\(\)/);
   const provider = fs.readFileSync('src/components/AppProvider.tsx', 'utf8');
-  assert.match(provider, /else setSaved\(read\('yr:guest-saved', \[\]\)\)/);
+  assert.match(provider, /localStorage\.getItem\('yr:guest-saved'\)/);
   const toggleBlock = provider.slice(
     provider.indexOf('async function toggleSave'),
     provider.indexOf('async function refresh'),
   );
   const putAt = toggleBlock.indexOf("fetch('/api/saved'");
-  assert.ok(
-    putAt > toggleBlock.indexOf('if (user) {') && putAt < toggleBlock.indexOf('} else '),
-    'كتابة /api/saved خرجت عن ذراع المستخدم المسجل — ذريعة دمج محتملة!',
-  );
+  assert.ok(putAt > toggleBlock.indexOf('if (session.current) {'));
+  assert.doesNotMatch(toggleBlock, /method: 'POST'/);
+  assert.match(toggleBlock, /if \(!session.current\) localStorage.setItem/);
 });
 test('Library and saved hide the footer, while the collections footer remains', () => {
   for (const pathname of ['/saved', '/saved/', '/library', '/collections']) {
