@@ -1,0 +1,68 @@
+.account-page,
+.settings-page,
+.settings-panel {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --radius-xs: 4px;
+  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+  --text-micro: 11px;
+  --text-label: 12px;
+  --text-secondary: 13px;
+  --text-body: 14px;
+  --text-body-large: 16px;
+  --text-heading: 24px;
+  --shadow-selected: 0 2px 8px #27251c12;
+  --accent-strong: color-mix(in srgb, var(--accent) 88%, #000);
+  --state-neutral-bg: var(--soft);
+  --state-neutral-text: var(--ink);
+  --state-error-text: #8e2821;
+  --state-error-bg: #b139300c;
+  --state-error-border: #b1393044;
+  --state-warning-bg: #f3d9af;
+  --state-warning-text: #734408;
+  --state-warning-border: #d6b67e;
+  --state-approved-bg: #d2e9e6;
+  --state-approved-text: #146561;
+  --state-approved-border: #a8d1cc;
+  --state-rejected-bg: #f6dcda;
+  --state-rejected-border: #dba7a1;
+  --state-published-bg: #e5f1e7;
+  --state-published-text: #205333;
+  --state-published-border: #b9d4bf;
+}
+:root[data-theme='dark'] :is(.account-page, .settings-page, .settings-panel) {
+  --state-error-text: #ffb7aa;
+  --state-error-bg: #ffb7aa14;
+  --state-error-border: #ffb7aa55;
+  --state-warning-bg: #51381f;
+  --state-warning-text: #ffcf83;
+  --state-warning-border: #866140;
+  --state-approved-bg: #193c3c;
+  --state-approved-text: #9fe3d8;
+  --state-approved-border: #426966;
+  --state-rejected-bg: #512726;
+  --state-rejected-border: #975c54;
+  --state-published-bg: #243b2a;
+  --state-published-text: #b7e5c1;
+  --state-published-border: #47684d;
+}
+
+/* Reference palette only while one of the two adapted surfaces is mounted. */
+body:has(.account-page, .settings-page) {
+  --bg: #f5f1ea;
+  --surface: #fffdf9;
+  --ink: #20221e;
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+}
+:root[data-theme='dark'] body:has(.account-page, .settings-page) {
+  --bg: #151714;
+  --surface: #20231e;
+  --ink: #f3eee6;
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}

@@ -13,6 +13,8 @@ import {
   LogOut,
   Plus,
   Search,
+  Send,
+  X,
   Settings2,
   UserRound,
 } from 'lucide-react';
@@ -152,6 +154,7 @@ export function Header({
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
   const app = useApp();
+  const accountPage = path === '/account';
   const [accountPopover, setAccountPopover] = useState(false);
   const [searchFocus, setSearchFocus] = useState(false);
   const [query, setQuery] = useState('');
@@ -159,9 +162,29 @@ export function Header({
   const accountArea = useRef<HTMLDivElement>(null);
   const accountTrigger = useRef<HTMLButtonElement>(null);
   const popover = useRef<HTMLDivElement>(null);
+  const [accountSearchOpen, setAccountSearchOpen] = useState(false);
+  const accountSearchButton = useRef<HTMLButtonElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
+  function closeAccountSearch() {
+    setAccountSearchOpen(false);
+    requestAnimationFrame(() => accountSearchButton.current?.focus());
+  }
+  useEffect(() => {
+    if (!accountSearchOpen) return;
+    const frame = requestAnimationFrame(() => searchInput.current?.focus());
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeAccountSearch();
+    };
+    window.addEventListener('keydown', escape);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('keydown', escape);
+    };
+  }, [accountSearchOpen]);
 
   useEffect(() => {
     setAccountPopover(false);
+    setAccountSearchOpen(false);
     setSearchFocus(false);
     setHiddenOnScroll(false);
     setQuery(path === '/library' ? searchQuery : '');
@@ -211,6 +234,7 @@ export function Header({
         return;
       // الاختصار يستهدف حقل البحث الموجود فقط: بلا حقل (مثل بوّابة الدخول) لا يبتلع المفتاح.
       const field = document.querySelector<HTMLInputElement>('#library-search');
+      if (path === '/account' && !breakpoint.matches) setAccountSearchOpen(true);
       if (!field) return;
       event.preventDefault();
       if (breakpoint.matches) {
@@ -226,7 +250,7 @@ export function Header({
       breakpoint.removeEventListener('change', closeOnResize);
       window.removeEventListener('keydown', shortcut);
     };
-  }, []);
+  }, [path]);
 
   useEffect(() => {
     let previous = window.scrollY;
@@ -291,7 +315,9 @@ export function Header({
         inert={hiddenOnScroll}
         aria-hidden={hiddenOnScroll ? true : undefined}
       >
-        <div className="container header-row">
+        <div
+          className={`container header-row${accountPage ? ' header-row-account' : ''}${accountPage && accountSearchOpen ? ' account-search-open' : ''}`}
+        >
           <Link href="/library" className="brand" aria-label="يمن رياكت. YEMREACT — المكتبة">
             <Qusasa size={38} />
             <span>
@@ -313,7 +339,26 @@ export function Header({
             ))}
           </nav>
 
+          {accountPage && (
+            <button
+              ref={accountSearchButton}
+              type="button"
+              className="account-search-trigger"
+              aria-label="فتح البحث"
+              title="فتح البحث"
+              aria-controls="account-header-search"
+              aria-expanded={accountSearchOpen}
+              onClick={() => {
+                setHiddenOnScroll(false);
+                setAccountSearchOpen(true);
+              }}
+            >
+              <Search size={20} aria-hidden="true" />
+            </button>
+          )}
+
           <form
+            id={accountPage ? 'account-header-search' : undefined}
             className="library-search"
             role="search"
             aria-label="بحث في المكتبة"
@@ -324,6 +369,7 @@ export function Header({
             </label>
             <Search size={19} aria-hidden="true" />
             <input
+              ref={searchInput}
               id="library-search"
               type="search"
               name="q"
@@ -337,12 +383,43 @@ export function Header({
             <button type="submit" aria-label="تنفيذ البحث" title="ابحث عن رياكشن">
               <ArrowLeft size={17} aria-hidden="true" />
             </button>
+            {accountPage && (
+              <button
+                type="button"
+                className="account-search-close"
+                aria-label="إغلاق البحث"
+                onClick={closeAccountSearch}
+              >
+                <X size={19} aria-hidden="true" />
+              </button>
+            )}
           </form>
 
-          <UploadQuickAction mobile />
+          {!accountPage && <UploadQuickAction mobile />}
 
           <div className="header-actions">
-            <UploadQuickAction />
+            {accountPage ? (
+              <nav className="account-header-tools" aria-label="أدوات الحساب">
+                <Link
+                  href="/contribute"
+                  className="account-header-action account-submit-link"
+                  aria-label="إرسال رياكشن"
+                  title="إرسال رياكشن"
+                >
+                  <Send size={20} aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/settings"
+                  className="account-header-action account-settings-link"
+                  aria-label="الإعدادات"
+                  title="الإعدادات"
+                >
+                  <Settings2 size={20} aria-hidden="true" />
+                </Link>
+              </nav>
+            ) : (
+              <UploadQuickAction />
+            )}
             <div
               className="header-account"
               ref={accountArea}

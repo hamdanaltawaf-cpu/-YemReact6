@@ -90,7 +90,7 @@ test('Two primary destinations stay separate from the active mock-upload quick a
   // تبقى صفحة الحساب طريقًا إضافيًا للمساهمة، دون إضافة تبويب رابع.
   const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
   assert.match(surface, /href="\/contribute"/);
-  assert.match(surface, /إرسال رياكشن/);
+  assert.match(header, /إرسال رياكشن/);
   // صفّ رأس واحد: نموذج بحث واحد بمعرّف واحد داخل الصفّ، ولا أثر للبنية القديمة (صفّ البحث المنفصل والحقلان)
   assert.match(header, /className="library-search"/);
   assert.match(header, /id="library-search"/);
