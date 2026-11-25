@@ -706,6 +706,53 @@ h3,
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.report-toolbar,
+.report-heading-row,
+.report-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.report-toolbar {
+  margin-bottom: 12px;
+  font-size: var(--text-compact-size);
+}
+.report-toolbar select {
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control-small);
+  color: var(--ink);
+  background: var(--surface);
+}
+.report-card-main {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.report-heading-row {
+  justify-content: space-between;
+}
+.report-note-label {
+  color: var(--muted);
+  font-size: var(--text-compact-size);
+}
+.report-card textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control-small);
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+}
+.report-actions .btn {
+  min-height: 40px;
+}
 
 @media (max-width: 850px) {
   .collections-grid {

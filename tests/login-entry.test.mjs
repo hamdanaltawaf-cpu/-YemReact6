@@ -12,7 +12,7 @@ function transpile(file) {
     ts.transpileModule(fs.readFileSync(file, 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText,
-    { exports },
+    { exports, URL },
   );
   return exports;
 }
@@ -30,6 +30,7 @@ function load(file, overrides) {
     {
       module,
       exports: module.exports,
+      URL,
       require: (name) => (name in overrides ? overrides[name] : require(name)),
     },
   );
@@ -119,10 +120,13 @@ test('/login keeps the same page, forwards a safe next, and never leaks a dead o
   assert.equal(metadata.robots.index, false);
   const clean = await Page({ searchParams: Promise.resolve({ next: '/saved' }) });
   assert.equal(clean.props.next, '/saved');
+  assert.equal(clean.props.oauthNext, '/saved');
   for (const hostile of ['//evil.test', 'https://evil.test', '/login', '/']) {
     const element = await Page({ searchParams: Promise.resolve({ next: hostile }) });
     assert.equal(element.props.next, '/library', hostile);
+    assert.equal(element.props.oauthNext, '', hostile);
   }
   const empty = await Page({ searchParams: Promise.resolve({}) });
   assert.equal(empty.props.next, '/library');
+  assert.equal(empty.props.oauthNext, '');
 });

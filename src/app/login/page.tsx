@@ -21,6 +21,7 @@ export default async function Page({
       authOrigin={authOrigin}
       readyProviders={[...readyProviders]}
       next={safeNext(next)}
+      oauthNext={safeNext(next, '')}
     />
   );
 }

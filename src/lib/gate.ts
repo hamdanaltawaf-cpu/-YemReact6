@@ -9,9 +9,19 @@ const CRAWLER =
 
 export function safeNext(raw: string | null | undefined, fallback = '/library'): string {
   if (!raw) return fallback;
-  if (!raw.startsWith('/') || raw.startsWith('//')) return fallback;
-  if (raw === '/' || raw === '/login' || raw.startsWith('/login?')) return fallback;
+  if (raw.length > 2048 || !raw.startsWith('/') || raw.startsWith('//')) return fallback;
   if (raw.includes('\\') || raw.includes('\n') || raw.includes('\r')) return fallback;
+  try {
+    const target = new URL(raw, 'https://internal.invalid');
+    if (
+      target.origin !== 'https://internal.invalid' ||
+      target.pathname === '/' ||
+      target.pathname.replace(/\/+$/, '') === '/login'
+    )
+      return fallback;
+  } catch {
+    return fallback;
+  }
   return raw;
 }
 

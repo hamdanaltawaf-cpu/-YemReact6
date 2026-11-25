@@ -7,6 +7,7 @@ import { oauthConfig, type OAuthConfig } from './oauth-config';
 import { verifyIdentityToken } from './oidc';
 import { isSocialProvider, type SocialProvider } from '@/lib/social';
 import { matchesPublicHost } from '@/lib/request-origin';
+import { safeNext } from '@/lib/gate';
 
 const TTL = 600;
 const random = () => randomBytes(32).toString('hex');
@@ -42,14 +43,10 @@ export async function beginOAuth(req: Request, provider: string) {
       browser = random(),
       nonce = random(),
       verifier = random();
-    db.prepare('INSERT INTO oauth_flows VALUES (?,?,?,?,?,?)').run(
-      digest(state),
-      provider,
-      digest(browser),
-      nonce,
-      verifier,
-      Date.now() + TTL * 1000,
-    );
+    const next = safeNext(new URL(req.url).searchParams.get('next'), '');
+    db.prepare(
+      'INSERT INTO oauth_flows(state_hash,provider,browser_hash,nonce,verifier,expires,next) VALUES (?,?,?,?,?,?,?)',
+    ).run(digest(state), provider, digest(browser), nonce, verifier, Date.now() + TTL * 1000, next);
     (await cookies()).set(cookieName(state), browser, transactionCookie(config));
     const url = new URL(config.authorizationEndpoint);
     url.search = new URLSearchParams({
@@ -78,6 +75,7 @@ type Flow = {
   nonce: string;
   verifier: string;
   expires: number;
+  next: string;
 };
 
 /** Never merge accounts or promote roles based solely on an email returned by an IdP. */
@@ -177,7 +175,8 @@ export async function completeOAuth(req: Request, provider: string) {
     await createSession(userId);
     audit(userId, 'social-login', provider);
     const user = db.prepare('SELECT role FROM users WHERE id=?').get(userId) as { role: string };
-    return authRedirect(`${config.origin}${user.role === 'admin' ? '/admin' : '/saved'}`);
+    const fallback = user.role === 'admin' ? '/admin' : '/saved';
+    return authRedirect(`${config.origin}${safeNext(flow.next, fallback)}`);
   } catch (e) {
     // Never reflect provider error descriptions, credentials, codes or tokens into the UI or logs.
     return failure(e instanceof ApiError && e.status === 409 ? 'account_exists' : 'failed');

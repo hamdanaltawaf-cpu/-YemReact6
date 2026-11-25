@@ -21,6 +21,7 @@ function load(file, overrides, globals = {}) {
     {
       module,
       exports: module.exports,
+      URL,
       require: (name) => (name in overrides ? overrides[name] : require(name)),
       ...globals,
     },
@@ -81,6 +82,20 @@ test('Gateway with Google ready: one real entry and two pending, with the partia
   assert.match(html, /الدخول متاح عبر الخدمات المفعّلة أعلاه/);
   // عناصر غير الجاهزة ليست روابط حتى مع authOrigin
   assert.doesNotMatch(html, /oauth\/(apple|microsoft)/);
+});
+test('OAuth provider links carry an explicit safe destination but omit an implicit default', () => {
+  const explicit = renderAuth({
+    authOrigin: 'https://oauth.test',
+    readyProviders: ['google'],
+    oauthNext: '/saved?tab=clips',
+  });
+  assert.match(
+    explicit,
+    /href="https:\/\/oauth\.test\/api\/auth\/oauth\/google\?next=%2Fsaved%3Ftab%3Dclips"/,
+  );
+  const implicit = renderAuth({ authOrigin: 'https://oauth.test', readyProviders: ['google'] });
+  assert.match(implicit, /href="https:\/\/oauth\.test\/api\/auth\/oauth\/google"/);
+  assert.doesNotMatch(implicit, /oauth\/google\?next=/);
 });
 
 test('Guest card is the full path to a browsing session with the server-safe next target', () => {
