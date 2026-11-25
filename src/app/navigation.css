@@ -89,6 +89,40 @@
   background: color-mix(in srgb, var(--accent-text) 87%, black);
   box-shadow: 0 5px 15px color-mix(in srgb, var(--accent) 22%, transparent);
 }
+.mobile-quick-action {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  gap: 4px;
+  min-width: var(--button-height);
+  min-height: var(--button-height);
+  padding-inline: 8px;
+  border-radius: var(--radius-header-action);
+  background: var(--accent-text);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background var(--motion-micro) var(--ease-standard),
+    box-shadow var(--motion-micro) var(--ease-standard);
+}
+.mobile-quick-action:hover {
+  background: color-mix(in srgb, var(--accent-text) 87%, black);
+  box-shadow: 0 5px 15px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.mobile-quick-action:focus-visible {
+  outline: 3px solid var(--accent-text);
+  outline-offset: 3px;
+}
+.mobile-upload-symbol {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+}
 .header-account {
   position: relative;
   flex: none;
@@ -334,6 +368,11 @@
   }
   .modal-sheet[open] {
     animation: sheet-in var(--motion-medium) var(--ease-decelerate);
+  }
+}
+@media (max-width: 639px) {
+  .mobile-quick-action {
+    display: inline-flex;
   }
 }
 /* من 640 إلى 1023px: التنقّل وقائمة الحساب في الرأس (الشريط الزجاجي مخفي هناك) */

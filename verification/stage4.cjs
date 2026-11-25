@@ -288,7 +288,9 @@ let browser,
       'Root renders the guest-first access gateway; choosing guest access opens the canonical library.',
     );
 
-    for (const width of [320, 360, 375, 414, 640, 768, 850, 1024, 1280, 1440, 1920]) {
+    for (const width of [
+      320, 360, 374, 375, 414, 639, 640, 767, 768, 850, 1023, 1024, 1280, 1440, 1920,
+    ]) {
       await desktop.setViewportSize({ width, height: 900 });
       for (const route of ['/library', '/collections', '/collections/students', '/r/YR-0001']) {
         await load(desktop, route);
@@ -436,7 +438,7 @@ let browser,
       }
     }
     report.checks.push(
-      'Eleven viewport widths from 320px to 1920px: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.',
+      'Fifteen viewport widths from 320px to 1920px, including 374/375, 639/640, 767/768 and 1023/1024 boundaries: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.',
     );
 
     await desktop.setViewportSize({ width: 1440, height: 900 });
