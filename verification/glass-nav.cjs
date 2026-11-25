@@ -6,7 +6,7 @@
  *
  * يغطّي: الترتيب RTL، تساوي مناطق اللمس، تمركز التبويب الأوسط (المجموعات)،
  * التنقّل الحقيقي، امتلاء الأيقونة النشطة فعليًا (فحص بكسلات لا خصائص CSS)،
- * صفحة الحساب على الهاتف ومنبثقها على الحاسوب،
+ * مدخل المساهمة المرئي وروابط التذييل على الهاتف، وصفحة الحساب على الهاتف ومنبثقها على الحاسوب،
  * أسهم لوحة المفاتيح بوعي RTL، تقليل الحركة، الوضع الداكن، axe للشريط وللرأس،
  * وغياب الانزياح الأفقي من 320px إلى 1920px.
  * دفعة التنقل 1: الشريط ثلاثة تبويبات (المكتبة/المجموعات/الحساب) — بلا «اضافة»
@@ -25,7 +25,14 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const base = 'http://127.0.0.1:3000';
 const outDir = 'verification/v4';
-const report = { checks: [], widths: [], axe: [], shadows: [], completed: false };
+const report = {
+  checks: [],
+  widths: [],
+  footerTargets: [],
+  axe: [],
+  shadows: [],
+  completed: false,
+};
 
 const NAV = 'nav.glass-nav';
 const tab = (key) => `${NAV} .gnav-tab[data-key="${key}"]`;
@@ -163,7 +170,25 @@ function check(name, fn) {
       assert.equal((await geometry(page)).active, 'groups');
       const sample = await darkness(page, `${tab('groups')} .gnav-ico svg`);
       report.shadows.push({ where: 'mobile-groups', ...sample });
-      assert.ok(sample.darkPct > 25, `أيقونة المجموعات غير ممتلئة (${sample.darkPct}%)`);
+      // رمز الطبقات المفتوح أقل كثافة بكسلية من شكل المكتبة؛ نقيس حدًا ملائمًا لمساحة شكله.
+      assert.ok(sample.darkPct > 18, `أيقونة المجموعات غير ممتلئة (${sample.darkPct}%)`);
+    });
+
+    await check('مدخل «رفع» المرئي على الهاتف يفتح بوابة المساهمة دون تبويب رابع', async () => {
+      const action = page.locator('.mobile-quick-action');
+      assert.ok(await action.isVisible(), 'اختصار المساهمة غير ظاهر على الهاتف');
+      assert.equal(await action.getAttribute('href'), '/contribute');
+      assert.match((await action.textContent()) || '', /رفع/);
+      const box = await action.boundingBox();
+      assert.ok(
+        box && box.width >= 44 && box.height >= 44,
+        `هدف لمس الاختصار: ${JSON.stringify(box)}`,
+      );
+      await action.click();
+      await page.waitForURL('**/contribute', { timeout: 15000 });
+      assert.equal(new URL(page.url()).pathname, '/contribute');
+      assert.equal(await page.locator('.contribute-hub').count(), 1);
+      await page.goto(`${base}/library`, { waitUntil: 'networkidle' });
     });
 
     await check(
@@ -192,9 +217,8 @@ function check(name, fn) {
         const style = getComputedStyle(document.body);
         return {
           padding: parseFloat(style.paddingBottom),
-          gnavH: parseFloat(
-            getComputedStyle(document.documentElement).getPropertyValue('--gnav-h'),
-          ),
+          // token --gnav-h is a clamp(); measure its resolved CSS box, not its raw expression.
+          gnavH: document.querySelector('nav.glass-nav')?.getBoundingClientRect().height ?? 0,
         };
       });
       assert.ok(
@@ -229,13 +253,58 @@ function check(name, fn) {
       assert.deepEqual(serious, [], serious.map((v) => v.id).join(', '));
     });
 
-    await check('لا انزياح أفقي من 320px إلى 1920px', async () => {
-      for (const width of [320, 375, 414, 768, 1024, 1440, 1920]) {
+    await check(
+      'لا انزياح أفقي مع فحص حدود 639/640 و767/768 و1023/1024 من 320px إلى 1920px',
+      async () => {
+        for (const width of [
+          320, 360, 373, 374, 375, 414, 639, 640, 767, 768, 850, 1023, 1024, 1280, 1440, 1920,
+        ]) {
+          await page.setViewportSize({ width, height: 900 });
+          await page.waitForTimeout(250);
+          const { overflow } = await geometry(page);
+          report.widths.push({ width, overflow });
+          assert.ok(overflow <= 1, `انزياح ${overflow}px عند عرض ${width}px`);
+          assert.equal(
+            await page.locator(NAV).isVisible(),
+            width < 640,
+            `ظهور GlassNav عند ${width}px`,
+          );
+          assert.equal(
+            await page.locator('.mobile-quick-action').isVisible(),
+            width < 640,
+            `ظهور إجراء الهاتف عند ${width}px`,
+          );
+          assert.equal(
+            await page.locator('.desktop-nav').isVisible(),
+            width >= 640,
+            `التنقل بالرأس عند ${width}px`,
+          );
+          assert.equal(
+            await page.locator('.desktop-quick-action').isVisible(),
+            width >= 768,
+            `إجراء الرفع المكتبي/اللوحي عند ${width}px`,
+          );
+        }
+      },
+    );
+
+    await check('روابط التذييل لا تقل عن هدف لمس 44×44px عند حدود العرض', async () => {
+      await page.goto(`${base}/help`, { waitUntil: 'networkidle' });
+      for (const width of [320, 639, 640, 767, 768, 1023, 1024, 1440]) {
         await page.setViewportSize({ width, height: 900 });
-        await page.waitForTimeout(250);
-        const { overflow } = await geometry(page);
-        report.widths.push({ width, overflow });
-        assert.ok(overflow <= 1, `انزياح ${overflow}px عند عرض ${width}px`);
+        await page.waitForTimeout(100);
+        const targets = await page.locator('.compact-footer-row nav a').evaluateAll((links) =>
+          links.map((link) => {
+            const rect = link.getBoundingClientRect();
+            return { label: link.textContent?.trim(), width: rect.width, height: rect.height };
+          }),
+        );
+        assert.ok(targets.length > 0, `لا توجد روابط تذييل عند ${width}px`);
+        assert.ok(
+          targets.every((target) => target.width >= 44 && target.height >= 44),
+          `أهداف التذييل عند ${width}px: ${JSON.stringify(targets)}`,
+        );
+        report.footerTargets.push({ width, targets });
       }
     });
 

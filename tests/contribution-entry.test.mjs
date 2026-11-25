@@ -84,8 +84,10 @@ test('Two primary destinations stay separate from the active mock-upload quick a
     assert.ok(!defaultTabs.includes(`key: '${removed}'`), `تبويب «${removed}» ما زال ضالًّا`);
   }
   assert.doesNotMatch(defaultTabs, /label: '(اضافة|المحفوظات)'|\/contribute|\/saved/);
-  // إتاحة الإرسال على الهاتف من المكتبة (حسم حمدان 2026-10-22): بلا موضع جديد —
-  // تبويب «الحساب» ← صفحة /account ← زر «إرسال رياكشن» الأساسي ← /contribute
+  // مدخل الهاتف المرئي إجراء مستقل في الرأس، مع بقاء الشريط بثلاثة تبويبات.
+  assert.match(header, /<UploadQuickAction mobile \/>/);
+  assert.match(header, /<span>رفع<\/span>/);
+  // تبقى صفحة الحساب طريقًا إضافيًا للمساهمة، دون إضافة تبويب رابع.
   const surface = fs.readFileSync('src/components/AccountSurface.tsx', 'utf8');
   assert.match(surface, /href="\/contribute"/);
   assert.match(surface, /إرسال رياكشن/);
@@ -96,6 +98,15 @@ test('Two primary destinations stay separate from the active mock-upload quick a
   assert.doesNotMatch(header, /mobile-search-trigger/);
   // زر الحساب في الهيدر مقصور على الحاسوب — على الجوال الحساب من تبويب الشريط الزجاجي
   const navCss = fs.readFileSync('src/app/navigation.css', 'utf8');
+  assert.match(
+    navCss,
+    /@media \(max-width: 639px\)\s*\{\s*\.mobile-quick-action\s*\{\s*display: inline-flex/s,
+  );
+  const globalCss = fs.readFileSync('src/app/globals.css', 'utf8');
+  assert.match(
+    globalCss,
+    /\.compact-footer-row nav a\s*\{[^}]*min-height: var\(--button-height\)/s,
+  );
   const mobileCss = navCss.split('@media (max-width: 1023px)')[1] ?? '';
   assert.match(mobileCss, /\.site-header \.header-account \{[^}]*display: none/);
   assert.doesNotMatch(header, /nav-contribute|contribute-trigger|mobile-menu/);

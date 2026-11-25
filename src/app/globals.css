@@ -2981,7 +2981,7 @@ kbd {
 .compact-footer-row nav a {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
+  min-height: var(--button-height);
 }
 .compact-footer-row nav a:hover {
   color: var(--ink);

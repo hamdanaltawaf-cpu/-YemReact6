@@ -339,6 +339,8 @@ export function Header({
             </button>
           </form>
 
+          <UploadQuickAction mobile />
+
           <div className="header-actions">
             <UploadQuickAction />
             <div

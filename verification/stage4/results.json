@@ -3,7 +3,7 @@
   "checks": [
     "Three curated groups have correct membership and public counts; admin-only collection and report APIs reject guests.",
     "Root renders the guest-first access gateway; choosing guest access opens the canonical library.",
-    "Eleven viewport widths from 320px to 1920px: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.",
+    "Fifteen viewport widths from 320px to 1920px, including 374/375, 639/640, 767/768 and 1023/1024 boundaries: no horizontal overflow, all 12 cards render immediately, titles clamp to two lines, menus are 44×44, mobile detail actions remain labeled, and optional sections follow the title.",
     "Card video hover remains intact; the independent preview button opens by keyboard, Escape restores focus, one title link opens details, and overlay back works. Plex Arabic/Inter/Mono and logo-only Lalezar are loaded.",
     "Touch opens the card preview, dragging from an action button does not change the item, one title link still opens details, and reduced-motion prevents card hover playback.",
     "Verified static image has no video badge/player, its two-line card title stays clamped, mobile action labels follow the long H1 with 44px targets, duplicate descriptions are omitted, and downloaded bytes match SHA-256; the local fixture is deleted.",
@@ -52,6 +52,26 @@
       "noOverflow": true
     },
     {
+      "width": 374,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 374,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 374,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 374,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
       "width": 375,
       "route": "/library",
       "noOverflow": true
@@ -92,6 +112,26 @@
       "noOverflow": true
     },
     {
+      "width": 639,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 639,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 639,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 639,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
       "width": 640,
       "route": "/library",
       "noOverflow": true
@@ -108,6 +148,26 @@
     },
     {
       "width": 640,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 767,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 767,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 767,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 767,
       "route": "/r/YR-0001",
       "noOverflow": true
     },
@@ -148,6 +208,26 @@
     },
     {
       "width": 850,
+      "route": "/r/YR-0001",
+      "noOverflow": true
+    },
+    {
+      "width": 1023,
+      "route": "/library",
+      "noOverflow": true
+    },
+    {
+      "width": 1023,
+      "route": "/collections",
+      "noOverflow": true
+    },
+    {
+      "width": 1023,
+      "route": "/collections/students",
+      "noOverflow": true
+    },
+    {
+      "width": 1023,
       "route": "/r/YR-0001",
       "noOverflow": true
     },
