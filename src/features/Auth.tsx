@@ -21,11 +21,13 @@ export default function Auth({
   authOrigin = '',
   readyProviders = [],
   next = '/library',
+  oauthNext = '',
 }: {
   initialError?: string;
   authOrigin?: string;
   readyProviders?: SocialProvider[];
   next?: string;
+  oauthNext?: string;
 }) {
   const app = useApp();
   // Native new-tab links avoid blocked top navigation in embedded previews.
@@ -42,7 +44,10 @@ export default function Auth({
     window.addEventListener('pageshow', clear);
     return () => window.removeEventListener('pageshow', clear);
   }, []);
-  const providerUrl = (provider: SocialProvider) => `${authOrigin}/api/auth/oauth/${provider}`;
+  const providerUrl = (provider: SocialProvider) => {
+    const url = `${authOrigin}/api/auth/oauth/${provider}`;
+    return oauthNext ? `${url}?next=${encodeURIComponent(oauthNext)}` : url;
+  };
   // البطاقة بلا مفاتيح لا تكون رابطًا: الجاهزية تقرار على الخادم حصرًا.
   const ready = (provider: SocialProvider) => readyProviders.includes(provider);
   const availableProviders = SOCIAL_PROVIDERS.filter(ready);

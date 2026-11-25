@@ -386,6 +386,11 @@ export default function Admin() {
                             upsert: 'إضافة / تعديل',
                             delete: 'حذف',
                             register: 'حساب جديد',
+                            'report-review': 'بدء مراجعة بلاغ',
+                            'report-keep': 'إبقاء محتوى بعد بلاغ',
+                            'report-hide': 'إخفاء محتوى بعد بلاغ',
+                            'report-restore': 'استعادة محتوى بعد بلاغ',
+                            'report-delete': 'حذف محتوى بعد بلاغ',
                           } as Record<string, string>
                         )[a.action] || a.action}
                       </b>{' '}

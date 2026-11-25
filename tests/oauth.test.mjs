@@ -30,6 +30,7 @@ function load(file, imports = {}, globals = {}) {
   return context.exports;
 }
 const social = load('src/lib/social.ts');
+const gate = load('src/lib/gate.ts');
 const requestOrigin = load('src/lib/request-origin.ts');
 const { oauthConfig } = load('src/server/oauth-config.ts', { '@/lib/social': social });
 const { verifyIdentityToken } = load('src/server/oidc.ts', { jose });
@@ -152,6 +153,8 @@ test('Microsoft tenant-specific issuer is checked, including tenant restrictions
 function harness() {
   const db = new Database(':memory:');
   db.exec(fs.readFileSync('src/server/db.ts', 'utf8').match(/db.exec\(`([\s\S]*?)`\)/)[1]);
+  if (!db.pragma('table_info(oauth_flows)').some((column) => column.name === 'next'))
+    db.exec("ALTER TABLE oauth_flows ADD COLUMN next TEXT NOT NULL DEFAULT ''");
   const jar = new Map(),
     options = new Map(),
     sessions = [];
@@ -169,6 +172,7 @@ function harness() {
     {
       'node:crypto': crypto,
       '@/lib/social': social,
+      '@/lib/gate': gate,
       '@/lib/request-origin': requestOrigin,
       'next/headers': {
         cookies: async () => ({
@@ -203,11 +207,12 @@ function harness() {
     },
   );
   let lastFlow;
-  async function begin(provider = 'google') {
+  async function begin(provider = 'google', next = '') {
     const response = await api.beginOAuth(
-      new Request(`https://reactions.example/api/auth/oauth/${provider}`, {
-        headers: { host: 'reactions.example' },
-      }),
+      new Request(
+        `https://reactions.example/api/auth/oauth/${provider}${next ? `?next=${encodeURIComponent(next)}` : ''}`,
+        { headers: { host: 'reactions.example' } },
+      ),
       provider,
     );
     assert.equal(response.status, 303);
@@ -263,6 +268,28 @@ test('Google authorization has PKCE, state, nonce and creates one member/session
     h.db.close();
   }
 });
+test('OAuth restores an internal target and uses the member default for external or circular targets', async () => {
+  const h = harness();
+  try {
+    const internal = await h.begin('google', '/collections/students?tab=clips');
+    assert.equal(
+      (await h.callback(internal)).headers.get('location'),
+      'https://reactions.example/collections/students?tab=clips',
+    );
+    const external = await h.begin('google', 'https://evil.example/steal');
+    assert.equal(
+      (await h.callback(external)).headers.get('location'),
+      'https://reactions.example/saved',
+    );
+    const loop = await h.begin('google', '/login?next=/library');
+    assert.equal(
+      (await h.callback(loop)).headers.get('location'),
+      'https://reactions.example/saved',
+    );
+  } finally {
+    h.db.close();
+  }
+});
 test('Missing browser binding and expired state fail before token exchange', async () => {
   const h = harness();
   try {
@@ -278,17 +305,17 @@ test('Missing browser binding and expired state fail before token exchange', asy
     h.db.close();
   }
 });
-test('Apple uses form_post and Secure SameSite=None transaction cookie, with validated callback', async () => {
+test('Apple uses form_post, a Secure SameSite=None cookie and restores its internal target', async () => {
   const h = harness();
   try {
-    const url = await h.begin('apple');
+    const url = await h.begin('apple', '/account?tab=settings');
     assert.equal(url.searchParams.get('response_mode'), 'form_post');
     assert.equal(url.searchParams.has('code_challenge'), false);
     assert.equal([...h.options.values()][0].sameSite, 'none');
     assert.equal([...h.options.values()][0].secure, true);
     assert.equal(
       (await h.callback(url, 'apple')).headers.get('location'),
-      'https://reactions.example/saved',
+      'https://reactions.example/account?tab=settings',
     );
     assert.equal(h.sessions.length, 1);
   } finally {
@@ -343,10 +370,10 @@ test('An email collision never auto-links or takes over a legacy administrator',
   }
 });
 
-test('Microsoft callback establishes a local member using the validated tenant identity', async () => {
+test('Microsoft callback establishes a local member and restores its internal target', async () => {
   const h = harness();
   try {
-    const url = await h.begin('microsoft');
+    const url = await h.begin('microsoft', '/r/YR-0001');
     assert.equal(url.searchParams.get('code_challenge_method'), 'S256');
     h.setPatch({
       tid: consumer,
@@ -355,7 +382,7 @@ test('Microsoft callback establishes a local member using the validated tenant i
     });
     assert.equal(
       (await h.callback(url, 'microsoft')).headers.get('location'),
-      'https://reactions.example/saved',
+      'https://reactions.example/r/YR-0001',
     );
     assert.match(h.db.prepare('SELECT email FROM users').get().email, /@social\.invalid$/);
     assert.equal(h.sessions.length, 1);
@@ -385,6 +412,11 @@ test('An already-linked owner keeps the same account, role and admin destination
     );
     assert.equal(h.sessions[0], 'owner');
     assert.equal(h.db.prepare('SELECT COUNT(*) n FROM users').get().n, 1);
+    const requested = await h.begin('google', '/collections/students');
+    assert.equal(
+      (await h.callback(requested)).headers.get('location'),
+      'https://reactions.example/collections/students',
+    );
   } finally {
     h.db.close();
   }

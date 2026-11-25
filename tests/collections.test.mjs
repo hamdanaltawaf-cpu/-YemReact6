@@ -13,7 +13,7 @@ const code = ts.transpileModule(source, {
 const context = { exports: {} };
 vm.runInNewContext(code, context);
 const { collectionMembers, detailRecommendations } = context.exports;
-function loadServerCollections(rows, members) {
+function loadServerCollections(rows, members, hiddenCodes = []) {
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync('src/server/collections.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
@@ -28,7 +28,10 @@ function loadServerCollections(rows, members) {
           db: {
             prepare: (sql) => ({ all: () => (sql.includes('SELECT slug,title') ? rows : members) }),
           },
-          findReaction: () => null,
+          findReaction: (code) =>
+            hiddenCodes.includes(code)
+              ? null
+              : reactions.find((reaction) => reaction.code === code),
         };
       if (name === './auth') return { ApiError: class ApiError extends Error {} };
       return require(name);
@@ -109,6 +112,29 @@ test('An active empty collection remains addressable for its fallback page but i
   );
   assert.equal(collections.collectionBySlug('empty-active').count, 0);
   assert.equal(collections.collectionBySlug('hidden-empty'), undefined);
+});
+test('Hidden reactions and hidden covers are excluded from public collection data', () => {
+  const collections = loadServerCollections(
+    [
+      {
+        slug: 'visible-after-hide',
+        title: 'مجموعة ظاهرة',
+        description: '',
+        kind: 'thematic',
+        cover_code: 'YR-0001',
+        active: 1,
+      },
+    ],
+    [
+      { slug: 'visible-after-hide', code: 'YR-0001' },
+      { slug: 'visible-after-hide', code: 'YR-0002' },
+    ],
+    ['YR-0001'],
+  );
+  const collection = collections.collectionBySlug('visible-after-hide');
+  assert.deepEqual(Array.from(collection.memberCodes), ['YR-0002']);
+  assert.equal(collection.count, 1);
+  assert.equal(collection.coverCode, 'YR-0002');
 });
 test('Public card/masonry and logo preserve Stage 4 constraints', () => {
   const card = fs.readFileSync('src/components/ReactionCard.tsx', 'utf8');

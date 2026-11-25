@@ -27,6 +27,7 @@ db.exec(`
  CREATE TABLE IF NOT EXISTS collection_items(slug TEXT NOT NULL REFERENCES collections(slug) ON DELETE CASCADE,code TEXT NOT NULL REFERENCES reactions(code) ON DELETE CASCADE,position INTEGER NOT NULL,PRIMARY KEY(slug,code));
  CREATE INDEX IF NOT EXISTS idx_collection_items_code ON collection_items(code);
  CREATE TABLE IF NOT EXISTS reports(id INTEGER PRIMARY KEY AUTOINCREMENT,code TEXT NOT NULL,reason TEXT NOT NULL,detail TEXT NOT NULL DEFAULT '',created_at TEXT NOT NULL);
+ CREATE TABLE IF NOT EXISTS hidden_reactions(code TEXT PRIMARY KEY REFERENCES reactions(code) ON DELETE CASCADE,hidden_by TEXT,hidden_at TEXT NOT NULL);
  CREATE INDEX IF NOT EXISTS idx_reports_created ON reports(created_at);
  CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at);
  CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires);
@@ -38,6 +39,24 @@ if (
   )
 )
   db.exec("ALTER TABLE collections ADD COLUMN kind TEXT NOT NULL DEFAULT 'thematic'");
+// Additive upgrades preserve existing OAuth transactions and report history.
+if (
+  !(db.pragma('table_info(oauth_flows)') as { name: string }[]).some(
+    (column) => column.name === 'next',
+  )
+)
+  db.exec("ALTER TABLE oauth_flows ADD COLUMN next TEXT NOT NULL DEFAULT ''");
+const reportColumns = db.pragma('table_info(reports)') as { name: string }[];
+if (!reportColumns.some((column) => column.name === 'status'))
+  db.exec("ALTER TABLE reports ADD COLUMN status TEXT NOT NULL DEFAULT 'open'");
+if (!reportColumns.some((column) => column.name === 'resolution'))
+  db.exec("ALTER TABLE reports ADD COLUMN resolution TEXT NOT NULL DEFAULT ''");
+if (!reportColumns.some((column) => column.name === 'reviewed_by'))
+  db.exec('ALTER TABLE reports ADD COLUMN reviewed_by TEXT');
+if (!reportColumns.some((column) => column.name === 'reviewed_at'))
+  db.exec('ALTER TABLE reports ADD COLUMN reviewed_at TEXT');
+if (!reportColumns.some((column) => column.name === 'review_note'))
+  db.exec("ALTER TABLE reports ADD COLUMN review_note TEXT NOT NULL DEFAULT ''");
 if (!db.prepare("SELECT value FROM meta WHERE key='seeded'").get())
   db.transaction(() => {
     const put = db.prepare('INSERT OR IGNORE INTO reactions(code,data) VALUES (?,?)');
@@ -93,10 +112,22 @@ if (!db.prepare("SELECT value FROM meta WHERE key='collections-curated-v1'").get
     db.prepare("INSERT INTO meta(key,value) VALUES ('collections-curated-v1','1')").run();
   })();
 export const listReactions = () =>
-  (db.prepare('SELECT data FROM reactions ORDER BY code').all() as { data: string }[]).map(
-    (r) => JSON.parse(r.data) as Reaction,
-  );
+  (
+    db
+      .prepare(
+        'SELECT r.data FROM reactions r LEFT JOIN hidden_reactions h ON h.code=r.code WHERE h.code IS NULL ORDER BY r.code',
+      )
+      .all() as { data: string }[]
+  ).map((r) => JSON.parse(r.data) as Reaction);
 export const findReaction = (code: string) => {
+  const r = db
+    .prepare(
+      'SELECT r.data FROM reactions r LEFT JOIN hidden_reactions h ON h.code=r.code WHERE r.code=? AND h.code IS NULL',
+    )
+    .get(code) as { data: string } | undefined;
+  return r ? (JSON.parse(r.data) as Reaction) : undefined;
+};
+export const findReactionIncludingHidden = (code: string) => {
   const r = db.prepare('SELECT data FROM reactions WHERE code=?').get(code) as
     { data: string } | undefined;
   return r ? (JSON.parse(r.data) as Reaction) : undefined;

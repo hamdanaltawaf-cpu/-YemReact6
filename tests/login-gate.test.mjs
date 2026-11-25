@@ -10,7 +10,7 @@ function transpile(file) {
     ts.transpileModule(fs.readFileSync(file, 'utf8'), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText,
-    { exports },
+    { exports, URL },
   );
   return exports;
 }
@@ -45,8 +45,11 @@ test('safeNext keeps internal paths and rejects external, protocol-relative and 
     'javascript:alert(1)',
     '/login',
     '/login?next=/library',
+    '/login/',
+    '/login#section',
     '/',
     'library',
+    `/${'a'.repeat(2049)}`,
   ])
     assert.equal(safeNext(rejected), '/library', `rejected: ${JSON.stringify(rejected)}`);
   assert.equal(safeNext(undefined, '/saved'), '/saved');

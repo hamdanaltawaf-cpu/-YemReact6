@@ -36,15 +36,16 @@ export function listCollections(includeDrafts = false): Collection[] {
     .map((row) => {
       const codes = members
         .filter((member) => member.slug === row.slug)
-        .map((member) => member.code);
-      const reaction = findReaction(row.cover_code || codes[0] || '');
+        .map((member) => member.code)
+        .filter((code) => findReaction(code));
+      const reaction = findReaction(row.cover_code || '') || findReaction(codes[0] || '');
       return {
         slug: row.slug,
         kind: row.kind,
         title: row.title,
         description: row.description,
         cover: reaction?.poster || null,
-        coverCode: row.cover_code,
+        coverCode: reaction?.code || null,
         memberCodes: codes,
         count: codes.length,
         active: row.active === 1,
