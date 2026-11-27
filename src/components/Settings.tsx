@@ -42,7 +42,12 @@ export function SettingsPanel() {
   const [signingOut, setSigningOut] = useState(false);
   const helpLink = useRef<HTMLAnchorElement>(null);
   const user = app.authReady && !app.authError ? app.user : null;
-  const showAccount = Boolean(user) || !app.authReady || Boolean(app.authError);
+  const studioHref =
+    user?.role === 'admin'
+      ? '/admin'
+      : !user && app.authReady && !app.authError
+        ? '/login?next=%2Fadmin'
+        : null;
   const selectedAccent = accents.find(([color]) => color === app.accent);
 
   async function signOut() {
@@ -284,62 +289,81 @@ export function SettingsPanel() {
           </div>
         </section>
 
-        {showAccount && (
-          <section className="settings-secondary" aria-labelledby={`${id}-account`}>
-            <h2 id={`${id}-account`}>الحساب</h2>
-            <div className="settings-utility-list">
-              {user?.role === 'admin' && (
-                <Link className="settings-utility" href="/admin">
-                  <span className="settings-utility-icon">
-                    <Clapperboard size={19} aria-hidden="true" />
-                  </span>
-                  <span className="settings-utility-copy">
-                    <strong>الاستوديو</strong>
-                  </span>
-                  <ArrowLeft className="settings-utility-arrow" size={17} aria-hidden="true" />
-                </Link>
-              )}
-              {user && (
-                <button
-                  type="button"
-                  className="settings-utility settings-signout"
-                  disabled={signingOut}
-                  onClick={() => void signOut()}
-                >
-                  <span className="settings-utility-icon">
-                    <LogOut size={19} aria-hidden="true" />
-                  </span>
-                  <span className="settings-utility-copy">
-                    <strong>{signingOut ? 'جارٍ تسجيل الخروج…' : 'تسجيل الخروج'}</strong>
-                  </span>
+        <section className="settings-secondary" aria-labelledby={`${id}-account`}>
+          <h2 id={`${id}-account`}>الحساب</h2>
+          <div className="settings-utility-list">
+            {studioHref ? (
+              <Link className="settings-utility" href={studioHref} aria-label="دخول الاستديو">
+                <span className="settings-utility-icon">
+                  <Clapperboard size={19} aria-hidden="true" />
+                </span>
+                <span className="settings-utility-copy">
+                  <strong>{user?.role === 'admin' ? 'الاستديو' : 'دخول الاستديو'}</strong>
+                  <small>
+                    {user?.role === 'admin'
+                      ? 'إدارة مكتبة يمن رياكت والمساهمات.'
+                      : 'سجّل الدخول بحساب مالك المكتبة للوصول إلى أدوات الإدارة.'}
+                  </small>
+                </span>
+                <ArrowLeft className="settings-utility-arrow" size={17} aria-hidden="true" />
+              </Link>
+            ) : (
+              <div className="settings-utility settings-studio-unavailable" aria-disabled="true">
+                <span className="settings-utility-icon">
+                  <Clapperboard size={19} aria-hidden="true" />
+                </span>
+                <span className="settings-utility-copy">
+                  <strong>الاستديو</strong>
+                  <small>
+                    {app.authError
+                      ? 'تعذّر التحقق من الحساب.'
+                      : app.authReady
+                        ? 'يتطلب الدخول بحساب مالك المكتبة.'
+                        : 'جارٍ التحقق من الحساب…'}
+                  </small>
+                </span>
+              </div>
+            )}
+            {user && (
+              <button
+                type="button"
+                className="settings-utility settings-signout"
+                disabled={signingOut}
+                onClick={() => void signOut()}
+              >
+                <span className="settings-utility-icon">
+                  <LogOut size={19} aria-hidden="true" />
+                </span>
+                <span className="settings-utility-copy">
+                  <strong>{signingOut ? 'جارٍ تسجيل الخروج…' : 'تسجيل الخروج'}</strong>
+                </span>
+              </button>
+            )}
+            {app.authError ? (
+              <div className="settings-utility settings-session-status" role="alert">
+                <span className="settings-utility-icon">
+                  <TriangleAlert size={19} aria-hidden="true" />
+                </span>
+                <span className="settings-utility-copy">
+                  <strong>تعذّر التحقق من الحساب.</strong>
+                  <small>حاول مجددًا للتحقق من الجلسة.</small>
+                </span>
+                <button type="button" onClick={() => void app.syncUser()}>
+                  إعادة المحاولة
                 </button>
-              )}
-              {app.authError ? (
-                <div className="settings-utility settings-session-status" role="alert">
-                  <span className="settings-utility-icon">
-                    <TriangleAlert size={19} aria-hidden="true" />
-                  </span>
-                  <span className="settings-utility-copy">
-                    <strong>تعذّر التحقق من الحساب.</strong>
-                    <small>حاول مجددًا للتحقق من الجلسة.</small>
-                  </span>
-                  <button type="button" onClick={() => void app.syncUser()}>
-                    إعادة المحاولة
-                  </button>
-                </div>
-              ) : !app.authReady ? (
-                <div className="settings-utility settings-session-status" role="status">
-                  <span className="settings-utility-icon">
-                    <ShieldCheck size={19} aria-hidden="true" />
-                  </span>
-                  <span className="settings-utility-copy">
-                    <strong>جارٍ التحقق من الحساب…</strong>
-                  </span>
-                </div>
-              ) : null}
-            </div>
-          </section>
-        )}
+              </div>
+            ) : !app.authReady ? (
+              <div className="settings-utility settings-session-status" role="status">
+                <span className="settings-utility-icon">
+                  <ShieldCheck size={19} aria-hidden="true" />
+                </span>
+                <span className="settings-utility-copy">
+                  <strong>جارٍ التحقق من الحساب…</strong>
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </section>
       </div>
     </div>
   );
