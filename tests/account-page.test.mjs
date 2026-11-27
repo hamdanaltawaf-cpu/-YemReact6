@@ -501,3 +501,17 @@ test('Desktop header keeps publish/account structure identical across public rou
     /@media \(max-width: 639px\) \{\s*\.site-header \.account-header-tools \{\s*display: flex;/,
   );
 });
+
+test('Desktop upload action has one label and account page colors do not reach the shared header', () => {
+  const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
+  const navigation = fs.readFileSync('src/app/navigation.css', 'utf8');
+  const tokens = fs.readFileSync('src/app/account-settings-tokens.css', 'utf8');
+  assert.match(header, /<Upload size=\{17\}[^>]*aria-hidden="true" \/>/);
+  assert.match(header, /<span className="desktop-quick-action-label">إرسال رياكشن<\/span>/);
+  assert.match(
+    navigation,
+    /@media \(min-width: 768px\) \{\s*\.desktop-quick-action \{[\s\S]*?width: auto;/,
+  );
+  assert.match(tokens, /main:has\(\.account-page, \.settings-page\) \{[\s\S]*?--bg: #f5f1ea;/);
+  assert.doesNotMatch(tokens, /body:has\(\.account-page, \.settings-page\)/);
+});

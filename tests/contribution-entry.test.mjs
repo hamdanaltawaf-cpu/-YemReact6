@@ -63,7 +63,9 @@ test('Two primary destinations stay separate from the active mock-upload quick a
   // البحث وزر الإرسال المنفصل ضالّان في رأس سطح المكتب بوجهتيهما الحاليين
   assert.match(header, /function UploadQuickAction/);
   assert.match(header, /href="\/contribute"/);
-  assert.match(header, /aria-label="رفع رياكشن — تجربة محلية"/);
+  assert.match(header, /aria-label=\{mobile \? 'رفع رياكشن — تجربة محلية' : 'إرسال رياكشن'\}/);
+  assert.match(header, /<span>رفع<\/span>/);
+  assert.match(header, /<span className="desktop-quick-action-label">إرسال رياكشن<\/span>/);
   assert.match(header, /mobile-quick-action/);
   // الشريط السفلي صار مكوّن GlassNav الزجاجي: ثلاثة تبويبات بترتيب RTL وبصيغة المستخدم —
   // المكتبة، المجموعات، الحساب. «المحفوظات» و«اضافة» أُزيلتا من شريط الهاتف.
@@ -200,12 +202,16 @@ test('Single header row locks: one search field, glass-nav mobile-only, hide-on-
   assert.match(glassCss, /padding-bottom: calc\(var\(--gnav-h\) \+ 42px/);
   assert.equal(glassCss.match(/body:has\(> \.glass-nav\)/g)?.length, 1);
   assert.match(mobileBlock, /\.library-search button \{[^}]*width: var\(--button-height\)/);
-  // نطاق 640–1023 يعيد التنقّل والحساب، و768 يعيد زر الرفع
+  // نطاق 640–1023 يعيد التنقّل والحساب، و768 يعيد زر الإرسال النصي
   const mid = navCss.split('@media (min-width: 640px) and (max-width: 1023px)')[1] ?? '';
   assert.match(mid, /\.site-header \.desktop-nav \{[^}]*display: flex/);
-  assert.match(mid, /\.site-header \.header-account \{[^}]*display: block/);
+  assert.match(mid, /\.site-header \.header-account \{[^}]*display: flex/);
   const mid768 = navCss.split('@media (min-width: 768px) and (max-width: 1023px)')[1] ?? '';
-  assert.match(mid768, /\.desktop-quick-action \{[^}]*display: grid/);
+  assert.match(mid768, /\.desktop-quick-action \{[^}]*display: inline-flex/);
+  assert.match(
+    navCss,
+    /@media \(min-width: 768px\) \{[\s\S]*?\.account-menu-trigger \{\s*display: grid;/,
+  );
   // translateY(-110%) + pointer-events:none داخل ≤1023 فقط
   assert.match(mobileBlock, /\.site-header\.header-hidden \{[^}]*transform: translateY\(-110%\)/);
   assert.match(mobileBlock, /\.site-header\.header-hidden \{[^}]*pointer-events: none/);
