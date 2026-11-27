@@ -23,6 +23,19 @@
   align-items: center;
   gap: 10px;
 }
+/* Desktop uses the same publish/account group on every route. The account-only
+   tools remain exclusively in its existing phone header. */
+.header-desktop-publish {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+@media (max-width: 639px) {
+  .site-header .header-desktop-publish {
+    display: none;
+  }
+}
+
 /* حقل بحث واحد داخل صفّ الرأس، يملأ الوسط ولا يكسر الصفّ */
 .library-search {
   display: flex;
