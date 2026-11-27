@@ -91,9 +91,11 @@
   flex: none;
   width: var(--button-height);
   height: var(--button-height);
+  padding-inline: 0;
   border-radius: var(--radius-header-action);
   background: var(--accent-text);
   color: var(--bg);
+  text-decoration: none;
   transition:
     background var(--motion-micro) var(--ease-standard),
     box-shadow var(--motion-micro) var(--ease-standard);
@@ -101,6 +103,9 @@
 .desktop-quick-action:hover {
   background: color-mix(in srgb, var(--accent-text) 87%, black);
   box-shadow: 0 5px 15px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.desktop-quick-action-label {
+  display: none;
 }
 .mobile-quick-action {
   display: none;
@@ -129,6 +134,23 @@
 .mobile-quick-action:focus-visible {
   outline: 3px solid var(--accent-text);
   outline-offset: 3px;
+}
+@media (min-width: 768px) {
+  .desktop-quick-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: auto;
+    min-width: 44px;
+    padding-inline: 14px;
+    white-space: nowrap;
+  }
+  .desktop-quick-action-label {
+    display: inline;
+    font-size: 12px;
+    font-weight: 650;
+  }
 }
 .mobile-upload-symbol {
   display: grid;
@@ -165,7 +187,7 @@
   border-color: var(--accent-text);
   background: var(--accent-soft);
 }
-/* دفعة 2: سهم قائمة الحساب — عنصر مستقل، حاسوب ≥1024px فقط (الصورة تفتح /account) */
+/* دفعة 2: سهم قائمة الحساب — عنصر مستقل للشاشات الأوسع من الهاتف (الصورة تفتح /account) */
 .account-menu-trigger {
   display: none;
   place-items: center;
@@ -186,7 +208,7 @@
   color: var(--accent-text);
   background: var(--accent-soft);
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .account-menu-trigger {
     display: grid;
   }
@@ -771,16 +793,16 @@
     display: flex;
   }
   .site-header .header-account {
-    display: block;
+    display: flex;
   }
   .library-search {
     height: var(--button-height);
   }
 }
-/* زر الرفع يعود من 768px */
+/* زر الإرسال النصي يعود عند عرض يسمح بظهوره دون تغيير تخطيط الهاتف. */
 @media (min-width: 768px) and (max-width: 1023px) {
   .desktop-quick-action {
-    display: grid;
+    display: inline-flex;
   }
 }
 @keyframes sheet-in {

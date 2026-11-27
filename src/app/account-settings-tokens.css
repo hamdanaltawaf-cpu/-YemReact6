@@ -53,14 +53,15 @@
   --state-published-border: #47684d;
 }
 
-/* Reference palette only while one of the two adapted surfaces is mounted. */
-body:has(.account-page, .settings-page) {
+/* Keep the adapted page palette inside <main>; the shared header is its sibling. */
+main:has(.account-page, .settings-page) {
   --bg: #f5f1ea;
   --surface: #fffdf9;
   --ink: #20221e;
   --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--bg));
+  background: var(--bg);
 }
-:root[data-theme='dark'] body:has(.account-page, .settings-page) {
+:root[data-theme='dark'] main:has(.account-page, .settings-page) {
   --bg: #151714;
   --surface: #20231e;
   --ink: #f3eee6;

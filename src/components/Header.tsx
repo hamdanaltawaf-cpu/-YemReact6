@@ -14,6 +14,7 @@ import {
   Plus,
   Search,
   Send,
+  Upload,
   X,
   Settings2,
   UserRound,
@@ -42,8 +43,8 @@ function UploadQuickAction({ mobile = false }: { mobile?: boolean }) {
     <Link
       href="/contribute"
       className={mobile ? 'mobile-quick-action' : 'desktop-quick-action'}
-      aria-label="رفع رياكشن — تجربة محلية"
-      title="رفع رياكشن — تجربة محلية بدون نشر فعلي"
+      aria-label={mobile ? 'رفع رياكشن — تجربة محلية' : 'إرسال رياكشن'}
+      title={mobile ? 'رفع رياكشن — تجربة محلية بدون نشر فعلي' : 'إرسال رياكشن'}
     >
       {mobile ? (
         <>
@@ -53,7 +54,10 @@ function UploadQuickAction({ mobile = false }: { mobile?: boolean }) {
           <span>رفع</span>
         </>
       ) : (
-        <Plus size={22} strokeWidth={2.2} aria-hidden="true" />
+        <>
+          <Upload size={17} strokeWidth={2.2} aria-hidden="true" />
+          <span className="desktop-quick-action-label">إرسال رياكشن</span>
+        </>
       )}
     </Link>
   );
