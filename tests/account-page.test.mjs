@@ -286,7 +286,7 @@ test('Mock contribution login does not become a real account identity', () => {
 test('Header keeps the public top bar clean; avatar opens /account and the adjacent arrow owns the desktop popover', () => {
   const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
   // الرأس العام نفسه بلا زرّي «إرسال رياكشن»/«الإعدادات» — وحصة إعدادات القائمة تبقى الصفحة
-  assert.match(header, /accountPage \? \(/);
+  assert.match(header, /accountPage && \(/);
   // لا ورقة حساب بعد الآن: لا مكوّن سطح داخل الرأس، ولا حالة ورقة أساسًا
   assert.doesNotMatch(header, /AccountSurface/);
   assert.doesNotMatch(header, /accountSheet/);
@@ -484,5 +484,20 @@ test('Guest identity uses a narrow-screen grid so sign-in cannot collapse its co
   assert.match(
     css,
     /\.account-identity-guest > \.account-signin,\s*\.account-identity-guest > \.account-google-pending \{\s*grid-column: 1 \/ -1;\s*width: 100%;/,
+  );
+});
+
+test('Desktop header keeps publish/account structure identical across public routes', () => {
+  const header = fs.readFileSync('src/components/Header.tsx', 'utf8');
+  assert.match(
+    header,
+    /<div className="header-desktop-publish">\s*<UploadQuickAction \/>\s*<\/div>/,
+  );
+  assert.doesNotMatch(header, /accountPage \? \(/);
+  const css = fs.readFileSync('src/app/account.css', 'utf8');
+  assert.match(css, /\.account-header-tools \{\s*display: none;/);
+  assert.match(
+    css,
+    /@media \(max-width: 639px\) \{\s*\.site-header \.account-header-tools \{\s*display: flex;/,
   );
 });

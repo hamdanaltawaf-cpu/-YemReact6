@@ -398,7 +398,10 @@ export function Header({
           {!accountPage && <UploadQuickAction mobile />}
 
           <div className="header-actions">
-            {accountPage ? (
+            <div className="header-desktop-publish">
+              <UploadQuickAction />
+            </div>
+            {accountPage && (
               <nav className="account-header-tools" aria-label="أدوات الحساب">
                 <Link
                   href="/contribute"
@@ -417,8 +420,6 @@ export function Header({
                   <Settings2 size={20} aria-hidden="true" />
                 </Link>
               </nav>
-            ) : (
-              <UploadQuickAction />
             )}
             <div
               className="header-account"

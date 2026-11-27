@@ -727,7 +727,7 @@
   --radius-card: 12px;
 }
 .account-header-tools {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 4px;
 }
@@ -759,6 +759,9 @@
 
 /* الهاتف في الحساب: الشعار ثم البحث والإرسال والإعدادات، وحقل واحد عند الفتح. */
 @media (max-width: 639px) {
+  .site-header .account-header-tools {
+    display: flex;
+  }
   .site-header .header-row-account {
     gap: 4px;
   }
