@@ -429,6 +429,64 @@ test('SettingsPanel keeps all five sections working on the page; the legacy moda
     assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /setSettings\(true\)/);
 });
 
+test('Settings exposes studio sign-in to guests without granting studio access to members', () => {
+  function renderStudioEntry(user) {
+    const app = {
+      theme: 'system',
+      setTheme: () => {},
+      accent: '#c1592e',
+      setAccent: () => {},
+      reduced: false,
+      setReduced: () => {},
+      settings: false,
+      setSettings: () => {},
+      toast: () => {},
+      authReady: true,
+      authError: false,
+      user,
+      logout: async () => true,
+    };
+    const mod = load(
+      'src/components/Settings.tsx',
+      {
+        './AppProvider': { useApp: () => app },
+        './ui/Modal': { Modal: () => null },
+        'next/navigation': {},
+        'next/link': {
+          __esModule: true,
+          default: ({ href, children, ...props }) =>
+            React.createElement('a', { href, ...props }, children),
+        },
+        'lucide-react': new Proxy({}, { get: () => () => null }),
+      },
+      { window: undefined },
+    );
+    return renderToStaticMarkup(React.createElement(mod.SettingsPanel));
+  }
+
+  const guest = renderStudioEntry(null);
+  assert.match(guest, /href="\/login\?next=%2Fadmin"[^>]*aria-label="دخول الاستديو"/);
+  assert.match(guest, /سجّل الدخول بحساب مالك المكتبة للوصول إلى أدوات الإدارة/);
+
+  const admin = renderStudioEntry({
+    id: 'owner',
+    name: 'مالك',
+    email: 'owner@example.test',
+    role: 'admin',
+  });
+  assert.match(admin, /href="\/admin"[^>]*aria-label="دخول الاستديو"/);
+  assert.match(admin, /إدارة مكتبة يمن رياكت والمساهمات/);
+
+  const member = renderStudioEntry({
+    id: 'member',
+    name: 'عضو',
+    email: 'member@example.test',
+    role: 'member',
+  });
+  assert.doesNotMatch(member, /href="\/admin"/);
+  assert.match(member, /يتطلب الدخول بحساب مالك المكتبة/);
+});
+
 function authRouteWith({ user }) {
   const calls = { update: [], audit: [] };
   const route = load(
